@@ -172,7 +172,7 @@ export function drawWaterPond(ctx, pond, camera) {
   if (!pond) return;
   const c = pond.col;
   const r = pond.row;
-  const size = 2; // 4x4 pond
+  const size = 2.0; // Adjusted for larger square
 
   const time = Date.now() / 1000;
 
@@ -509,6 +509,28 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
 
 
 
+function drawStoneTile(ctx, col, row, camera) {
+  const p = isoToScreen(col, row, camera);
+
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - TILE_H / 2);
+  ctx.lineTo(p.x + TILE_W / 2, p.y);
+  ctx.lineTo(p.x, p.y + TILE_H / 2);
+  ctx.lineTo(p.x - TILE_W / 2, p.y);
+  ctx.closePath();
+
+  ctx.fillStyle = "#9e9e9e";
+  ctx.fill();
+  ctx.strokeStyle = "#616161";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Stone pattern
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillRect(p.x - 12, p.y - 2, 8, 4);
+  ctx.fillRect(p.x + 4, p.y - 4, 10, 3);
+}
+
 export function drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -529,6 +551,8 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
     const tile = world.tiles[r][c];
     if (tile.type === TILE_TYPES.DIRT) {
       drawDirtTile(ctx, c, r, camera);
+    } else if (tile.type === TILE_TYPES.STONE) {
+      drawStoneTile(ctx, c, r, camera);
     } else {
       drawGrassTile(ctx, c, r, camera);
     }

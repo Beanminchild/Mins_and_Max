@@ -35,8 +35,8 @@ let waterCanFillAmount = 5;
 
 export function createButton() {
   return {
-    col: 12,
-    row: 10,
+    col: 6,
+    row: 17,
     pressed: false,
     minCount: 0
   };
@@ -44,23 +44,23 @@ export function createButton() {
 
 export function createBox() {
   return {
-    col: BOX_COL,
-    row: BOX_ROW
+    col: 6,
+    row: 14
   };
 }
 
 export function createDominion() {
   return {
-    col: DOMINION_COL,
-    row: DOMINION_ROW
+    col: 38,
+    row: 16
   };
 }
 
 export function createWorld() {
   const mins = Array.from({ length: MIN_SPAWN_COUNT }, (_, index) => ({
     id: index + 1,
-    col: 3 + (index % 3) * 4,
-    row: 3 + Math.floor(index / 3) * 3,
+    col: 15 + (index % 3) * 2,
+    row: 15 + Math.floor(index / 3) * 2,
     state: "loose",
     followIndex: 0,
     target: null,
@@ -71,14 +71,33 @@ export function createWorld() {
     isDelivering: false
   }));
 
-// Inside the createWorld() function, find where 'tiles' is initialized:
 const tiles = Array.from({ length: rows }, (_, row) =>
   Array.from({ length: cols }, (_, col) => {
-    // Define a town area on the left center (cols 0-2, rows 9-15)
-    const isTownPath = col <= 2 && row >= 9 && row <= 15;
+    // // 1. Core Grass Farm (Shifted slightly to make room for square on left)
+    // const farmColStart = 10;
+    // const farmColEnd = 30;
+    // const farmRowStart = 8;
+    // const farmRowEnd = 24;
+    // const isFarm = col >= farmColStart && col <= farmColEnd && row >= farmRowStart && row <= farmRowEnd;
+    
+    // 2. Town Square (on the far LEFT)
+    const squareWidth = 6;
+    const squareHeight = 64;
+    const squareColStart = 15;
+    const squareRowStart = 0;
+    const isTownSquare = col >= squareColStart && col < squareColStart + squareWidth && 
+                         row >= squareRowStart && row < squareRowStart + squareHeight;
+
+    // 3. Walkway connecting Square to Farm and then extending out to the far RIGHT
+    const walkwayRowStart = 15;
+    const walkwayRowEnd = 17;
+    // Walkway exists from square edge (col 8) across the farm and to the end (col 39)
+    const isWalkway = (col >= 0 && col < cols) && row >= walkwayRowStart && row <= walkwayRowEnd || (col >= 18 && col < 20) && row == 20 && row <= 32;
+    
+    const isStone = isTownSquare || isWalkway;
     
     return {
-      type: isTownPath ? TILE_TYPES.DIRT : TILE_TYPES.GRASS,
+      type: isStone ? TILE_TYPES.STONE : TILE_TYPES.GRASS,
       planted: false,
       watered: false,
       growth: 0,
@@ -131,9 +150,9 @@ export function tryInteractWithPond(character, world) {
   if (world.selectedTool !== TOOL_TYPES.WATERING_CAN) return false;
   if (world.waterCanFillAmount >= WATER_CAN_MAX) return false;
 
-  // Pond center (for a 4x4 pond starting at COL, ROW)
-  const pondCenterX = WATER_POND_COL + 1.5; 
-  const pondCenterY = WATER_POND_ROW + 1.5;
+  // Pond center (for a 3x3 pond starting at COL, ROW)
+  const pondCenterX = WATER_POND_COL + 1; 
+  const pondCenterY = WATER_POND_ROW + 1;
   const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
 
   // Interaction check (radius + pond half-width)
@@ -445,6 +464,9 @@ export function useToolAtCursor(world, cursor) {
   const row = clampTileValue(cursor.row, rows);
   const tile = world.tiles[row][col];
   if (!tile) return false;
+
+  // Prevent interactions on stone tiles
+  if (tile.type === TILE_TYPES.STONE) return false;
 
   if (world.selectedTool === TOOL_TYPES.HOE) {
     tile.type = TILE_TYPES.DIRT;

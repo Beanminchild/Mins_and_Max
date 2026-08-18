@@ -1,5 +1,5 @@
-export const cols = 24;
-export const rows = 24;
+export const cols = 64;
+export const rows = 32;
 export const TILE_W = 64;
 export const TILE_H = 32;
 
@@ -17,27 +17,27 @@ export const THROW_SUCCESS_BASE = 0.5;
 export const THROW_SUCCESS_PER_DISTANCE = 0.08;
 export const THROW_MAX_DISTANCE = 8;
 
-export const BOX_COL = 10;
-export const BOX_ROW = 8;
+export const BOX_COL = 6;
+export const BOX_ROW = 14;
 export const BOX_INTERACTION_RADIUS = 1.5;
 
-export const DOMINION_COL = 2;
-export const DOMINION_ROW = 5;
+export const DOMINION_COL = 38;
+export const DOMINION_ROW = 16;
 export const DOMINION_INTERACTION_RADIUS = 1.5;
 
-export const WATER_POND_COL = 5;
-export const WATER_POND_ROW = 5;
+export const WATER_POND_COL = 2;
+export const WATER_POND_ROW = 14;
 export const WATER_POND_INTERACTION_RADIUS = 1.5;
 
 
-export const SHOP_BUILDING_COL = 0;
-export const SHOP_BUILDING_ROW = 10;
-export const OTHER_BUILDING_COL = 0;
-export const OTHER_BUILDING_ROW = 14;
+export const SHOP_BUILDING_COL = 1;
+export const SHOP_BUILDING_ROW = 12;
+export const OTHER_BUILDING_COL = 1;
+export const OTHER_BUILDING_ROW = 17;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
-export const SHOPKEEPER_COL = 0.3; 
-export const SHOPKEEPER_ROW = 10;
+export const SHOPKEEPER_COL = 1.3; 
+export const SHOPKEEPER_ROW = 12;
 
 
 
@@ -56,7 +56,8 @@ export const TOOL_TYPES = {
 
 export const TILE_TYPES = {
   GRASS: "grass",
-  DIRT: "dirt"
+  DIRT: "dirt",
+  STONE: "stone"
 };
 
 export const PLANT_STAGES = {
