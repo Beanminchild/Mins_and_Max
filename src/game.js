@@ -9,15 +9,17 @@ import {
   updateMins,
   updateWorld,
   useToolAtCursor,
-  tryHarvestCrop,
-  tryTakeCropFromMin,
-  tryDepositCrop,
+  tryHarvestCrop,  
+  tryDepositToBox,
   tryDepositToDominion,
   tryInteractWithPond,
   tryInteractWithShop,
-  spawnNewMin
+  tryInteractWithGravestone,
+  spawnNewMin, 
+  tryPickupLumber,
+  tryTakeFromMin,
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, TREE_SWINGS_TO_FELL } from "./constants.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -178,6 +180,13 @@ function syncHUD() {
     countDisplay.textContent = world.cropsCollected;
   }
 
+
+    // Add lumber display (optional - next to crops or separate)
+  const lumberDisplay = document.getElementById("lumber-count");
+  if (lumberDisplay) {
+    lumberDisplay.textContent = world.lumberCollected;
+  }
+
   const walletDisplay = document.getElementById("wallet-amount");
   if (walletDisplay) {
     walletDisplay.textContent = `${world.wallet}g`;
@@ -192,9 +201,8 @@ function handleToolAction() {
   if (world.selectedTool === "min") {
     throwMin(character, mins, button, world.box, cursor);
   } else if (world.selectedTool === "empty-hands") {
-    const harvested = tryHarvestCrop(character, world);
-    if (!harvested) {
-      tryTakeCropFromMin(character, mins);
+    if (!tryHarvestCrop(character, world)) {
+      tryTakeFromMin(character, mins);
     }
   } else {
     useToolAtCursor(world, cursor);
@@ -205,11 +213,14 @@ function endDay() {
   if (world.dayEnded) return;
 
   world.dayEnded = true;
-  const payout = world.cropsCollected * 25;
-  world.wallet += payout;
+  const cropPayout = world.cropsCollected * 25;
+  const lumberPayout = world.lumberCollected * 5;
+  const totalPayout = cropPayout + lumberPayout;
+  
+  world.wallet += totalPayout;
 
   if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected);
-  if (resultsPayout) resultsPayout.textContent = `${payout}g`;
+  if (resultsPayout) resultsPayout.textContent = `${totalPayout}g (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)`;
   if (resultsWallet) resultsWallet.textContent = `${world.wallet}g`;
 
   if (resultsScreen) resultsScreen.classList.remove("hidden");
@@ -252,8 +263,9 @@ document.addEventListener("keydown", (event) => {
     Digit1: "hoe",
     Digit2: "seeds",
     Digit3: "watering-can",
-    Digit4: "min",
-    Digit5: "empty-hands"
+    Digit4: "axe",
+    Digit5: "min",
+    Digit6: "empty-hands"
   };
 
   const tool = map[event.code];
@@ -306,41 +318,31 @@ function loop(timestamp) {
     updateCharacterFromControls(character, keys, deltaMs);
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, button, world);
+  if (keys.has("KeyE") || keys.has("Space")) {
+    let interacted = tryInteractWithGravestone(character, world) ||
+                    tryPickupLumber(character, world) ||
+                    tryDepositToBox(character, world.box, world) ||
+                    tryDepositToDominion(character, world.dominion, world, mins) ||
+                    tryInteractWithPond(character, world);
 
-    if (keys.has("KeyE") || keys.has("Space")) {
-      let interacted = tryDepositCrop(character, world.box, world);
+    if (!interacted && !world.shopOpen) {
+      interacted = tryInteractWithShop(character, world);
+      if (interacted) openShop();
+    }
 
-      if (!interacted) {
-        interacted = tryDepositToDominion(character, world.dominion, world, mins);
-      }
-
-      if (!interacted) {
-        interacted = tryInteractWithPond(character, world);
-      }
-
-      if (!interacted && !world.shopOpen) {
-        interacted = tryInteractWithShop(character, world);
-        if (interacted) {
-          openShop();
-        }
-      }
-
-      if (!interacted) {
-        const collected = tryCollectMin(character, mins);
-        if (!collected) {
-          const buttonInteracted = tryInteractWithButton(character, button);
-          if (!buttonInteracted) {
-            const harvested = tryHarvestCrop(character, world);
-            if (!harvested) {
-              tryTakeCropFromMin(character, mins);
-            }
+    if (!interacted) {
+      if (!tryCollectMin(character, mins)) {
+        if (!tryInteractWithButton(character, button)) {
+          if (!tryHarvestCrop(character, world)) {
+            tryTakeFromMin(character, mins);
           }
         }
       }
-
-      keys.delete("KeyE");
-      keys.delete("Space");
     }
+
+    keys.delete("KeyE");
+    keys.delete("Space");
+  }
 
     if (keys.has("KeyF")) {
       handleToolAction();

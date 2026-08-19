@@ -1,4 +1,4 @@
-export const cols = 64;
+export const cols = 48;
 export const rows = 32;
 export const TILE_W = 64;
 export const TILE_H = 32;
@@ -29,7 +29,6 @@ export const WATER_POND_COL = 2;
 export const WATER_POND_ROW = 14;
 export const WATER_POND_INTERACTION_RADIUS = 1.5;
 
-
 export const SHOP_BUILDING_COL = 1;
 export const SHOP_BUILDING_ROW = 12;
 export const OTHER_BUILDING_COL = 1;
@@ -38,8 +37,6 @@ export const OTHER_BUILDING_ROW = 17;
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 1.3; 
 export const SHOPKEEPER_ROW = 12;
-
-
 
 export const WATER_CAN_MAX = 7;
 export const REFILL_RATE_MS = 1400;
@@ -50,6 +47,7 @@ export const TOOL_TYPES = {
   HOE: "hoe",
   SEEDS: "seeds",
   WATERING_CAN: "watering-can",
+  AXE: "axe",
   MIN: "min",
   HANDS: "empty-hands"
 };
@@ -57,7 +55,9 @@ export const TOOL_TYPES = {
 export const TILE_TYPES = {
   GRASS: "grass",
   DIRT: "dirt",
-  STONE: "stone"
+  STONE: "stone",
+  SAND: "sand",
+  WATER: "water"
 };
 
 export const PLANT_STAGES = {
@@ -69,6 +69,16 @@ export const PLANT_STAGES = {
 
 export const GROWTH_DURATION_MIN = 60000;
 export const GROWTH_DURATION_MAX = 90000;
+
+export const TREE_SWINGS_TO_FELL = 10;
+
+// Tree cutting with cooperative mins
+export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
+export const TREE_CUT_TIME_2_MIN = 15000;  // 15 seconds for 2 mins
+export const TREE_CUT_TIME_3_MIN = 10000;  // 10 seconds for 3+ mins
+
+// Lumber performance limits
+export const MAX_LUMBER_ITEMS = 200;
 
 export const INV_SQRT2 = 1 / Math.sqrt(2);
 

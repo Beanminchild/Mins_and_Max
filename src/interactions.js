@@ -28,7 +28,12 @@ import {
   WATER_POND_INTERACTION_RADIUS,
   SHOPKEEPER_COL,
   SHOPKEEPER_ROW,
-  SEED_MAX
+  SEED_MAX,
+  TREE_SWINGS_TO_FELL,
+  TREE_CUT_TIME_1_MIN,
+  TREE_CUT_TIME_2_MIN,
+  TREE_CUT_TIME_3_MIN,
+  MAX_LUMBER_ITEMS
 } from "./constants.js";
 
 let waterCanFillAmount = 5;
@@ -56,6 +61,127 @@ export function createDominion() {
   };
 }
 
+function createTreeSprite() {
+  const sprite = document.createElement("canvas");
+  sprite.width = 64;
+  sprite.height = 64;
+  const g = sprite.getContext("2d");
+
+  g.translate(32, 32);
+  
+  // Trunk
+  g.fillStyle = "#654321";
+  g.fillRect(-4, 8, 8, 16);
+  
+  // Foliage (tree top)
+  g.fillStyle = "#2d5a2d";
+  g.beginPath();
+  g.arc(0, 0, 14, 0, Math.PI * 2);
+  g.fill();
+
+  // Lighter shade for depth
+  g.fillStyle = "#3d6a3d";
+  g.beginPath();
+  g.arc(-3, 2, 10, 0, Math.PI * 2);
+  g.fill();
+
+  return sprite;
+}
+
+function createGravestoneSprite() {
+  const sprite = document.createElement("canvas");
+  sprite.width = 32;
+  sprite.height = 48;
+  const g = sprite.getContext("2d");
+
+  g.translate(16, 24);
+
+  // Gravestone base
+  g.fillStyle = "#505050";
+  g.fillRect(-6, 0, 12, 4);
+
+  // Gravestone slab
+  g.fillStyle = "#707070";
+  g.beginPath();
+  g.moveTo(-8, -2);
+  g.lineTo(8, -2);
+  g.lineTo(6, -18);
+  g.lineTo(-6, -18);
+  g.closePath();
+  g.fill();
+
+  // Gravestone outline
+  g.strokeStyle = "#505050";
+  g.lineWidth = 1;
+  g.stroke();
+
+  // Creepy cross or marking
+  g.strokeStyle = "#888888";
+  g.lineWidth = 1.5;
+  g.beginPath();
+  g.moveTo(0, -16);
+  g.lineTo(0, -6);
+  g.moveTo(-3, -11);
+  g.lineTo(3, -11);
+  g.stroke();
+
+  return sprite;
+}
+
+function createMinSprite(state) {
+  const sprite = document.createElement("canvas");
+  sprite.width = 32;
+  sprite.height = 32;
+  const g = sprite.getContext("2d");
+
+  g.translate(16, 16);
+
+  const isFollowing = state === "following" || state === "carrying" || state === "carrying_lumber";
+  g.fillStyle = isFollowing ? "#f7c873" : "#8c5b2b";
+  
+  if (state === "going_to_box" || state === "returning_to_dominion") {
+    g.fillStyle = "#64b5f6";
+  }
+
+  if (state === "tree_cutting") {
+    g.fillStyle = "#5a6b3a"; // Darker color for working
+  }
+
+  g.beginPath();
+  g.arc(0, 0, 8, 0, Math.PI * 2);
+  g.fill();
+
+  if (state === "carrying" || state === "returning_to_dominion") {
+    g.fillStyle = "#d9b44a";
+    g.beginPath();
+    g.arc(0, -12, 5, 0, Math.PI * 2);
+    g.fill();
+  }
+
+  if (state === "carrying_lumber") {
+    g.fillStyle = "#8b6f47";
+    g.save();
+    g.rotate(Math.PI / 4);
+    g.fillRect(-10, -2, 20, 4);
+    g.restore();
+  }
+
+  if (state === "tree_cutting") {
+    // Show tool
+    g.strokeStyle = "#d4a574";
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(-5, -5);
+    g.lineTo(5, 5);
+    g.stroke();
+  }
+
+  g.fillStyle = "#3a210f";
+  g.fillRect(-3, -1, 6, 2);
+
+  return sprite;
+}
+
 export function createWorld() {
   const mins = Array.from({ length: MIN_SPAWN_COUNT }, (_, index) => ({
     id: index + 1,
@@ -68,19 +194,26 @@ export function createWorld() {
     throwOrigin: null,
     throwDistance: 0,
     landed: false,
-    isDelivering: false
+    isDelivering: false,
+    carryingLumberForDelivery: false,
+    cuttingTimer: 0,
+    cuttingTreeCol: null,
+    cuttingTreeRow: null
   }));
+
+  // Grandpas Graveyard (randomized positions)
+  const gravestones = [
+     { col: 2 + Math.random() * 8,
+      row: 1 + Math.random() * 6,
+      id: 0}   
+  ];
+
+  // Generate lumber items in forest for variety
+  const lumber = [];
 
 const tiles = Array.from({ length: rows }, (_, row) =>
   Array.from({ length: cols }, (_, col) => {
-    // // 1. Core Grass Farm (Shifted slightly to make room for square on left)
-    // const farmColStart = 10;
-    // const farmColEnd = 30;
-    // const farmRowStart = 8;
-    // const farmRowEnd = 24;
-    // const isFarm = col >= farmColStart && col <= farmColEnd && row >= farmRowStart && row <= farmRowEnd;
-    
-    // 2. Town Square (on the far LEFT)
+    // Stone paths defining quadrants
     const squareWidth = 6;
     const squareHeight = 64;
     const squareColStart = 15;
@@ -88,24 +221,70 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     const isTownSquare = col >= squareColStart && col < squareColStart + squareWidth && 
                          row >= squareRowStart && row < squareRowStart + squareHeight;
 
-    // 3. Walkway connecting Square to Farm and then extending out to the far RIGHT
     const walkwayRowStart = 15;
     const walkwayRowEnd = 17;
-    // Walkway exists from square edge (col 8) across the farm and to the end (col 39)
     const isWalkway = (col >= 0 && col < cols) && row >= walkwayRowStart && row <= walkwayRowEnd || (col >= 18 && col < 20) && row == 20 && row <= 32;
     
     const isStone = isTownSquare || isWalkway;
-    
+
+    // Define quadrant boundaries (adjusted for stone paths)
+    const topLeftQuadrant = col < 15 && row < 15;
+    const topRightQuadrant = col >= 21 && row < 15;
+    const bottomLeftQuadrant = col < 15 && row >= 18;
+    const bottomRightQuadrant = col >= 21 && row >= 18;
+
+    // Determine tile type based on quadrant
+    let tileType = TILE_TYPES.GRASS;
+
+    if (isStone) {
+      tileType = TILE_TYPES.STONE;
+    } else if (bottomLeftQuadrant) {
+      // Beach & Ocean quadrant
+      const distFromBottom = rows - row;
+      if (distFromBottom <= 3) {
+        tileType = TILE_TYPES.WATER;
+      } else if (distFromBottom <= 6) {
+        tileType = TILE_TYPES.SAND;
+      } else {
+        tileType = TILE_TYPES.GRASS;
+      }
+    } else if (bottomRightQuadrant) {
+      // Forest quadrant
+      tileType = TILE_TYPES.GRASS;
+    } else if (topLeftQuadrant) {
+      // Creepy grass quadrant
+      tileType = TILE_TYPES.GRASS;
+    }
+
     return {
-      type: isStone ? TILE_TYPES.STONE : TILE_TYPES.GRASS,
+      type: tileType,
       planted: false,
       watered: false,
       growth: 0,
       growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
-      stage: PLANT_STAGES.EMPTY
+      stage: PLANT_STAGES.EMPTY,
+      variant: topLeftQuadrant ? "decay" : null,
+      hasTree: bottomRightQuadrant && col % 3 === 0 && row % 3 === 0,
+      treeHealth: TREE_SWINGS_TO_FELL, // 10 swings to fell
+      lumber: false // Becomes true when tree is felled
     };
   })
 );
+
+  // Create sprite cache
+  const treeSprite = createTreeSprite();
+  const gravestoneSprite = createGravestoneSprite();
+  const minSprites = {
+    loose: createMinSprite("loose"),
+    following: createMinSprite("following"),
+    carrying: createMinSprite("carrying"),
+    carrying_lumber: createMinSprite("carrying_lumber"),
+    going_to_box: createMinSprite("going_to_box"),
+    returning_to_dominion: createMinSprite("returning_to_dominion"),
+    thrown: createMinSprite("loose"),
+    tree_cutting: createMinSprite("tree_cutting")
+  };
+
   return {
     button: createButton(),
     box: createBox(),
@@ -114,8 +293,14 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     shopOpen: false,
     mins,
     tiles,
+    gravestones,
+    lumber,
+    treeSprite,
+    gravestoneSprite,
+    minSprites,
     selectedTool: TOOL_TYPES.HOE,
     cropsCollected: 0,
+    lumberCollected: 0,
     waterCanFillAmount: 5,
     seedsCollected: 0,
     isRefillingWater: false,
@@ -132,6 +317,8 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   };
 }
 
+// ... existing functions ...
+
 export function tryInteractWithShop(character, world) {
   if (!world.shopkeeper) return false;
 
@@ -144,6 +331,87 @@ export function tryInteractWithShop(character, world) {
   return false;
 }
 
+export function tryInteractWithGravestone(character, world) {
+  if (!world.gravestones) return false;
+
+  for (let gravestone of world.gravestones) {
+    const distance = Math.hypot(character.col - gravestone.col, character.row - gravestone.row);
+    if (distance <= 1.5) {
+      showGravestoneMessage(gravestone);
+      return true;
+    }
+  }
+  return false;
+}
+
+function showGravestoneMessage(gravestone) {
+  // Create or reuse modal element
+  let modal = document.getElementById("gravestone-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "gravestone-modal";
+    modal.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 10, 30, 0.95);
+      border: 3px solid #6b3f6d;
+      padding: 30px;
+      border-radius: 8px;
+      color: #ddd;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      z-index: 1000;
+      max-width: 600px;
+      box-shadow: 0 0 20px rgba(100, 50, 150, 0.5);
+    `;
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <h2 style="color: #b89fbf; margin-top: 0; font-size: 24px;">The Grave says:</h2>
+    <p style="font-size: 18px; line-height: 1.6;">
+      Here lies Max's Grandpa...
+      <br><br>
+      <strong>Full Name: Max's Grandpa Sr.</strong>
+    </p>
+    <hr style="border: 1px solid #6b3f6d; margin: 20px 0;">
+    <p style="font-size: 14px; color: #aaa; line-height: 1.5;">
+      Coming soon to this location:<br>
+      <strong>A new luxury highrise apartment</strong><br>
+      for college students with rich parents<br>
+      and... a <strong>Chillies!</strong>
+    </p>
+    <button id="gravestone-close" style="
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #6b3f6d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    ">Close</button>
+  `;
+
+  modal.style.display = "block";
+
+  const closeBtn = document.getElementById("gravestone-close");
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener("click", function closeOutside(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+        document.removeEventListener("click", closeOutside);
+      }
+    });
+  }, 100);
+}
 
 // Logic to check if player can start refilling
 export function tryInteractWithPond(character, world) {
@@ -197,7 +465,11 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
     throwOrigin: null,
     throwDistance: 0,
     landed: false,
-    isDelivering: false
+    isDelivering: false,
+    carryingLumberForDelivery: false,
+    cuttingTimer: 0,
+    cuttingTreeCol: null,
+    cuttingTreeRow: null
   };
   mins.push(newMin);
   return newMin;
@@ -206,12 +478,13 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
 export function updateMins(character, mins, button, world) {
   const { box, dominion } = world;
 
-  // 1. Sort followers so that those carrying crops are at the front of the line
-  const followers = mins.filter((min) => min.state === "following" || min.state === "carrying");
+  // 1. Sort followers so that those carrying crops/lumber are at the front of the line
+  const followers = mins.filter((min) => min.state === "following" || min.state === "carrying" || min.state === "carrying_lumber");
   followers.sort((a, b) => {
-    if (a.state === "carrying" && b.state !== "carrying") return -1;
-    if (a.state !== "carrying" && b.state === "carrying") return 1;
-    return 0;
+    // Carrying items (crops and lumber) come first
+    const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" ? 1 : 0;
+    const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" ? 1 : 0;
+    return bCarrying - aCarrying;
   });
 
   followers.forEach((min, index) => {
@@ -224,11 +497,106 @@ export function updateMins(character, mins, button, world) {
     moveToward(min, targetCol, targetRow, 0.12);
   });
 
+  // --- Lumber Cleanup (performance fix) ---
+  if (world.lumber && world.lumber.length > MAX_LUMBER_ITEMS) {
+    world.lumber.splice(0, world.lumber.length - MAX_LUMBER_ITEMS);
+  }
+
   mins.forEach((min) => {
+    // --- Auto-pickup lumber when thrown min lands ---
+    if (min.landed && world.lumber && world.lumber.length > 0) {
+      for (let i = world.lumber.length - 1; i >= 0; i--) {
+        const lumberItem = world.lumber[i];
+        const distToLumber = Math.hypot(min.col - lumberItem.col, min.row - lumberItem.row);
+        if (distToLumber < 0.3) {
+          // Pick up lumber
+          min.state = "carrying_lumber";
+          min.carryingLumberForDelivery = false; // First throw - return to character
+          world.lumber.splice(i, 1);
+          min.landed = false;
+          return;
+        }
+      }
+    }
+
+    // --- NEW: Tree Cutting Cooperation ---
+    if (min.state === "tree_cutting") {
+      const tCol = min.cuttingTreeCol;
+      const tRow = min.cuttingTreeRow;
+      const tile = world.tiles[tRow]?.[tCol];
+
+      if (!tile || !tile.hasTree) {
+        // Tree no longer exists or was felled, stop cutting
+        min.state = "loose";
+        min.cuttingTimer = 0;
+        min.cuttingTreeCol = null;
+        min.cuttingTreeRow = null;
+        return;
+      }
+
+      // Move toward tree
+      moveToward(min, tCol + 0.5, tRow + 0.5, 0.12);
+
+      // Count other mins also cutting this tree
+      const otherCutters = mins.filter(m => 
+        m.state === "tree_cutting" && 
+        m.cuttingTreeCol === tCol && 
+        m.cuttingTreeRow === tRow
+      ).length;
+
+      const totalCutters = otherCutters + 1; // Include self
+      let cutTime;
+      if (totalCutters === 1) cutTime = TREE_CUT_TIME_1_MIN;
+      else if (totalCutters === 2) cutTime = TREE_CUT_TIME_2_MIN;
+      else cutTime = TREE_CUT_TIME_3_MIN;
+
+      min.cuttingTimer += 16; // Approximate frame time
+      if (min.cuttingTimer >= cutTime) {
+        // Tree is felled!
+        tile.hasTree = false;
+        tile.lumber = true;
+
+        // Add lumber to world
+        if (world.lumber.length < MAX_LUMBER_ITEMS) {
+          world.lumber.push({
+            col: tCol + 0.5,
+            row: tRow + 0.5,
+            id: Date.now() + Math.random()
+          });
+        }
+
+        // One min carries lumber (will follow player like crops)
+        min.state = "carrying_lumber";
+        // Push min away from tree to prevent getting stuck
+        const pushDist = 2;
+        const angle = Math.atan2(min.row - (tRow + 0.5), min.col - (tCol + 0.5));
+        min.col = (tCol + 0.5) + Math.cos(angle) * pushDist;
+        min.row = (tRow + 0.5) + Math.sin(angle) * pushDist;
+        min.cuttingTimer = 0;
+        min.cuttingTreeCol = null;
+        min.cuttingTreeRow = null;
+        min.landed = false;
+
+        // Other mins stop cutting, go loose, and push away from tree
+        mins.forEach(m => {
+          if (m.state === "tree_cutting" && m.cuttingTreeCol === tCol && m.cuttingTreeRow === tRow && m.id !== min.id) {
+            m.state = "loose";
+            m.cuttingTimer = 0;
+            m.cuttingTreeCol = null;
+            m.cuttingTreeRow = null;
+            // Push away from tree
+            const pushDist = 1.5;
+            const angle = Math.atan2(m.row - (tRow + 0.5), m.col - (tCol + 0.5));
+            m.col = (tCol + 0.5) + Math.cos(angle) * pushDist;
+            m.row = (tRow + 0.5) + Math.sin(angle) * pushDist;
+          }
+        });
+      }
+    }
+
     // --- Dominion Automation Logic ---
     if (min.state === "thrown") {
       const distToDominion = Math.hypot(min.col - dominion.col, min.row - dominion.row);
-      // If loose within radius (e.g. 3.0) and box has crops
       if (distToDominion < 1.5 && world.cropsCollected > 0 && world.selectedTool === "min") {
         min.state = "going_to_box";
       }
@@ -249,9 +617,7 @@ export function updateMins(character, mins, button, world) {
     if (min.state === "returning_to_dominion") {
       moveToward(min, dominion.col, dominion.row, 0.14);
       if (Math.hypot(min.col - dominion.col, min.row - dominion.row) < 0.2) {
-        // Create new min
         spawnNewMin(mins, dominion.col, dominion.row, "following");
-        // Original min also follows
         min.state = "following";
       }
     }
@@ -274,8 +640,9 @@ export function updateMins(character, mins, button, world) {
       const distanceToTarget = Math.hypot(min.col - target.col, min.row - target.row);
       const reachedTarget = distanceToTarget <= 0.18;
 
-      if (min.isDelivering && reachedTarget) {
-        world.cropsCollected += 1;
+    if (min.isDelivering && reachedTarget) {
+        const item = min.state === "carrying_lumber" ? "lumber" : "crops";
+        world[`${item}Collected`] += 1;
         min.state = "following";
         min.isDelivering = false;
         return;
@@ -305,6 +672,12 @@ export function updateMins(character, mins, button, world) {
           min.targetTile = { col: tCol, row: tRow };
           min.col = tCol + 0.5;
           min.row = tRow + 0.5;
+        } else if (!min.isDelivering && tile && tile.hasTree) {
+          // NEW: Start cutting tree
+          min.state = "tree_cutting";
+          min.cuttingTreeCol = tCol;
+          min.cuttingTreeRow = tRow;
+          min.cuttingTimer = 0;
         } else if (!min.isDelivering) {
           settleMin(min);
         }
@@ -326,24 +699,23 @@ export function updateMins(character, mins, button, world) {
   });
 }
 
-export function tryDepositCrop(character, box, world) {
-  if (!character.holdingCrop) return false;
+export function tryDepositToBox(character, box, world) {
+  if (!character.held) return false;
 
-  const distance = Math.hypot(character.col - box.col, character.row - box.row);
-  if (distance <= BOX_INTERACTION_RADIUS) {
-    character.holdingCrop = false;
-    world.cropsCollected += 1;
+  if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {
+    world[`${character.held === "lumber" ? "lumber" : "crops"}Collected`] += 1;
+    
+    character.held = null;
     return true;
   }
   return false;
 }
 
 export function tryDepositToDominion(character, dominion, world, mins) {
-  if (!character.holdingCrop) return false;
+  if (character.held !== "crop") return false;
 
-  const distance = Math.hypot(character.col - dominion.col, character.row - dominion.row);
-  if (distance <= DOMINION_INTERACTION_RADIUS) {
-    character.holdingCrop = false;
+  if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
+    character.held = null;
     spawnNewMin(mins, dominion.col, dominion.row, "loose");
     return true;
   }
@@ -351,24 +723,19 @@ export function tryDepositToDominion(character, dominion, world, mins) {
 }
 
 export function tryHarvestCrop(character, world) {
-  if (character.holdingCrop) return false;
+  if (character.held) return false;
 
-  const c = Math.floor(character.col);
-  const r = Math.floor(character.row);
-
+  const c = Math.floor(character.col), r = Math.floor(character.row);
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
-      const tr = r + dy;
-      const tc = c + dx;
-      const tile = world.tiles[tr]?.[tc];
-
+      const tile = world.tiles[r + dy]?.[c + dx];
       if (tile && tile.stage === PLANT_STAGES.CROP) {
         tile.planted = false;
         tile.watered = false;
         tile.growth = 0;
         tile.stage = PLANT_STAGES.EMPTY;
         tile.type = TILE_TYPES.DIRT;
-        character.holdingCrop = true;
+        character.held = "crop";
         return true;
       }
     }
@@ -376,16 +743,15 @@ export function tryHarvestCrop(character, world) {
   return false;
 }
 
-export function tryTakeCropFromMin(character, mins) {
-  if (character.holdingCrop) return false;
+export function tryTakeFromMin(character, mins) {
+  if (character.held) return false;
 
   for (const min of mins) {
-    if (min.state !== "carrying") continue;
+    if (min.state !== "carrying" && min.state !== "carrying_lumber") continue;
 
-    const distance = Math.hypot(min.col - character.col, min.row - character.row);
-    if (distance <= MIN_INTERACTION_RADIUS) {
+    if (Math.hypot(min.col - character.col, min.row - character.row) <= MIN_INTERACTION_RADIUS) {
+      character.held = min.state === "carrying" ? "crop" : "lumber";
       min.state = "following";
-      character.holdingCrop = true;
       return true;
     }
   }
@@ -420,7 +786,8 @@ export function tryInteractWithButton(character, button) {
 }
 
 export function throwMin(character, mins, button, box, cursor = null) {
-  const availableMin = mins.find((min) => min.state === "carrying") || 
+  // Prioritize mins: first carrying (crops/lumber), then following
+  const availableMin = mins.find((min) => min.state === "carrying" || min.state === "carrying_lumber") ||
                        mins.find((min) => min.state === "following");
   
   if (!availableMin) return null;
@@ -429,27 +796,30 @@ export function throwMin(character, mins, button, box, cursor = null) {
   availableMin.throwDistance = 0;
   availableMin.landed = false;
 
-  if (availableMin.state === "carrying") {
+  // Carrying items (crops or lumber) go to box
+  if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber") {
     availableMin.state = "thrown";
     availableMin.isDelivering = true;
     availableMin.target = { col: box.col, row: box.row };
-  } else {
-    availableMin.isDelivering = false;
-    const target = cursor
-      ? { col: cursor.col, row: cursor.row }
-      : { col: button.col, row: button.row };
-
-    const dx = target.col - character.col;
-    const dy = target.row - character.row;
-    const distance = Math.hypot(dx, dy);
-    const clampedDistance = Math.min(distance, THROW_MAX_DISTANCE);
-
-    availableMin.target = {
-      col: character.col + (dx / Math.max(distance, 0.0001)) * clampedDistance,
-      row: character.row + (dy / Math.max(distance, 0.0001)) * clampedDistance
-    };
-    availableMin.state = "thrown";
+    return availableMin;
   }
+
+  // Following mins go to cursor or button
+  availableMin.isDelivering = false;
+  const target = cursor
+    ? { col: cursor.col, row: cursor.row }
+    : { col: button.col, row: button.row };
+
+  const dx = target.col - character.col;
+  const dy = target.row - character.row;
+  const distance = Math.hypot(dx, dy);
+  const clampedDistance = Math.min(distance, THROW_MAX_DISTANCE);
+
+  availableMin.target = {
+    col: character.col + (dx / Math.max(distance, 0.0001)) * clampedDistance,
+    row: character.row + (dy / Math.max(distance, 0.0001)) * clampedDistance
+  };
+  availableMin.state = "thrown";
 
   return availableMin;
 }
@@ -468,7 +838,13 @@ export function useToolAtCursor(world, cursor) {
   // Prevent interactions on stone tiles
   if (tile.type === TILE_TYPES.STONE) return false;
 
+  // Prevent interactions on sand and water tiles
+  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER) return false;
+
   if (world.selectedTool === TOOL_TYPES.HOE) {
+    // Prevent hoe on tiles with trees
+    if (tile.hasTree) return false;
+    
     tile.type = TILE_TYPES.DIRT;
     tile.planted = false;
     tile.watered = false;
@@ -493,13 +869,63 @@ export function useToolAtCursor(world, cursor) {
   if (world.selectedTool === TOOL_TYPES.WATERING_CAN) {
     if (tile.planted && !tile.watered && world.waterCanFillAmount > 0) {
       tile.watered = true;
-      world.waterCanFillAmount-=1;
-      
+      world.waterCanFillAmount -= 1;
       return true;
     }
     return false;
   }
+  
 
+  if (world.selectedTool === TOOL_TYPES.AXE) {
+    // Only can axe tiles with trees
+    if (!tile.hasTree) return false;
+
+    // Decrement tree health
+    tile.treeHealth -= 1;
+
+    // If tree is felled
+    if (tile.treeHealth <= 0) {
+      tile.hasTree = false;
+      tile.lumber = true;
+      // Add lumber object to world.lumber array
+      world.lumber.push({
+        col: col + 0.5,
+        row: row + 0.5,
+        id: Date.now() + Math.random()
+      });
+      return true;
+    }
+
+    return true; // Swing counted even if not fully felled
+  }
+
+  return false;
+}
+
+
+// New function: pickup lumber like crops
+export function tryPickupLumber(character, world) {
+  if (character.held) return false;
+
+  const c = Math.floor(character.col);
+  const r = Math.floor(character.row);
+
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      const checkCol = c + dx;
+      const checkRow = r + dy;
+      
+      // Check if there's lumber at this tile
+      for (let i = 0; i < world.lumber.length; i++) {
+        const lumberItem = world.lumber[i];
+        if (Math.floor(lumberItem.col) === checkCol && Math.floor(lumberItem.row) === checkRow) {
+          character.held = "lumber";
+          world.lumber.splice(i, 1);
+          return true;
+        }
+      }
+    }
+  }
   return false;
 }
 
@@ -545,4 +971,3 @@ export function updateWorld(world, deltaMs, character) {
     }
   }
 }
-

@@ -14,7 +14,7 @@ export function createCharacter() {
     dir: 0,
     walkFrame: 0,
     stepCounter: 0,
-    holdingCrop: false
+    held: null
   };
 }
 
