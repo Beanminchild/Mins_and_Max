@@ -19,7 +19,7 @@ export const THROW_MAX_DISTANCE = 8;
 
 export const BOX_COL = 6;
 export const BOX_ROW = 14;
-export const BOX_INTERACTION_RADIUS = 1.5;
+export const BOX_INTERACTION_RADIUS = 2.75;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;

@@ -177,14 +177,15 @@ function syncHUD() {
 
   const countDisplay = document.getElementById("crop-count");
   if (countDisplay) {
-    countDisplay.textContent = world.cropsCollected;
+    countDisplay.textContent = world.cropsCollected + world.lumberCollected;
   }
 
 
-    // Add lumber display (optional - next to crops or separate)
+   // Add lumber display (optional - next to crops or separate)
   const lumberDisplay = document.getElementById("lumber-count");
   if (lumberDisplay) {
     lumberDisplay.textContent = world.lumberCollected;
+    console.log("Lumber count updated:", world.lumberCollected);
   }
 
   const walletDisplay = document.getElementById("wallet-amount");
@@ -219,7 +220,7 @@ function endDay() {
   
   world.wallet += totalPayout;
 
-  if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected);
+  if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected + world.lumberCollected);
   if (resultsPayout) resultsPayout.textContent = `${totalPayout}g (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)`;
   if (resultsWallet) resultsWallet.textContent = `${world.wallet}g`;
 
@@ -232,6 +233,7 @@ function startNextDay() {
   world.dayProgress = 0;
   world.dayEnded = false;
   world.cropsCollected = 0;
+  world.lumberCollected = 0;
 
   button.pressed = false;
   button.minCount = 0;

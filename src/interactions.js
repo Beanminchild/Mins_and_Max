@@ -641,12 +641,20 @@ export function updateMins(character, mins, button, world) {
       const reachedTarget = distanceToTarget <= 0.18;
 
     if (min.isDelivering && reachedTarget) {
-        const item = min.state === "carrying_lumber" ? "lumber" : "crops";
-        world[`${item}Collected`] += 1;
-        min.state = "following";
-        min.isDelivering = false;
-        return;
+      console.log("min.state:", min.state);
+      if (min.carryingLumberForDelivery) {
+        console.log("Min delivered a lumber to the box!");
+        world.lumberCollected += 1;
+        
       }
+      else{
+        console.log("Min delivered crops to box")
+        world.cropsCollected += 1;
+      }    
+      min.state = "following";
+      min.isDelivering = false;
+      return;
+    }
 
       const distanceToButton = Math.hypot(min.col - button.col, min.row - button.row);
       if (!min.isDelivering && distanceToButton <= THROW_TARGET_RADIUS && (min.throwDistance ?? 0) <= THROW_MAX_DISTANCE) {
@@ -797,15 +805,27 @@ export function throwMin(character, mins, button, box, cursor = null) {
   availableMin.landed = false;
 
   // Carrying items (crops or lumber) go to box
-  if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber") {
+  if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber") {    
+  
+  if (availableMin.state === "carrying_lumber"){   
+    availableMin.carryingLumberForDelivery = true;    
+    console.log("is lumber bein registered", availableMin.carryingLumberForDelivery)
+  }
+  if ( availableMin.state === "carrying"){
+     availableMin.isDelivering = "true";
+     console.log("somehow is delivering", availableMin.isDelivering)
+
+  }
     availableMin.state = "thrown";
     availableMin.isDelivering = true;
     availableMin.target = { col: box.col, row: box.row };
-    return availableMin;
+    return availableMin;  
+
   }
 
   // Following mins go to cursor or button
   availableMin.isDelivering = false;
+  availableMin.carryingLumberForDelivery = false;
   const target = cursor
     ? { col: cursor.col, row: cursor.row }
     : { col: button.col, row: button.row };
