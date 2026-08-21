@@ -71,7 +71,6 @@ function drawDecayedGrassTile(ctx, col, row, camera) {
   ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
 }
 
-
 function drawLumber(ctx, lumberItem, camera) {
   const p = isoToScreen(lumberItem.col, lumberItem.row, camera);
   
@@ -342,7 +341,7 @@ export function drawWaterPond(ctx, pond, camera) {
 }
 
 function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, options = {}) {
-  const { showPigtails = true } = options;
+  const { showPigtails = true, isUnicorn = false } = options;
   const sprite = document.createElement("canvas");
   sprite.width = 64;
   sprite.height = 64;
@@ -374,7 +373,7 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
     g.fillStyle = look.hair;
   }
 
-  if (showPigtails && (directionIndex === 6 || directionIndex === 5 || directionIndex === 7)) {
+  if (!isUnicorn && showPigtails && (directionIndex === 6 || directionIndex === 5 || directionIndex === 7)) {
     drawPigtail(hx - 9, hy + 2, false);
     drawPigtail(hx + 9, hy + 2, true);
   }
@@ -390,27 +389,51 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
   g.stroke();
 
   const bodyGrad = g.createRadialGradient(bx - 3, by - 3, 2, bx, by, 12);
-  bodyGrad.addColorStop(0, "#7a95eb");
+  bodyGrad.addColorStop(0, isUnicorn ? "#444" : "#7a95eb");
   bodyGrad.addColorStop(1, look.coat);
   g.fillStyle = bodyGrad;
   g.beginPath();
   g.ellipse(bx, by, 9, 11, 0, 0, Math.PI * 2);
   g.fill();
 
+  // BUSINESS SUIT DETAILS for Unicorn
+  if (isUnicorn) {
+    g.fillStyle = "#ffffff";
+    g.beginPath();
+    g.moveTo(bx, by - 8);
+    g.lineTo(bx - 4, by - 10);
+    g.lineTo(bx + 4, by - 10);
+    g.closePath();
+    g.fill();
+
+    g.fillStyle = look.scarf || "#cc0000";
+    g.fillRect(bx - 1, by - 9, 2, 7);
+  }
+
   const headGrad = g.createRadialGradient(hx - 2, hy - 2, 2, hx, hy, 10);
-  headGrad.addColorStop(0, "#ffe0c2");
+  headGrad.addColorStop(0, isUnicorn ? "#fff" : "#ffe0c2");
   headGrad.addColorStop(1, look.skin);
   g.fillStyle = headGrad;
   g.beginPath();
   g.arc(hx, hy, 8.5, 0, Math.PI * 2);
   g.fill();
 
+  // UNICORN HORN
+  if (isUnicorn) {
+    g.fillStyle = "#ffd700";
+    g.beginPath();
+    g.moveTo(hx - 2, hy - 7);
+    g.lineTo(hx, hy - 22);
+    g.lineTo(hx + 2, hy - 7);
+    g.fill();
+  }
+
   g.fillStyle = look.hair;
   g.beginPath();
   g.arc(hx, hy - 1, 9, Math.PI, 0);
   g.fill();
   
-  if (directionIndex >= 1 && directionIndex <= 3) { 
+  if (!isUnicorn && directionIndex >= 1 && directionIndex <= 3) { 
     g.beginPath();
     g.moveTo(hx - 9, hy - 1);
     g.quadraticCurveTo(hx - 5, hy + 4, hx, hy - 1);
@@ -418,7 +441,7 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
     g.fill();
   }
 
-  if (showPigtails) {
+  if (!isUnicorn && showPigtails) {
     if (directionIndex >= 1 && directionIndex <= 3) {
       drawPigtail(hx - 10, hy + 2, false);
       drawPigtail(hx + 10, hy + 2, true);
@@ -443,7 +466,7 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
     g.fillRect(hx - 6, eyeY, 2, 2);
   }
 
-  g.strokeStyle = "#4a65bd";
+  g.strokeStyle = isUnicorn ? look.coat : "#4a65bd";
   g.lineWidth = 4.5;
   g.beginPath();
   const armAngle = walkPose.armSwing * 0.1;
@@ -604,28 +627,6 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   ctx.restore();
 }
 
-function drawStoneTile(ctx, col, row, camera) {
-  const p = isoToScreen(col, row, camera);
-
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y - TILE_H / 2);
-  ctx.lineTo(p.x + TILE_W / 2, p.y);
-  ctx.lineTo(p.x, p.y + TILE_H / 2);
-  ctx.lineTo(p.x - TILE_W / 2, p.y);
-  ctx.closePath();
-
-  ctx.fillStyle = "#9e9e9e";
-  ctx.fill();
-  ctx.strokeStyle = "#616161";
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-
-  // Stone pattern
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
-  ctx.fillRect(p.x - 12, p.y - 2, 8, 4);
-  ctx.fillRect(p.x + 4, p.y - 4, 10, 3);
-}
-
 const tileOrder = [];
 for (let r = 0; r < rows; r++) {
   for (let c = 0; c < cols; c++) {
@@ -701,7 +702,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
     drawPlantOverlay(ctx, tile, c, r, camera);
   }
 
-  // Draw lumber items on ground (outside tile loop)
+  // Draw lumber items on ground
   if (world.lumber) {
     for (const lumberItem of world.lumber) {
       drawLumber(ctx, lumberItem, camera);
@@ -724,6 +725,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
   drawWaterPond(ctx, world.pond, camera);
   drawButton(ctx, button, camera);
 
+  // Shopkeeper drawn with their bank
   drawCharacter(ctx, shopkeeper, shopkeeperSpriteBank, camera);
    
   drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);

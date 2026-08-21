@@ -70,7 +70,7 @@ export const PLANT_STAGES = {
 export const GROWTH_DURATION_MIN = 60000;
 export const GROWTH_DURATION_MAX = 90000;
 
-export const TREE_SWINGS_TO_FELL = 10;
+export const TREE_SWINGS_TO_FELL = 33;
 
 // Tree cutting with cooperative mins
 export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
@@ -123,11 +123,13 @@ export const PLACEHOLDER_LOOK = {
 };
 
 export const SHOPKEEPER_LOOK = {
-  hair: "#111111",
-  skin: "#f2c59c",
-  coat: "#8b6f47",
-  pants: "#263140",
-  trim: "#f4d683",
-  boots: "#1e2430",
-  scarf: "#c95f5f"
+  hair: "#ffb7c5",   // Pink mane
+  skin: "#ffffff",   // White unicorn body
+  coat: "#222222",   // Black suit jacket
+  pants: "#333333",  // Dark grey trousers
+  trim: "#ffffff",   // White shirt collar
+  boots: "#111111",  // Black hooves/shoes
+  scarf: "#cc0000",  // Red power tie
+  horn: "#ffd700"    // Gold horn
 };
+

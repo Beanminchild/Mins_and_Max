@@ -30,7 +30,7 @@ const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
 shopkeeper.col = SHOPKEEPER_COL;
 shopkeeper.row = SHOPKEEPER_ROW;
-const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false });
+const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
 const world = createWorld();
 world.shopkeeper = shopkeeper;
 
@@ -317,7 +317,7 @@ function loop(timestamp) {
   }
 
   if (!world.dayEnded) {
-    updateCharacterFromControls(character, keys, deltaMs);
+    updateCharacterFromControls(character, keys, deltaMs, world);
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, button, world);
   if (keys.has("KeyE") || keys.has("Space")) {

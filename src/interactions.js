@@ -264,7 +264,9 @@ const tiles = Array.from({ length: rows }, (_, row) =>
       growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
       stage: PLANT_STAGES.EMPTY,
       variant: topLeftQuadrant ? "decay" : null,
-      hasTree: bottomRightQuadrant && col % 3 === 0 && row % 3 === 0,
+        hasTree: (bottomRightQuadrant && col % 2 === 0 && row % 2 === 0) || 
+               (topRightQuadrant && (col === 21 || col === cols - 1 || row === 0 || row === 14)),
+
       treeHealth: TREE_SWINGS_TO_FELL, // 10 swings to fell
       lumber: false // Becomes true when tree is felled
     };

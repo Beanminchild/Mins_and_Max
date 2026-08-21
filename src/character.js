@@ -3,9 +3,12 @@ import { cols,
   DIRECTION_VECTORS, 
   moveStepSize, 
   moveStepMs,
+  TILE_TYPES, 
   WATER_POND_COL,
-  WATER_POND_ROW 
+  WATER_POND_ROW
 } from "./constants.js";
+
+
 
 export function createCharacter() {
   return {
@@ -35,10 +38,11 @@ export function getDirectionIndex(dx, dy, currentDir) {
   return currentDir;
 }
 
-export function updateCharacterFromControls(character, keys, deltaMs) {
+export function updateCharacterFromControls(character, keys, deltaMs, world) { // Add world here
   const dx = (keys.has("ArrowRight") || keys.has("KeyD") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("KeyA") ? 1 : 0);
   const dy = (keys.has("ArrowDown") || keys.has("KeyS") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("KeyW") ? 1 : 0);
 
+  
   if (dx !== 0 || dy !== 0) {
     character.stepCounter += deltaMs;
 
@@ -46,10 +50,24 @@ export function updateCharacterFromControls(character, keys, deltaMs) {
       const dirIndex = getDirectionIndex(dx, dy, character.dir);
       const vector = DIRECTION_VECTORS[dirIndex];
 
-      character.col += vector.dx * moveStepSize;
-      character.row += vector.dy * moveStepSize;    
+      // Calculate potential new position
+      const nextCol = character.col + vector.dx * moveStepSize;
+      const nextRow = character.row + vector.dy * moveStepSize;
 
-     
+      // --- Collision Check ---
+      const targetCol = Math.floor(nextCol);
+      const targetRow = Math.floor(nextRow);
+      
+      // Look up the tile at the target position
+      const tile = world.tiles[targetRow]?.[targetCol];
+      
+      // Check if tile is water or has a tree
+      const isColliding = tile && (tile.type === TILE_TYPES.WATER || tile.hasTree);
+      if (!isColliding) {
+        character.col = nextCol;
+        character.row = nextRow;
+      }
+      // -----------------------
       
       clampCharacter(character);
 
