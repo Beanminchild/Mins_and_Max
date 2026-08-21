@@ -25,12 +25,12 @@ export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
 export const DOMINION_INTERACTION_RADIUS = 1.5;
 
-export const WATER_POND_COL = 2;
-export const WATER_POND_ROW = 14;
+export const WATER_POND_COL = 16;
+export const WATER_POND_ROW = 15;
 export const WATER_POND_INTERACTION_RADIUS = 1.5;
 
-export const SHOP_BUILDING_COL = 1;
-export const SHOP_BUILDING_ROW = 12;
+export const SHOP_BUILDING_COL = 17;
+export const SHOP_BUILDING_ROW = 16;
 export const OTHER_BUILDING_COL = 1;
 export const OTHER_BUILDING_ROW = 17;
 
