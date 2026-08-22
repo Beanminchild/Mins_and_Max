@@ -31,8 +31,8 @@ export const WATER_POND_INTERACTION_RADIUS = 1.5;
 
 export const SHOP_BUILDING_COL = 17;
 export const SHOP_BUILDING_ROW = 16;
-export const OTHER_BUILDING_COL = 1;
-export const OTHER_BUILDING_ROW = 17;
+export const OTHER_BUILDING_COL = 42;
+export const OTHER_BUILDING_ROW = 3;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 1.3; 

@@ -19,7 +19,45 @@ import {
   tryPickupLumber,
   tryTakeFromMin,
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, TREE_SWINGS_TO_FELL } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW } from "./constants.js";
+
+
+
+
+let sleepPromptOpen = false;
+
+function showSleepPrompt() {
+  if (sleepPromptOpen) return;
+  sleepPromptOpen = true;
+
+  const modal = document.createElement("div");
+  modal.id = "sleep-modal";
+  modal.style.cssText = `
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(20, 20, 40, 0.95); border: 2px solid #5d4037;
+    padding: 20px; color: white; text-align: center; z-index: 2000; border-radius: 8px;
+  `;
+  modal.innerHTML = `
+    <h3>Go to bed for the night?</h3>
+    <p>This will end the current day.</p>
+    <button id="sleep-yes" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #48c774; border: none; color: white;">Yes (Sleep)</button>
+    <button id="sleep-no" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #c74e4e; border: none; color: white;">No</button>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById("sleep-yes").onclick = () => {
+    modal.remove();
+    sleepPromptOpen = false;
+    endDay(); // Trigger the end of day sequence
+  };
+
+  document.getElementById("sleep-no").onclick = () => {
+    modal.remove();
+    // Briefly move character away so it doesn't re-trigger immediately
+    character.col += 1;
+    setTimeout(() => { sleepPromptOpen = false; }, 1000);
+  };
+}
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -181,11 +219,11 @@ function syncHUD() {
   }
 
 
-   // Add lumber display (optional - next to crops or separate)
-  const lumberDisplay = document.getElementById("lumber-count");
-  if (lumberDisplay) {
-    lumberDisplay.textContent = world.lumberCollected;
-    console.log("Lumber count updated:", world.lumberCollected);
+   
+  const farmDisplay = document.getElementById("farm-name");
+  if (farmDisplay) {
+    farmDisplay.textContent = "Zachs Farm";
+    
   }
 
   const walletDisplay = document.getElementById("wallet-amount");
@@ -234,6 +272,11 @@ function startNextDay() {
   world.dayEnded = false;
   world.cropsCollected = 0;
   world.lumberCollected = 0;
+  world.dayNumber += 1;
+
+  character.col = OTHER_BUILDING_COL + 1.75;
+  character.row = OTHER_BUILDING_ROW + 1.75;
+  character.dir = 2;
 
   button.pressed = false;
   button.minCount = 0;
@@ -308,6 +351,13 @@ function loop(timestamp) {
   lastFrameTime = timestamp;
 
   if (!world.dayEnded) {
+    updateCharacterFromControls(character,keys,deltaMs, world);
+
+    const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
+    if (distToHome < 0.6 && !sleepPromptOpen) {
+      showSleepPrompt();
+    }
+
     world.dayElapsedMs += deltaMs;
     world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
 
@@ -317,7 +367,7 @@ function loop(timestamp) {
   }
 
   if (!world.dayEnded) {
-    updateCharacterFromControls(character, keys, deltaMs, world);
+    //updateCharacterFromControls(character, keys, deltaMs, world);
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, button, world);
   if (keys.has("KeyE") || keys.has("Space")) {
