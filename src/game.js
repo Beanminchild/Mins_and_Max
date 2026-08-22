@@ -21,42 +21,25 @@ import {
 } from "./interactions.js";
 import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE } from "./constants.js";
 
+import { showModal, isModalOpen, closeModal } from "./modal.js";
 
-
-
-let sleepPromptOpen = false;
 
 function showSleepPrompt() {
-  if (sleepPromptOpen) return;
-  sleepPromptOpen = true;
-
-  const modal = document.createElement("div");
-  modal.id = "sleep-modal";
-  modal.style.cssText = `
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: rgba(20, 20, 40, 0.95); border: 2px solid #5d4037;
-    padding: 20px; color: white; text-align: center; z-index: 2000; border-radius: 8px;
-  `;
-  modal.innerHTML = `
-    <h3>Go to bed for the night?</h3>
-    <p>This will end the current day.</p>
-    <button id="sleep-yes" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #48c774; border: none; color: white;">Yes (Sleep)</button>
-    <button id="sleep-no" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #c74e4e; border: none; color: white;">No</button>
-  `;
-  document.body.appendChild(modal);
-
-  document.getElementById("sleep-yes").onclick = () => {
-    modal.remove();
-    sleepPromptOpen = false;
-    endDay(); // Trigger the end of day sequence
-  };
-
-  document.getElementById("sleep-no").onclick = () => {
-    modal.remove();
-    // Briefly move character away so it doesn't re-trigger immediately
-    character.col += 1;
-    setTimeout(() => { sleepPromptOpen = false; }, 1000);
-  };
+  if (isModalOpen()) return;
+  showModal({
+    title: "Go to bed for the night?",
+    bodyHtml: "<p>This will end the current day.</p>",
+    buttons: [
+      { label: "Yes (Sleep)", className: "modal-btn--yes", onClick: endDay },
+      {
+        label: "No",
+        className: "modal-btn--no",
+        onClick: () => {
+          character.col += 1;          
+        },
+      },
+    ],
+  });
 }
 
 const canvas = document.getElementById("game");
@@ -100,17 +83,29 @@ function updateClock() {
   hand.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
 }
 
+
 function openShop() {
-  if (shopOverlay) {
-    shopOverlay.classList.remove("hidden");
-  }
+  world.shopOpen = true;
+  showModal({
+    title: "Unicorn Merchant",
+    bodyHtml: `
+      <div class="shop-options">
+        <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
+        <button class="shop-button" data-buy="min">Min — 35g</button>
+      </div>
+      <p class="shop-dialogue">"Spend wisely, farmer!"</p>`,
+    buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
+  });
+
+  // Wire buy buttons after render
+  document.querySelectorAll(".shop-button[data-buy]").forEach((btn) => {
+    btn.onclick = () => buyShopItem(btn.dataset.buy);
+  });
 }
 
 function closeShop() {
-  if (shopOverlay) {
-    shopOverlay.classList.add("hidden");
-  }
   world.shopOpen = false;
+  closeModal();
 }
 
 function buyShopItem(item) {
@@ -135,7 +130,7 @@ function buyShopItem(item) {
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
   }
 
-  closeShop();
+  
   syncHUD();
 }
 
@@ -303,11 +298,7 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
   });
 });
 
-document.querySelectorAll(".shop-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    buyShopItem(button.dataset.buyItem);
-  });
-});
+
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && world.shopOpen) {
@@ -360,12 +351,12 @@ function loop(timestamp) {
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 
-  if (!world.dayEnded) {   
+  if (!isModalOpen() && !world.dayEnded) {   
 
     updateCharacterFromControls(character,keys,deltaMs, world);
 
     const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
-    if (distToHome < 0.6 && !sleepPromptOpen) {
+    if (distToHome < 0.6) {
       showSleepPrompt();
     }
 

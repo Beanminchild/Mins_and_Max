@@ -13,7 +13,7 @@ import { cols,
 export function createCharacter() {
   return {
     col: OTHER_BUILDING_COL + 1.75,
-    row: OTHER_BUILDING_ROW + 1.75  ,
+    row: OTHER_BUILDING_ROW + 2.75  ,
     dir: 0,
     walkFrame: 0,
     stepCounter: 0,

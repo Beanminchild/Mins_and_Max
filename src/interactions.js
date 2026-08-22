@@ -36,6 +36,8 @@ import {
   MAX_LUMBER_ITEMS
 } from "./constants.js";
 
+import { showModal } from "./modal.js";
+
 let waterCanFillAmount = 5;
 
 export function createButton() {
@@ -347,72 +349,19 @@ export function tryInteractWithGravestone(character, world) {
 }
 
 function showGravestoneMessage(gravestone) {
-  // Create or reuse modal element
-  let modal = document.getElementById("gravestone-modal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "gravestone-modal";
-    modal.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(20, 10, 30, 0.95);
-      border: 3px solid #6b3f6d;
-      padding: 30px;
-      border-radius: 8px;
-      color: #ddd;
-      text-align: center;
-      font-family: Arial, sans-serif;
-      z-index: 1000;
-      max-width: 600px;
-      box-shadow: 0 0 20px rgba(100, 50, 150, 0.5);
-    `;
-    document.body.appendChild(modal);
-  }
-
-  modal.innerHTML = `
-    <h2 style="color: #b89fbf; margin-top: 0; font-size: 24px;">The Grave says:</h2>
-    <p style="font-size: 18px; line-height: 1.6;">
-      Here lies Max's Grandpa...
-      <br><br>
-      <strong>Full Name: Max's Grandpa Sr.</strong>
-    </p>
-    <hr style="border: 1px solid #6b3f6d; margin: 20px 0;">
-    <p style="font-size: 14px; color: #aaa; line-height: 1.5;">
-      Coming soon to this location:<br>
-      <strong>A new luxury highrise apartment</strong><br>
-      for college students with rich parents<br>
-      and... a <strong>Chillies!</strong>
-    </p>
-    <button id="gravestone-close" style="
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #6b3f6d;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-    ">Close</button>
-  `;
-
-  modal.style.display = "block";
-
-  const closeBtn = document.getElementById("gravestone-close");
-  closeBtn.addEventListener("click", () => {
-    modal.style.display = "none";
+  showModal({
+    title: "The Grave says:",
+    bodyHtml: `
+      <p style="font-size:18px;line-height:1.6;">
+        Here lies Max's Grandpa...<br><br>
+        <strong>Full Name: Max's Grandpa Sr.</strong>
+      </p>
+      <hr style="border:1px solid #5d4037;margin:20px 0;">
+      <p style="font-size:14px;color:#6d4c41;">
+        Coming soon: <strong>A new luxury highrise apartment</strong><br>and a <strong>Chillies!</strong>
+      </p>`,
+    buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
-
-  // Close on click outside
-  setTimeout(() => {
-    document.addEventListener("click", function closeOutside(e) {
-      if (e.target === modal) {
-        modal.style.display = "none";
-        document.removeEventListener("click", closeOutside);
-      }
-    });
-  }, 100);
 }
 
 // Logic to check if player can start refilling
@@ -446,13 +395,15 @@ function moveToward(min, targetCol, targetRow, speed = 0.12) {
 }
 
 function settleMin(min) {
-  min.state = "loose";
+  
+  min.state = "following";
   min.target = null;
   min.targetTile = null;
   min.throwOrigin = null;
   min.throwDistance = 0;
   min.landed = true;
   min.isDelivering = false;
+  
 }
 
 export function spawnNewMin(mins, col, row, initialState = "loose") {
@@ -690,6 +641,7 @@ export function updateMins(character, mins, button, world) {
           min.cuttingTimer = 0;
         } else if (!min.isDelivering) {
           settleMin(min);
+
         }
       }
     }
