@@ -13,7 +13,13 @@ import {
   OTHER_BUILDING_COL,
   OTHER_BUILDING_ROW,
   TREE_SWINGS_TO_FELL,
+  TOOL_REACH_DISTANCE
 } from "./constants.js";
+
+import {
+  world
+} from "./game.js";
+
 
 export function isoToScreen(col, row, camera) {
   return {
@@ -545,15 +551,20 @@ export function drawButton(ctx, button, camera) {
   ctx.restore();
 }
 
-export function drawCursor(ctx, cursor, camera) {
+export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
 
   const p = isoToScreen(cursor.col, cursor.row, camera);
 
+   // Calculate distance for visual feedback
+  const dist = Math.hypot(character.col - cursor.col, character.row - cursor.row);
+  const inRange = dist <= TOOL_REACH_DISTANCE;
+  const inRangeMin = dist - 3.75 <= TOOL_REACH_DISTANCE;
+
   ctx.save();
   ctx.translate(p.x, p.y - 6);
 
-  ctx.strokeStyle = "#ffffff";
+  ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
@@ -613,7 +624,7 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   ctx.fill();
 
   // Roof
-  ctx.fillStyle = isShop ? "#d32f2f" : "#37474f"; // Red for shop, Grey for other
+  ctx.fillStyle = isShop ? "#c02fd3" : "#ec0404"; // Red for shop, Grey for other
   ctx.beginPath();
   ctx.moveTo(-32, -45); ctx.lineTo(0, -70); ctx.lineTo(32, -45); ctx.lineTo(0, -29);
   ctx.fill();
@@ -744,6 +755,6 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
     }
   }
 
-  drawCursor(ctx, cursor, camera);
+  drawCursor(ctx, cursor, camera, character);
   drawCharacter(ctx, character, spriteBank, camera);
 }

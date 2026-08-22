@@ -19,7 +19,7 @@ import {
   tryPickupLumber,
   tryTakeFromMin,
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE } from "./constants.js";
 
 
 
@@ -69,7 +69,7 @@ const shopkeeper = createCharacter();
 shopkeeper.col = SHOPKEEPER_COL;
 shopkeeper.row = SHOPKEEPER_ROW;
 const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
-const world = createWorld();
+export const world = createWorld();
 world.shopkeeper = shopkeeper;
 
 if (!world.selectedTool) {
@@ -239,7 +239,17 @@ function handleToolAction() {
 
   if (world.selectedTool === "min") {
     throwMin(character, mins, button, world.box, cursor);
-  } else if (world.selectedTool === "empty-hands") {
+  } 
+  
+    // Calculate distance between character and cursor for all other tools
+  const dist = cursor ? Math.hypot(character.col - cursor.col, character.row - cursor.row) : Infinity;
+  
+  // If the cursor is too far away, stop the action
+  if (dist > TOOL_REACH_DISTANCE) {    
+    return;
+  }
+  
+  if (world.selectedTool === "empty-hands") {
     if (!tryHarvestCrop(character, world)) {
       tryTakeFromMin(character, mins);
     }
@@ -348,9 +358,10 @@ canvas.addEventListener("click", () => {
 
 function loop(timestamp) {
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
-  lastFrameTime = timestamp;
+  lastFrameTime = timestamp; 
 
-  if (!world.dayEnded) {
+  if (!world.dayEnded) {   
+
     updateCharacterFromControls(character,keys,deltaMs, world);
 
     const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
@@ -364,10 +375,6 @@ function loop(timestamp) {
     if (world.dayProgress >= 1) {
       endDay();
     }
-  }
-
-  if (!world.dayEnded) {
-    //updateCharacterFromControls(character, keys, deltaMs, world);
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, button, world);
   if (keys.has("KeyE") || keys.has("Space")) {
