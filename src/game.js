@@ -4,8 +4,7 @@ import { createSpriteBank, drawScene } from "./render.js";
 import {
   createWorld,
   throwMin,
-  tryCollectMin,
-  tryInteractWithButton,
+  tryCollectMin,  
   updateMins,
   updateWorld,
   useToolAtCursor,
@@ -59,7 +58,7 @@ if (!world.selectedTool) {
   world.selectedTool = TOOL_TYPES.MIN;
 }
 
-const { button, mins } = world;
+const { mins } = world;
 
 const resultsScreen = document.getElementById("results-screen");
 const resultsCollected = document.getElementById("results-collected");
@@ -233,7 +232,7 @@ function handleToolAction() {
   if (world.dayEnded) return;
 
   if (world.selectedTool === "min") {
-    throwMin(character, mins, button, world.box, cursor);
+    throwMin(character, mins, world.box, cursor);
   } 
   
     // Calculate distance between character and cursor for all other tools
@@ -281,10 +280,7 @@ function startNextDay() {
 
   character.col = OTHER_BUILDING_COL + 1.75;
   character.row = OTHER_BUILDING_ROW + 1.75;
-  character.dir = 2;
-
-  button.pressed = false;
-  button.minCount = 0;
+  character.dir = 2;  
 
   if (resultsScreen) resultsScreen.classList.add("hidden");
   syncHUD();
@@ -367,7 +363,7 @@ function loop(timestamp) {
       endDay();
     }
     updateWorld(world, deltaMs, character);
-    updateMins(character, mins, button, world);
+    updateMins(character, mins, world);
   if (keys.has("KeyE") || keys.has("Space")) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryPickupLumber(character, world) ||
@@ -381,12 +377,10 @@ function loop(timestamp) {
     }
 
     if (!interacted) {
-      if (!tryCollectMin(character, mins)) {
-        if (!tryInteractWithButton(character, button)) {
+      if (!tryCollectMin(character, mins)) {        
           if (!tryHarvestCrop(character, world)) {
             tryTakeFromMin(character, mins);
-          }
-        }
+          }        
       }
     }
 
@@ -402,10 +396,10 @@ function loop(timestamp) {
 
   syncHUD();
   camera = updateCamera(canvas, character);
-  drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
+  drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
 
   requestAnimationFrame(loop);
 }
 
-drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
+drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
 requestAnimationFrame(loop);

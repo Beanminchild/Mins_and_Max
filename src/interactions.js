@@ -1,8 +1,6 @@
-import {
-  BUTTON_REQUIRED_MIN,
+import {  
   MIN_SPAWN_COUNT,
-  MIN_INTERACTION_RADIUS,
-  BUTTON_INTERACTION_RADIUS,
+  MIN_INTERACTION_RADIUS,  
   DIRECTION_VECTORS,
   THROW_TARGET_RADIUS,
   THROW_SUCCESS_BASE,
@@ -39,15 +37,6 @@ import {
 import { showModal } from "./modal.js";
 
 let waterCanFillAmount = 5;
-
-export function createButton() {
-  return {
-    col: 6,
-    row: 17,
-    pressed: false,
-    minCount: 0
-  };
-}
 
 export function createBox() {
   return {
@@ -290,7 +279,6 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   };
 
   return {
-    button: createButton(),
     box: createBox(),
     dominion: createDominion(),
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
@@ -428,7 +416,7 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
   return newMin;
 }
 
-export function updateMins(character, mins, button, world) {
+export function updateMins(character, mins, world) {
   const { box, dominion } = world;
 
   // 1. Sort followers so that those carrying crops/lumber are at the front of the line
@@ -579,7 +567,7 @@ export function updateMins(character, mins, button, world) {
     if (min.state === "thrown") {
       const target = min.isDelivering 
         ? { col: world.box.col, row: world.box.row }
-        : (min.target || { col: button.col, row: button.row });
+        : (min.target || { col: character.col, row: character.row });
 
       moveToward(min, target.col, target.row, 0.14);
 
@@ -607,21 +595,7 @@ export function updateMins(character, mins, button, world) {
       min.state = "following";
       min.isDelivering = false;
       return;
-    }
-
-      const distanceToButton = Math.hypot(min.col - button.col, min.row - button.row);
-      if (!min.isDelivering && distanceToButton <= THROW_TARGET_RADIUS && (min.throwDistance ?? 0) <= THROW_MAX_DISTANCE) {
-        const successChance = Math.min(
-          0.95,
-          THROW_SUCCESS_BASE + THROW_SUCCESS_PER_DISTANCE * (1 - distanceToButton / THROW_TARGET_RADIUS)
-        );
-        if (Math.random() < successChance) {
-          button.minCount += 1;
-          button.pressed = button.minCount >= BUTTON_REQUIRED_MIN;
-          settleMin(min);
-          return;
-        }
-      }
+    }      
 
       if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
         const tCol = Math.floor(target.col);
@@ -738,16 +712,8 @@ export function tryCollectMin(character, mins) {
   return null;
 }
 
-export function tryInteractWithButton(character, button) {
-  const distance = Math.hypot(character.col - button.col, character.row - button.row);
-  if (distance <= BUTTON_INTERACTION_RADIUS) {
-    button.pressed = true;
-    return true;
-  }
-  return false;
-}
 
-export function throwMin(character, mins, button, box, cursor = null) {
+export function throwMin(character, mins, box, cursor = null) {
   // Prioritize mins: first carrying (crops/lumber), then following
   const availableMin = mins.find((min) => min.state === "carrying" || min.state === "carrying_lumber") ||
                        mins.find((min) => min.state === "following");
@@ -782,7 +748,7 @@ export function throwMin(character, mins, button, box, cursor = null) {
   availableMin.carryingLumberForDelivery = false;
   const target = cursor
     ? { col: cursor.col, row: cursor.row }
-    : { col: button.col, row: button.row };
+    : { col: character.col, row: character.row };
 
   const dx = target.col - character.col;
   const dy = target.row - character.row;
