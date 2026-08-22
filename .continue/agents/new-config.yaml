@@ -1,0 +1,12 @@
+
+{
+  "models": [
+    {
+      "title": "OrcaRouter",
+      "provider": "openai",
+      "model": "orcarouter/auto",
+      "apiBase": "https://api.orcarouter.ai/v1",
+      "apiKey": "sk-orca-i1ZbTBOPzrfgWsVbKaOKI41NZkYUOfUhavahZ2b4khm"
+    }
+  ]
+}

@@ -9,15 +9,55 @@ import {
   updateMins,
   updateWorld,
   useToolAtCursor,
-  tryHarvestCrop,
-  tryTakeCropFromMin,
-  tryDepositCrop,
+  tryHarvestCrop,  
+  tryDepositToBox,
   tryDepositToDominion,
   tryInteractWithPond,
   tryInteractWithShop,
-  spawnNewMin
+  tryInteractWithGravestone,
+  spawnNewMin, 
+  tryPickupLumber,
+  tryTakeFromMin,
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE } from "./constants.js";
+
+
+
+
+let sleepPromptOpen = false;
+
+function showSleepPrompt() {
+  if (sleepPromptOpen) return;
+  sleepPromptOpen = true;
+
+  const modal = document.createElement("div");
+  modal.id = "sleep-modal";
+  modal.style.cssText = `
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(20, 20, 40, 0.95); border: 2px solid #5d4037;
+    padding: 20px; color: white; text-align: center; z-index: 2000; border-radius: 8px;
+  `;
+  modal.innerHTML = `
+    <h3>Go to bed for the night?</h3>
+    <p>This will end the current day.</p>
+    <button id="sleep-yes" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #48c774; border: none; color: white;">Yes (Sleep)</button>
+    <button id="sleep-no" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #c74e4e; border: none; color: white;">No</button>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById("sleep-yes").onclick = () => {
+    modal.remove();
+    sleepPromptOpen = false;
+    endDay(); // Trigger the end of day sequence
+  };
+
+  document.getElementById("sleep-no").onclick = () => {
+    modal.remove();
+    // Briefly move character away so it doesn't re-trigger immediately
+    character.col += 1;
+    setTimeout(() => { sleepPromptOpen = false; }, 1000);
+  };
+}
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -28,8 +68,8 @@ const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
 shopkeeper.col = SHOPKEEPER_COL;
 shopkeeper.row = SHOPKEEPER_ROW;
-const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false });
-const world = createWorld();
+const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
+export const world = createWorld();
 world.shopkeeper = shopkeeper;
 
 if (!world.selectedTool) {
@@ -175,7 +215,15 @@ function syncHUD() {
 
   const countDisplay = document.getElementById("crop-count");
   if (countDisplay) {
-    countDisplay.textContent = world.cropsCollected;
+    countDisplay.textContent = world.cropsCollected + world.lumberCollected;
+  }
+
+
+   
+  const farmDisplay = document.getElementById("farm-name");
+  if (farmDisplay) {
+    farmDisplay.textContent = "Zachs Farm";
+    
   }
 
   const walletDisplay = document.getElementById("wallet-amount");
@@ -191,10 +239,19 @@ function handleToolAction() {
 
   if (world.selectedTool === "min") {
     throwMin(character, mins, button, world.box, cursor);
-  } else if (world.selectedTool === "empty-hands") {
-    const harvested = tryHarvestCrop(character, world);
-    if (!harvested) {
-      tryTakeCropFromMin(character, mins);
+  } 
+  
+    // Calculate distance between character and cursor for all other tools
+  const dist = cursor ? Math.hypot(character.col - cursor.col, character.row - cursor.row) : Infinity;
+  
+  // If the cursor is too far away, stop the action
+  if (dist > TOOL_REACH_DISTANCE) {    
+    return;
+  }
+  
+  if (world.selectedTool === "empty-hands") {
+    if (!tryHarvestCrop(character, world)) {
+      tryTakeFromMin(character, mins);
     }
   } else {
     useToolAtCursor(world, cursor);
@@ -205,11 +262,14 @@ function endDay() {
   if (world.dayEnded) return;
 
   world.dayEnded = true;
-  const payout = world.cropsCollected * 25;
-  world.wallet += payout;
+  const cropPayout = world.cropsCollected * 25;
+  const lumberPayout = world.lumberCollected * 5;
+  const totalPayout = cropPayout + lumberPayout;
+  
+  world.wallet += totalPayout;
 
-  if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected);
-  if (resultsPayout) resultsPayout.textContent = `${payout}g`;
+  if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected + world.lumberCollected);
+  if (resultsPayout) resultsPayout.textContent = `${totalPayout}g (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)`;
   if (resultsWallet) resultsWallet.textContent = `${world.wallet}g`;
 
   if (resultsScreen) resultsScreen.classList.remove("hidden");
@@ -221,6 +281,12 @@ function startNextDay() {
   world.dayProgress = 0;
   world.dayEnded = false;
   world.cropsCollected = 0;
+  world.lumberCollected = 0;
+  world.dayNumber += 1;
+
+  character.col = OTHER_BUILDING_COL + 1.75;
+  character.row = OTHER_BUILDING_ROW + 1.75;
+  character.dir = 2;
 
   button.pressed = false;
   button.minCount = 0;
@@ -252,8 +318,9 @@ document.addEventListener("keydown", (event) => {
     Digit1: "hoe",
     Digit2: "seeds",
     Digit3: "watering-can",
-    Digit4: "min",
-    Digit5: "empty-hands"
+    Digit4: "axe",
+    Digit5: "min",
+    Digit6: "empty-hands"
   };
 
   const tool = map[event.code];
@@ -291,56 +358,50 @@ canvas.addEventListener("click", () => {
 
 function loop(timestamp) {
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
-  lastFrameTime = timestamp;
+  lastFrameTime = timestamp; 
 
-  if (!world.dayEnded) {
+  if (!world.dayEnded) {   
+
+    updateCharacterFromControls(character,keys,deltaMs, world);
+
+    const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
+    if (distToHome < 0.6 && !sleepPromptOpen) {
+      showSleepPrompt();
+    }
+
     world.dayElapsedMs += deltaMs;
     world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
 
     if (world.dayProgress >= 1) {
       endDay();
     }
-  }
-
-  if (!world.dayEnded) {
-    updateCharacterFromControls(character, keys, deltaMs);
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, button, world);
+  if (keys.has("KeyE") || keys.has("Space")) {
+    let interacted = tryInteractWithGravestone(character, world) ||
+                    tryPickupLumber(character, world) ||
+                    tryDepositToBox(character, world.box, world) ||
+                    tryDepositToDominion(character, world.dominion, world, mins) ||
+                    tryInteractWithPond(character, world);
 
-    if (keys.has("KeyE") || keys.has("Space")) {
-      let interacted = tryDepositCrop(character, world.box, world);
+    if (!interacted && !world.shopOpen) {
+      interacted = tryInteractWithShop(character, world);
+      if (interacted) openShop();
+    }
 
-      if (!interacted) {
-        interacted = tryDepositToDominion(character, world.dominion, world, mins);
-      }
-
-      if (!interacted) {
-        interacted = tryInteractWithPond(character, world);
-      }
-
-      if (!interacted && !world.shopOpen) {
-        interacted = tryInteractWithShop(character, world);
-        if (interacted) {
-          openShop();
-        }
-      }
-
-      if (!interacted) {
-        const collected = tryCollectMin(character, mins);
-        if (!collected) {
-          const buttonInteracted = tryInteractWithButton(character, button);
-          if (!buttonInteracted) {
-            const harvested = tryHarvestCrop(character, world);
-            if (!harvested) {
-              tryTakeCropFromMin(character, mins);
-            }
+    if (!interacted) {
+      if (!tryCollectMin(character, mins)) {
+        if (!tryInteractWithButton(character, button)) {
+          if (!tryHarvestCrop(character, world)) {
+            tryTakeFromMin(character, mins);
           }
         }
       }
-
-      keys.delete("KeyE");
-      keys.delete("Space");
     }
+
+    keys.delete("KeyE");
+    keys.delete("Space");
+  }
 
     if (keys.has("KeyF")) {
       handleToolAction();

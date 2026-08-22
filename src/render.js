@@ -12,10 +12,14 @@ import {
   SHOP_BUILDING_ROW,
   OTHER_BUILDING_COL,
   OTHER_BUILDING_ROW,
-  
-
-
+  TREE_SWINGS_TO_FELL,
+  TOOL_REACH_DISTANCE
 } from "./constants.js";
+
+import {
+  world
+} from "./game.js";
+
 
 export function isoToScreen(col, row, camera) {
   return {
@@ -46,6 +50,128 @@ function drawGrassTile(ctx, col, row, camera) {
   ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
   ctx.fillStyle = "rgba(0,0,0,0.08)";
   ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
+}
+
+function drawDecayedGrassTile(ctx, col, row, camera) {
+  const p = isoToScreen(col, row, camera);
+  const shade = (col + row) % 3;
+  const decayedColors = ["#6a4f7e", "#7b5a8f", "#5a3f6d"];
+
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - TILE_H / 2);
+  ctx.lineTo(p.x + TILE_W / 2, p.y);
+  ctx.lineTo(p.x, p.y + TILE_H / 2);
+  ctx.lineTo(p.x - TILE_W / 2, p.y);
+  ctx.closePath();
+
+  ctx.fillStyle = decayedColors[shade];
+  ctx.fill();
+  ctx.strokeStyle = "#3a2a4a";
+  ctx.lineWidth = 1.25;
+  ctx.stroke();
+
+  // Creepy subtle effect
+  ctx.fillStyle = "rgba(0,0,0,0.1)";
+  ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
+  ctx.fillStyle = "rgba(255,255,255,0.04)";
+  ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
+}
+
+function drawLumber(ctx, lumberItem, camera) {
+  const p = isoToScreen(lumberItem.col, lumberItem.row, camera);
+  
+  ctx.save();
+  ctx.translate(p.x, p.y - 10);
+
+  // Wood log appearance
+  ctx.fillStyle = "#8b6f47";
+  ctx.rotate(Math.PI / 4);
+  ctx.fillRect(-12, -3, 24, 6);
+  
+  // Wood grain texture
+  ctx.strokeStyle = "#654321";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-12, 0);
+  ctx.lineTo(12, 0);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawTreeHealth(ctx, tile, col, row, camera) {
+  if (!tile.hasTree || tile.treeHealth === TREE_SWINGS_TO_FELL) return;
+
+  const p = isoToScreen(col, row, camera);
+  
+  ctx.save();
+  ctx.translate(p.x, p.y - 35);
+
+  // Health bar background
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+  ctx.fillRect(-12, 0, 24, 4);
+
+  // Health bar foreground (red -> yellow -> green)
+  const healthPercent = tile.treeHealth / TREE_SWINGS_TO_FELL;
+  ctx.fillStyle = healthPercent > 0.5 ? "#4caf50" : healthPercent > 0.25 ? "#ffeb3b" : "#f44336";
+  ctx.fillRect(-12, 0, 24 * healthPercent, 4);
+
+  // Border
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(-12, 0, 24, 4);
+
+  ctx.restore();
+}
+
+function drawSandTile(ctx, col, row, camera) {
+  const p = isoToScreen(col, row, camera);
+  const shade = (col + row) % 3;
+  const sandColors = ["#d4af8f", "#e5c4a0", "#d4a574"];
+
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - TILE_H / 2);
+  ctx.lineTo(p.x + TILE_W / 2, p.y);
+  ctx.lineTo(p.x, p.y + TILE_H / 2);
+  ctx.lineTo(p.x - TILE_W / 2, p.y);
+  ctx.closePath();
+
+  ctx.fillStyle = sandColors[shade];
+  ctx.fill();
+  ctx.strokeStyle = "#b8956a";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Sand texture
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
+  ctx.fillStyle = "rgba(0,0,0,0.05)";
+  ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
+}
+
+function drawWaterTile(ctx, col, row, camera) {
+  const p = isoToScreen(col, row, camera);
+  
+  // Animated wave effect
+  const time = Date.now() / 500;
+  const waveShift = Math.sin(time + col * 0.5) * 2;
+
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - TILE_H / 2 + waveShift);
+  ctx.lineTo(p.x + TILE_W / 2, p.y + waveShift);
+  ctx.lineTo(p.x, p.y + TILE_H / 2 + waveShift);
+  ctx.lineTo(p.x - TILE_W / 2, p.y + waveShift);
+  ctx.closePath();
+
+  ctx.fillStyle = "#2196f3";
+  ctx.fill();
+  ctx.strokeStyle = "#1565c0";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Water shimmer
+  ctx.fillStyle = "rgba(100, 181, 246, 0.4)";
+  ctx.fillRect(p.x - 8, p.y - 2 + waveShift, 16, 3);
 }
 
 function drawDirtTile(ctx, col, row, camera) {
@@ -116,55 +242,51 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
   ctx.restore();
 }
 
+function drawTree(ctx, col, row, camera, treeSprite) {
+  const p = isoToScreen(col, row, camera);
+  ctx.drawImage(treeSprite, p.x - 32, p.y - 50, 64, 64);
+}
+
+function drawGravestone(ctx, gravestone, camera, gravestoneSprite) {
+  const p = isoToScreen(gravestone.col, gravestone.row, camera);
+  ctx.drawImage(gravestoneSprite, p.x - 16, p.y - 24, 32, 48);
+}
+
+let boxSprite, dominionSprite;
+
+function createCachedSprite(drawFn) {
+  const s = document.createElement("canvas");
+  s.width = 64; s.height = 64;
+  drawFn(s.getContext("2d"));
+  return s;
+}
+
 export function drawBox(ctx, box, camera) {
+  if (!boxSprite) boxSprite = createCachedSprite(g => {
+    g.translate(32, 32);
+    g.fillStyle = "#4e342e"; g.beginPath(); g.moveTo(-20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(-20, 15); g.fill();
+    g.fillStyle = "#3e2723"; g.beginPath(); g.moveTo(20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(20, 15); g.fill();
+    g.fillStyle = "#5d4037"; g.beginPath(); g.moveTo(0, -10); g.lineTo(20, 0); g.lineTo(0, 10); g.lineTo(-20, 0); g.closePath(); g.fill();
+  });
   const p = isoToScreen(box.col, box.row, camera);
-
-  ctx.save();
-  ctx.translate(p.x, p.y);
-
-  ctx.fillStyle = "#4e342e";
-  ctx.beginPath();
-  ctx.moveTo(-20, 0); ctx.lineTo(0, 10); ctx.lineTo(0, 25); ctx.lineTo(-20, 15); ctx.fill();
-
-  ctx.fillStyle = "#3e2723";
-  ctx.beginPath();
-  ctx.moveTo(20, 0); ctx.lineTo(0, 10); ctx.lineTo(0, 25); ctx.lineTo(20, 15); ctx.fill();
-
-  ctx.fillStyle = "#5d4037";
-  ctx.beginPath();
-  ctx.moveTo(0, -10); ctx.lineTo(20, 0); ctx.lineTo(0, 10); ctx.lineTo(-20, 0);
-  ctx.closePath(); ctx.fill();
-  
-  ctx.restore();
+  ctx.drawImage(boxSprite, p.x - 32, p.y - 32);
 }
 
 export function drawDominion(ctx, dominion, camera) {
+  if (!dominionSprite) dominionSprite = createCachedSprite(g => {
+    g.translate(32, 32);
+    g.fillStyle = "#455a64"; g.beginPath(); g.moveTo(-25, 0); g.lineTo(0, 12); g.lineTo(25, 0); g.lineTo(0, -12); g.fill();
+  });
   const p = isoToScreen(dominion.col, dominion.row, camera);
-
-  ctx.save();
-  ctx.translate(p.x, p.y);
-
-  ctx.fillStyle = "#455a64";
-  ctx.beginPath();
-  ctx.moveTo(-25, 0); ctx.lineTo(0, 12); ctx.lineTo(25, 0); ctx.lineTo(0, -12);
-  ctx.fill();
+  ctx.drawImage(dominionSprite, p.x - 32, p.y - 32);
 
   const bob = Math.sin(Date.now() / 500) * 5;
-  ctx.translate(0, -25 + bob);
-  
+  ctx.save();
+  ctx.translate(p.x, p.y - 25 + bob);
   ctx.fillStyle = "#90a4ae";
-  ctx.beginPath();
-  ctx.moveTo(0, -22); 
-  ctx.lineTo(14, 0);  
-  ctx.lineTo(0, 22);  
-  ctx.lineTo(-14, 0); 
-  ctx.fill();
-  
+  ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(14, 0); ctx.lineTo(0, 22); ctx.lineTo(-14, 0); ctx.fill();
   ctx.fillStyle = "#fff176";
-  ctx.beginPath();
-  ctx.arc(0, 0, 5, 0, Math.PI * 2);
-  ctx.fill();
-
+  ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
@@ -172,7 +294,7 @@ export function drawWaterPond(ctx, pond, camera) {
   if (!pond) return;
   const c = pond.col;
   const r = pond.row;
-  const size = 2; // 4x4 pond
+  const size = 2.0;
 
   const time = Date.now() / 1000;
 
@@ -199,7 +321,6 @@ export function drawWaterPond(ctx, pond, camera) {
     const shiftY = Math.cos(time * 0.8 + i) * 3;
     
     ctx.beginPath();
-    // Offset each point slightly to create a moving wavy shape
     ctx.moveTo(pTop.x + shiftX, pTop.y - TILE_H / 2 + shiftY);
     ctx.lineTo(pRight.x + TILE_W / 2 - shiftX, pRight.y + shiftY);
     ctx.lineTo(pBottom.x - shiftX, pBottom.y + TILE_H / 2 - shiftY);
@@ -225,9 +346,8 @@ export function drawWaterPond(ctx, pond, camera) {
   ctx.restore();
 }
 
-
 function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, options = {}) {
-  const { showPigtails = true } = options;
+  const { showPigtails = true, isUnicorn = false } = options;
   const sprite = document.createElement("canvas");
   sprite.width = 64;
   sprite.height = 64;
@@ -259,7 +379,7 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
     g.fillStyle = look.hair;
   }
 
-  if (showPigtails && (directionIndex === 6 || directionIndex === 5 || directionIndex === 7)) {
+  if (!isUnicorn && showPigtails && (directionIndex === 6 || directionIndex === 5 || directionIndex === 7)) {
     drawPigtail(hx - 9, hy + 2, false);
     drawPigtail(hx + 9, hy + 2, true);
   }
@@ -275,27 +395,51 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
   g.stroke();
 
   const bodyGrad = g.createRadialGradient(bx - 3, by - 3, 2, bx, by, 12);
-  bodyGrad.addColorStop(0, "#7a95eb");
+  bodyGrad.addColorStop(0, isUnicorn ? "#444" : "#7a95eb");
   bodyGrad.addColorStop(1, look.coat);
   g.fillStyle = bodyGrad;
   g.beginPath();
   g.ellipse(bx, by, 9, 11, 0, 0, Math.PI * 2);
   g.fill();
 
+  // BUSINESS SUIT DETAILS for Unicorn
+  if (isUnicorn) {
+    g.fillStyle = "#ffffff";
+    g.beginPath();
+    g.moveTo(bx, by - 8);
+    g.lineTo(bx - 4, by - 10);
+    g.lineTo(bx + 4, by - 10);
+    g.closePath();
+    g.fill();
+
+    g.fillStyle = look.scarf || "#cc0000";
+    g.fillRect(bx - 1, by - 9, 2, 7);
+  }
+
   const headGrad = g.createRadialGradient(hx - 2, hy - 2, 2, hx, hy, 10);
-  headGrad.addColorStop(0, "#ffe0c2");
+  headGrad.addColorStop(0, isUnicorn ? "#fff" : "#ffe0c2");
   headGrad.addColorStop(1, look.skin);
   g.fillStyle = headGrad;
   g.beginPath();
   g.arc(hx, hy, 8.5, 0, Math.PI * 2);
   g.fill();
 
+  // UNICORN HORN
+  if (isUnicorn) {
+    g.fillStyle = "#ffd700";
+    g.beginPath();
+    g.moveTo(hx - 2, hy - 7);
+    g.lineTo(hx, hy - 22);
+    g.lineTo(hx + 2, hy - 7);
+    g.fill();
+  }
+
   g.fillStyle = look.hair;
   g.beginPath();
   g.arc(hx, hy - 1, 9, Math.PI, 0);
   g.fill();
   
-  if (directionIndex >= 1 && directionIndex <= 3) { 
+  if (!isUnicorn && directionIndex >= 1 && directionIndex <= 3) { 
     g.beginPath();
     g.moveTo(hx - 9, hy - 1);
     g.quadraticCurveTo(hx - 5, hy + 4, hx, hy - 1);
@@ -303,7 +447,7 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
     g.fill();
   }
 
-  if (showPigtails) {
+  if (!isUnicorn && showPigtails) {
     if (directionIndex >= 1 && directionIndex <= 3) {
       drawPigtail(hx - 10, hy + 2, false);
       drawPigtail(hx + 10, hy + 2, true);
@@ -328,7 +472,7 @@ function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, o
     g.fillRect(hx - 6, eyeY, 2, 2);
   }
 
-  g.strokeStyle = "#4a65bd";
+  g.strokeStyle = isUnicorn ? look.coat : "#4a65bd";
   g.lineWidth = 4.5;
   g.beginPath();
   const armAngle = walkPose.armSwing * 0.1;
@@ -359,47 +503,30 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
   const sprite = spriteBank[character.dir][frameIndex];
   ctx.drawImage(sprite, p.x - 32, p.y - 58, 64, 64);
 
-  if (character.holdingCrop) {
+  if (character.held) {
     ctx.save();
     ctx.translate(p.x, p.y - 50); 
-    ctx.fillStyle = "#4a8f3b";
-    ctx.beginPath();
-    ctx.arc(0, -8, 6, 0, Math.PI * 2);
-    ctx.fill();
+    if (character.held === "crop") {
+      ctx.fillStyle = "#4a8f3b";
+      ctx.beginPath();
+      ctx.arc(0, -8, 6, 0, Math.PI * 2);
+      ctx.fill();
 
-    ctx.fillStyle = "#d9b44a";
-    ctx.fillRect(-2, -2, 4, 6);
+      ctx.fillStyle = "#d9b44a";
+      ctx.fillRect(-2, -2, 4, 6);
+    } else if (character.held === "lumber") {
+      ctx.fillStyle = "#8b6f47";
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-10, -2, 20, 4);
+    }
     ctx.restore();
   }
 }
 
-export function drawMin(ctx, min, camera) {
+export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-
-  ctx.save();
-  ctx.translate(p.x, p.y - 6);
-
-  ctx.fillStyle = (min.state === "following" || min.state === "carrying") ? "#f7c873" : "#8c5b2b";
-  
-  if (min.state === "going_to_box" || min.state === "returning_to_dominion") {
-    ctx.fillStyle = "#64b5f6";
-  }
-
-  ctx.beginPath();
-  ctx.arc(0, 0, 8, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (min.state === "carrying" || min.isDelivering || min.state === "returning_to_dominion") {
-    ctx.fillStyle = "#d9b44a";
-    ctx.beginPath();
-    ctx.arc(0, -12, 5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "#3a210f";
-  ctx.fillRect(-3, -1, 6, 2);
-
-  ctx.restore();
+  const sprite = minSprites[min.state] || minSprites.loose;
+  ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
 }
 
 export function drawButton(ctx, button, camera) {
@@ -424,15 +551,20 @@ export function drawButton(ctx, button, camera) {
   ctx.restore();
 }
 
-export function drawCursor(ctx, cursor, camera) {
+export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
 
   const p = isoToScreen(cursor.col, cursor.row, camera);
 
+   // Calculate distance for visual feedback
+  const dist = Math.hypot(character.col - cursor.col, character.row - cursor.row);
+  const inRange = dist <= TOOL_REACH_DISTANCE;
+  const inRangeMin = dist - 3.75 <= TOOL_REACH_DISTANCE;
+
   ctx.save();
   ctx.translate(p.x, p.y - 6);
 
-  ctx.strokeStyle = "#ffffff";
+  ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
@@ -467,7 +599,6 @@ export function getTimeTint(progress) {
   return { r: 40, g: 40, b: 120, a: 0.5 };
 }
 
-// Add this function to render.js
 export function drawBuilding(ctx, col, row, camera, isShop, character) {
   const p = isoToScreen(col, row, camera);
   
@@ -493,7 +624,7 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   ctx.fill();
 
   // Roof
-  ctx.fillStyle = isShop ? "#d32f2f" : "#37474f"; // Red for shop, Grey for other
+  ctx.fillStyle = isShop ? "#c02fd3" : "#ec0404"; // Red for shop, Grey for other
   ctx.beginPath();
   ctx.moveTo(-32, -45); ctx.lineTo(0, -70); ctx.lineTo(32, -45); ctx.lineTo(0, -29);
   ctx.fill();
@@ -507,7 +638,54 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   ctx.restore();
 }
 
+const tileOrder = [];
+for (let r = 0; r < rows; r++) {
+  for (let c = 0; c < cols; c++) {
+    tileOrder.push([c, r]);
+  }
+}
+tileOrder.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
 
+const tileSprites = {};
+
+function getTileSprite(type, shade, variant) {
+  const key = `${type}-${shade}-${variant}`;
+  if (tileSprites[key]) return tileSprites[key];
+
+  const s = document.createElement("canvas");
+  s.width = TILE_W; s.height = TILE_H;
+  const g = s.getContext("2d");
+  g.translate(TILE_W / 2, TILE_H / 2);
+
+  g.beginPath();
+  g.moveTo(0, -TILE_H / 2); g.lineTo(TILE_W / 2, 0); g.lineTo(0, TILE_H / 2); g.lineTo(-TILE_W / 2, 0);
+  g.closePath();
+
+  if (type === TILE_TYPES.DIRT) {
+    g.fillStyle = "#8b5a2b"; g.fill();
+    g.strokeStyle = "#6a421f";
+  } else if (type === TILE_TYPES.STONE) {
+    g.fillStyle = "#9e9e9e"; g.fill();
+    g.strokeStyle = "#616161";
+  } else if (type === TILE_TYPES.SAND) {
+    const sandColors = ["#d4af8f", "#e5c4a0", "#d4a574"];
+    g.fillStyle = sandColors[shade]; g.fill();
+    g.strokeStyle = "#b8956a";
+  } else if (variant === "decay") {
+    const decayedColors = ["#6a4f7e", "#7b5a8f", "#5a3f6d"];
+    g.fillStyle = decayedColors[shade]; g.fill();
+    g.strokeStyle = "#3a2a4a";
+  } else {
+    const grassColors = ["#5a8737", "#6da145", "#547e30"];
+    g.fillStyle = grassColors[shade]; g.fill();
+    g.strokeStyle = "#29451f";
+  }
+  g.lineWidth = 1.25;
+  g.stroke();
+
+  tileSprites[key] = s;
+  return s;
+}
 
 export function drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -516,33 +694,35 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
   ctx.fillStyle = `rgba(${tint.r}, ${tint.g}, ${tint.b}, ${tint.a})`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const order = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      order.push([c, r]);
-    }
-  }
-
-  order.sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]));
-
-  for (const [c, r] of order) {
+  for (const [c, r] of tileOrder) {
     const tile = world.tiles[r][c];
-    if (tile.type === TILE_TYPES.DIRT) {
-      drawDirtTile(ctx, c, r, camera);
+    const p = isoToScreen(c, r, camera);
+    const shade = (c + r) % 3;
+
+    if (tile.type === TILE_TYPES.WATER) {
+      drawWaterTile(ctx, c, r, camera);
     } else {
-      drawGrassTile(ctx, c, r, camera);
+      ctx.drawImage(getTileSprite(tile.type, shade, tile.variant), p.x - TILE_W / 2, p.y - TILE_H / 2);
+    }
+
+    if (tile.hasTree) {
+      drawTree(ctx, c, r, camera, world.treeSprite);
+      drawTreeHealth(ctx, tile, c, r, camera);
     }
 
     drawPlantOverlay(ctx, tile, c, r, camera);
   }
 
+  // Draw lumber items on ground
+  if (world.lumber) {
+    for (const lumberItem of world.lumber) {
+      drawLumber(ctx, lumberItem, camera);
+    }
+  }
 
-    // time cycle tint over world 
-  //const tint = getTimeTint(world.dayProgress || 0);
+  // Time cycle tint over world
   if (tint.a > 0) {
     ctx.save();
-    // 'multiply' makes the world look naturally darker/tinted
-    // 'source-over' (default) just adds a colored film
     if (world.dayProgress > 0.6) {
         ctx.globalCompositeOperation = 'multiply';
     }
@@ -556,23 +736,25 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
   drawWaterPond(ctx, world.pond, camera);
   drawButton(ctx, button, camera);
 
-
+  // Shopkeeper drawn with their bank
   drawCharacter(ctx, shopkeeper, shopkeeperSpriteBank, camera);
    
   drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);
   drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
 
- 
-
-  for (const min of mins) {
-    if (min.state !== "delivered") {
-      drawMin(ctx, min, camera);
+  // Draw gravestones
+  if (world.gravestones) {
+    for (const gravestone of world.gravestones) {
+      drawGravestone(ctx, gravestone, camera, world.gravestoneSprite);
     }
   }
 
- 
+  for (const min of mins) {
+    if (min.state !== "delivered") {
+      drawMin(ctx, min, camera, world.minSprites);
+    }
+  }
 
-  drawCursor(ctx, cursor, camera);
+  drawCursor(ctx, cursor, camera, character);
   drawCharacter(ctx, character, spriteBank, camera);
-   
 }
