@@ -529,28 +529,6 @@ export function drawMin(ctx, min, camera, minSprites) {
   ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
 }
 
-export function drawButton(ctx, button, camera) {
-  const p = isoToScreen(button.col, button.row, camera);
-
-  ctx.save();
-  ctx.translate(p.x, p.y - 6);
-
-  ctx.fillStyle = button.pressed ? "#48c774" : "#c74e4e";
-  ctx.beginPath();
-  ctx.moveTo(0, -14);
-  ctx.lineTo(16, -4);
-  ctx.lineTo(0, 6);
-  ctx.lineTo(-16, -4);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "12px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(button.pressed ? "true" : "false", 0, 2);
-  ctx.restore();
-}
-
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
 
@@ -687,7 +665,7 @@ function getTileSprite(type, shade, variant) {
   return s;
 }
 
-export function drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
+export function drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const tint = getTimeTint(world.dayProgress || 0);
@@ -734,7 +712,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
   drawBox(ctx, world.box, camera);
   drawDominion(ctx, world.dominion, camera);
   drawWaterPond(ctx, world.pond, camera);
-  drawButton(ctx, button, camera);
+
 
   // Shopkeeper drawn with their bank
   drawCharacter(ctx, shopkeeper, shopkeeperSpriteBank, camera);
