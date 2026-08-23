@@ -476,6 +476,15 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
 export function updateMins(character, mins, world) {
   const { box, dominion } = world;
 
+  // === PERF: precompute tree-cutter counts ONCE (was O(n^2) filter per min) ===
+  const cutterCounts = {};
+  for (const m of mins) {
+    if (m.state === "tree_cutting") {
+      const key = m.cuttingTreeCol + "," + m.cuttingTreeRow;
+      cutterCounts[key] = (cutterCounts[key] || 0) + 1;
+    }
+  }
+
   // 1. Sort followers so that those carrying crops/lumber are at the front of the line
   const followers = mins.filter((min) => min.state === "following" || min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish");
   followers.sort((a, b) => {
@@ -494,7 +503,10 @@ export function updateMins(character, mins, world) {
 
     moveToward(min, targetCol, targetRow, 0.12);
 
-    if (Math.hypot(min.col - targetCol, min.row - targetRow) < 0.15) {
+    // === PERF: squared distance instead of Math.hypot ===
+    const dxHome = min.col - targetCol;
+    const dyHome = min.row - targetRow;
+    if (dxHome * dxHome + dyHome * dyHome < 0.15 * 0.15) {
       min.atHome = true;
     }
   });
@@ -511,9 +523,8 @@ export function updateMins(character, mins, world) {
         const lumberItem = world.lumber[i];
         const distToLumber = Math.hypot(min.col - lumberItem.col, min.row - lumberItem.row);
         if (distToLumber < 0.3) {
-          // Pick up lumber
           min.state = "carrying_lumber";
-          min.carryingLumberForDelivery = false; // First throw - return to character
+          min.carryingLumberForDelivery = false;
           world.lumber.splice(i, 1);
           min.landed = false;
           return;
@@ -528,7 +539,6 @@ export function updateMins(character, mins, world) {
       const tile = world.tiles[tRow]?.[tCol];
 
       if (!tile || !tile.hasTree) {
-        // Tree no longer exists or was felled, stop cutting
         min.state = "loose";
         min.cuttingTimer = 0;
         min.cuttingTreeCol = null;
@@ -536,29 +546,20 @@ export function updateMins(character, mins, world) {
         return;
       }
 
-      // Move toward tree
       moveToward(min, tCol + 0.5, tRow + 0.5, 0.12);
 
-      // Count other mins also cutting this tree
-      const otherCutters = mins.filter(m => 
-        m.state === "tree_cutting" && 
-        m.cuttingTreeCol === tCol && 
-        m.cuttingTreeRow === tRow
-      ).length;
-
-      const totalCutters = otherCutters + 1; // Include self
+      // === PERF: use precomputed count instead of mins.filter(...) ===
+      const totalCutters = cutterCounts[tCol + "," + tRow] || 1;
       let cutTime;
       if (totalCutters === 1) cutTime = TREE_CUT_TIME_1_MIN;
       else if (totalCutters === 2) cutTime = TREE_CUT_TIME_2_MIN;
       else cutTime = TREE_CUT_TIME_3_MIN;
 
-      min.cuttingTimer += 16; // Approximate frame time
+      min.cuttingTimer += 16;
       if (min.cuttingTimer >= cutTime) {
-        // Tree is felled!
         tile.hasTree = false;
         tile.lumber = true;
 
-        // Add lumber to world
         if (world.lumber.length < MAX_LUMBER_ITEMS) {
           world.lumber.push({
             col: tCol + 0.5,
@@ -567,9 +568,7 @@ export function updateMins(character, mins, world) {
           });
         }
 
-        // One min carries lumber (will follow player like crops)
         min.state = "carrying_lumber";
-        // Push min away from tree to prevent getting stuck
         const pushDist = 2;
         const angle = Math.atan2(min.row - (tRow + 0.5), min.col - (tCol + 0.5));
         min.col = (tCol + 0.5) + Math.cos(angle) * pushDist;
@@ -579,14 +578,12 @@ export function updateMins(character, mins, world) {
         min.cuttingTreeRow = null;
         min.landed = false;
 
-        // Other mins stop cutting, go loose, and push away from tree
         mins.forEach(m => {
           if (m.state === "tree_cutting" && m.cuttingTreeCol === tCol && m.cuttingTreeRow === tRow && m.id !== min.id) {
             m.state = "loose";
             m.cuttingTimer = 0;
             m.cuttingTreeCol = null;
             m.cuttingTreeRow = null;
-            // Push away from tree
             const pushDist = 1.5;
             const angle = Math.atan2(m.row - (tRow + 0.5), m.col - (tCol + 0.5));
             m.col = (tCol + 0.5) + Math.cos(angle) * pushDist;
@@ -598,15 +595,18 @@ export function updateMins(character, mins, world) {
 
     // --- Dominion Automation Logic ---
     if (min.state === "thrown") {
-      const distToDominion = Math.hypot(min.col - dominion.col, min.row - dominion.row);
-      if (distToDominion < 1.5 && world.cropsCollected > 0 && world.selectedTool === "min") {
+      const dx = min.col - dominion.col;
+      const dy = min.row - dominion.row;
+      if (dx * dx + dy * dy < 1.5 * 1.5 && world.cropsCollected > 0 && world.selectedTool === "min") {
         min.state = "going_to_box";
       }
     }
 
     if (min.state === "going_to_box") {
       moveToward(min, box.col, box.row, 0.14);
-      if (Math.hypot(min.col - box.col, min.row - box.row) < 0.2) {
+      const dx = min.col - box.col;
+      const dy = min.row - box.row;
+      if (dx * dx + dy * dy < 0.2 * 0.2) {
         if (world.cropsCollected > 0) {
           world.cropsCollected--;
           min.state = "returning_to_dominion";
@@ -618,10 +618,12 @@ export function updateMins(character, mins, world) {
 
     if (min.state === "returning_to_dominion") {
       moveToward(min, dominion.col, dominion.row, 0.14);
-      if (Math.hypot(min.col - dominion.col, min.row - dominion.row) < 0.2) {
-        spawnNewMin(mins, dominion.col, dominion.row, "following"); // sets lineToken internally
+      const dx = min.col - dominion.col;
+      const dy = min.row - dominion.row;
+      if (dx * dx + dy * dy < 0.2 * 0.2) {
+        spawnNewMin(mins, dominion.col, dominion.row, "following");
         min.state = "following";
-        min.lineToken = Date.now(); // returning min goes to back
+        min.lineToken = Date.now();
       }
     }
 
@@ -640,38 +642,31 @@ export function updateMins(character, mins, world) {
         );
       }
 
-      const distanceToTarget = Math.hypot(min.col - target.col, min.row - target.row);
-      const reachedTarget = distanceToTarget <= 0.18;
+      const dxT = min.col - target.col;
+      const dyT = min.row - target.row;
+      const reachedTarget = (dxT * dxT + dyT * dyT) <= 0.18 * 0.18;
 
-    if (min.isDelivering && reachedTarget) {
-      //console.log("min.state:", min.state);
-      if (min.carryingLumberForDelivery) {
-        //console.log("Min delivered a lumber to the box!");
-        world.lumberCollected += 1;
-        
-      }
-      else if (min.state === "carrying_fish" || min.carryingFish) {
-        //console.log("Min delivered a fish to the box!");
-        world.wallet += FISH_SALE_PRICE;
-        world.fishCollected += 1;
-        min.carryingFish = false;
-      }
-      else{
-        //console.log("Min delivered crops to box")
-        world.cropsCollected += 1;
+      if (min.isDelivering && reachedTarget) {
+        if (min.carryingLumberForDelivery) {
+          world.lumberCollected += 1;
+        } else if (min.state === "carrying_fish" || min.carryingFish) {
+          world.wallet += FISH_SALE_PRICE;
+          world.fishCollected += 1;
+          min.carryingFish = false;
+        } else {
+          world.cropsCollected += 1;
+        }      
+        min.state = "following";
+        min.isDelivering = false;
+        min.lineToken = Date.now();
+        return;
       }      
-      min.state = "following";
-      min.isDelivering = false;
-      min.lineToken = Date.now();
-      return;
-    }      
 
       if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
         const tCol = Math.floor(target.col);
         const tRow = Math.floor(target.row);
         const tile = world.tiles[tRow]?.[tCol];
 
-              // in the "reachedTarget" block of updateMins, where it checks tile.planted / tile.hasTree:
         const activeFish = world.fishEvents.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
         if (!min.isDelivering && activeFish) {
           world.fishEvents = world.fishEvents.filter(f=>f!==activeFish);
@@ -679,7 +674,7 @@ export function updateMins(character, mins, world) {
           min.carryingFish = true;
           min.landed = false;
           return;
-    }
+        }
 
         if (!min.isDelivering && tile && tile.planted) {
           min.state = "harvesting";
@@ -687,14 +682,12 @@ export function updateMins(character, mins, world) {
           min.col = tCol + 0.5;
           min.row = tRow + 0.5;
         } else if (!min.isDelivering && tile && tile.hasTree) {
-          // NEW: Start cutting tree
           min.state = "tree_cutting";
           min.cuttingTreeCol = tCol;
           min.cuttingTreeRow = tRow;
           min.cuttingTimer = 0;
         } else if (!min.isDelivering) {
           settleMin(min);
-
         }
       }
     }
@@ -985,32 +978,40 @@ export function tryPickupLumber(character, world) {
 }
 
 export function updateWorld(world, deltaMs, character) {
-  // 1. Handle Crop Growth
-  for (let row = 0; row < rows; row++) {
+  // 1. Handle Crop Growth (only scan if something is actually growing)
+  let growing = false;
+  for (let row = 0; row < rows && !growing; row++) {
     for (let col = 0; col < cols; col++) {
-      const tile = world.tiles[row][col];
-      if (!tile.planted || !tile.watered || tile.stage === PLANT_STAGES.CROP) continue;
-      
-      tile.growth += deltaMs;
-      if (tile.growth >= tile.growDuration) {
-        tile.stage = PLANT_STAGES.CROP;
-      } else if (tile.growth >= tile.growDuration * 0.6) {
-        tile.stage = PLANT_STAGES.SPROUT;
-      } else {
-        tile.stage = PLANT_STAGES.SEED;
+      const t = world.tiles[row][col];
+      if (t.planted && t.watered && t.stage !== PLANT_STAGES.CROP) { growing = true; break; }
+    }
+  }
+  if (growing) {
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const tile = world.tiles[row][col];
+        if (!tile.planted || !tile.watered || tile.stage === PLANT_STAGES.CROP) continue;
+        
+        tile.growth += deltaMs;
+        if (tile.growth >= tile.growDuration) {
+          tile.stage = PLANT_STAGES.CROP;
+        } else if (tile.growth >= tile.growDuration * 0.6) {
+          tile.stage = PLANT_STAGES.SPROUT;
+        } else {
+          tile.stage = PLANT_STAGES.SEED;
+        }
       }
     }
   }
 
   updateFish(world, deltaMs);
 
-  // 2. Handle Water Refill Logic (Moved outside the loops)
+  // 2. Handle Water Refill Logic (unchanged)
   if (world.isRefillingWater && character) {
     const pondCenterX = WATER_POND_COL + 1.5;
     const pondCenterY = WATER_POND_ROW + 1.5;
     const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
 
-    // Stop refilling if player moves away or switches tools
     if (distance > WATER_POND_INTERACTION_RADIUS + 2 || world.selectedTool !== TOOL_TYPES.WATERING_CAN) {
       world.isRefillingWater = false;
       world.refillTimer = 0;
