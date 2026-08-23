@@ -8,7 +8,8 @@ import {
   updateMins,
   updateWorld,
   useToolAtCursor,
-  tryHarvestCrop,  
+  tryHarvestCrop, 
+  tryCatchFish, 
   tryDepositToBox,
   tryDepositToDominion,
   tryInteractWithPond,
@@ -366,6 +367,7 @@ function loop(timestamp) {
     updateMins(character, mins, world);
   if (keys.has("KeyE") || keys.has("Space")) {
     let interacted = tryInteractWithGravestone(character, world) ||
+                    tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world, mins) ||

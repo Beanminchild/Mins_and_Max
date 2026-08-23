@@ -31,7 +31,12 @@ import {
   TREE_CUT_TIME_1_MIN,
   TREE_CUT_TIME_2_MIN,
   TREE_CUT_TIME_3_MIN,
-  MAX_LUMBER_ITEMS
+  MAX_LUMBER_ITEMS,
+  FISH_RIPPLE_SPAWN_MS,
+  FISH_RIPPLE_RAMP_MS,
+  FISH_VISIBLE_MS,
+  FISH_CATCH_RADIUS,
+  FISH_SALE_PRICE
 } from "./constants.js";
 
 import { showModal } from "./modal.js";
@@ -157,6 +162,16 @@ function createMinSprite(state) {
     g.restore();
   }
 
+    if (state === "carrying_fish") {
+    g.fillStyle = "#ffd54f";
+    g.beginPath();
+    g.ellipse(0, -12, 6, 3, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#ff8f00";
+    g.beginPath();
+    g.moveTo(5, -12); g.lineTo(9, -14); g.lineTo(9, -10); g.closePath(); g.fill();
+  }
+
   if (state === "tree_cutting") {
     // Show tool
     g.strokeStyle = "#d4a574";
@@ -171,9 +186,39 @@ function createMinSprite(state) {
   g.fillRect(-3, -1, 6, 2);
 
   return sprite;
+  
+}
+
+
+export function updateFish(world, deltaMs) {
+  // spawn
+  world.fishSpawnTimer += deltaMs;
+  if (world.fishSpawnTimer >= FISH_RIPPLE_SPAWN_MS) {
+    world.fishSpawnTimer = 0;
+    const waterTiles = [];
+    for (let r=0; r<rows; r++) for (let c=0; c<cols; c++)
+      if (world.tiles[r][c].type === TILE_TYPES.WATER) waterTiles.push({c,r});
+    if (waterTiles.length) {
+      const t = waterTiles[Math.floor(Math.random()*waterTiles.length)];
+      world.fishEvents.push({ col:t.c, row:t.r, phase:'ripple', timer:0, speed:1 });
+    }
+  }
+  // advance
+  for (let i=world.fishEvents.length-1; i>=0; i--) {
+    const f = world.fishEvents[i];
+    f.timer += deltaMs;
+    if (f.phase === 'ripple') {
+      f.speed = 1 + (f.timer / FISH_RIPPLE_RAMP_MS) * 6; // accelerates
+      if (f.timer >= FISH_RIPPLE_RAMP_MS) { f.phase='fish'; f.timer=0; }
+    } else if (f.phase === 'fish' && f.timer >= FISH_VISIBLE_MS) {
+      world.fishEvents.splice(i,1); // fish gone
+    }
+  }
 }
 
 export function createWorld() {
+
+   
   const mins = Array.from({ length: MIN_SPAWN_COUNT }, (_, index) => ({
     id: index + 1,
     col: 15 + (index % 3) * 2,
@@ -248,6 +293,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     }
 
     return {
+      
       type: tileType,
       planted: false,
       watered: false,
@@ -272,6 +318,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     following: createMinSprite("following"),
     carrying: createMinSprite("carrying"),
     carrying_lumber: createMinSprite("carrying_lumber"),
+    carrying_fish: createMinSprite("carrying_fish"),
     going_to_box: createMinSprite("going_to_box"),
     returning_to_dominion: createMinSprite("returning_to_dominion"),
     thrown: createMinSprite("loose"),
@@ -293,6 +340,9 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     selectedTool: TOOL_TYPES.HOE,
     cropsCollected: 0,
     lumberCollected: 0,
+    fishEvents: [],
+    fishSpawnTimer: 0,
+    fishCollected: 0,
     waterCanFillAmount: 5,
     seedsCollected: 0,
     isRefillingWater: false,
@@ -420,11 +470,11 @@ export function updateMins(character, mins, world) {
   const { box, dominion } = world;
 
   // 1. Sort followers so that those carrying crops/lumber are at the front of the line
-  const followers = mins.filter((min) => min.state === "following" || min.state === "carrying" || min.state === "carrying_lumber");
+  const followers = mins.filter((min) => min.state === "following" || min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish");
   followers.sort((a, b) => {
-    // Carrying items (crops and lumber) come first
-    const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" ? 1 : 0;
-    const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" ? 1 : 0;
+    // Carrying items (crops, lumber, fish) come first
+    const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" || a.state === "carrying_fish" ? 1 : 0;
+    const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" || b.state === "carrying_fish" ? 1 : 0;
     return bCarrying - aCarrying;
   });
 
@@ -588,10 +638,15 @@ export function updateMins(character, mins, world) {
         world.lumberCollected += 1;
         
       }
+      else if (min.state === "carrying_fish" || min.carryingFish) {
+        console.log("Min delivered a fish to the box!");
+        world.wallet += FISH_SALE_PRICE;
+        world.fishCollected += 1;
+      }
       else{
         console.log("Min delivered crops to box")
         world.cropsCollected += 1;
-      }    
+      }      
       min.state = "following";
       min.isDelivering = false;
       return;
@@ -601,6 +656,16 @@ export function updateMins(character, mins, world) {
         const tCol = Math.floor(target.col);
         const tRow = Math.floor(target.row);
         const tile = world.tiles[tRow]?.[tCol];
+
+              // in the "reachedTarget" block of updateMins, where it checks tile.planted / tile.hasTree:
+        const activeFish = world.fishEvents.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
+        if (!min.isDelivering && activeFish) {
+          world.fishEvents = world.fishEvents.filter(f=>f!==activeFish);
+          min.state = 'carrying_fish';
+          min.carryingFish = true;
+          min.landed = false;
+          return;
+    }
 
         if (!min.isDelivering && tile && tile.planted) {
           min.state = "harvesting";
@@ -638,9 +703,13 @@ export function updateMins(character, mins, world) {
 export function tryDepositToBox(character, box, world) {
   if (!character.held) return false;
 
-  if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {
-    world[`${character.held === "lumber" ? "lumber" : "crops"}Collected`] += 1;
-    
+    if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {
+    if (character.held === "fish") {
+      world.wallet += FISH_SALE_PRICE;
+      world.fishCollected += 1;
+    } else {
+      world[`${character.held === "lumber" ? "lumber" : "crops"}Collected`] += 1;
+    }
     character.held = null;
     return true;
   }
@@ -654,6 +723,19 @@ export function tryDepositToDominion(character, dominion, world, mins) {
     character.held = null;
     spawnNewMin(mins, dominion.col, dominion.row, "loose");
     return true;
+  }
+  return false;
+}
+
+export function tryCatchFish(character, world) {
+  if (character.held) return false;
+  for (const f of world.fishEvents) {
+    if (f.phase !== 'fish') continue;
+    if (Math.hypot(character.col - (f.col + 0.5), character.row - (f.row + 0.5)) <= FISH_CATCH_RADIUS) {
+      character.held = 'fish';
+      world.fishEvents = world.fishEvents.filter(x => x !== f);
+      return true;
+    }
   }
   return false;
 }
@@ -683,10 +765,10 @@ export function tryTakeFromMin(character, mins) {
   if (character.held) return false;
 
   for (const min of mins) {
-    if (min.state !== "carrying" && min.state !== "carrying_lumber") continue;
+    if (min.state !== "carrying" && min.state !== "carrying_lumber" && min.state !== "carrying_fish") continue;
 
     if (Math.hypot(min.col - character.col, min.row - character.row) <= MIN_INTERACTION_RADIUS) {
-      character.held = min.state === "carrying" ? "crop" : "lumber";
+      character.held = min.state === "carrying" ? "crop" : (min.state === "carrying_fish" ? "fish" : "lumber");
       min.state = "following";
       return true;
     }
@@ -725,7 +807,7 @@ export function throwMin(character, mins, box, cursor = null) {
   availableMin.landed = false;
 
   // Carrying items (crops or lumber) go to box
-  if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber") {    
+  if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber" || availableMin.state === "carrying_fish")     {    
   
   if (availableMin.state === "carrying_lumber"){   
     availableMin.carryingLumberForDelivery = true;    
@@ -735,6 +817,9 @@ export function throwMin(character, mins, box, cursor = null) {
      availableMin.isDelivering = "true";
      console.log("somehow is delivering", availableMin.isDelivering)
 
+  }
+    if (availableMin.state === "carrying_fish") {
+    availableMin.isDelivering = true;
   }
     availableMin.state = "thrown";
     availableMin.isDelivering = true;
@@ -886,6 +971,8 @@ export function updateWorld(world, deltaMs, character) {
       }
     }
   }
+
+  updateFish(world, deltaMs);
 
   // 2. Handle Water Refill Logic (Moved outside the loops)
   if (world.isRefillingWater && character) {

@@ -519,9 +519,15 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       ctx.rotate(Math.PI / 4);
       ctx.fillRect(-10, -2, 20, 4);
     }
+     } else if (character.held === "fish") {
+      ctx.fillStyle = "#ffd54f";
+      ctx.beginPath();
+      ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
-}
+
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
@@ -690,6 +696,31 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
     drawPlantOverlay(ctx, tile, c, r, camera);
   }
+  // Draw fish ripples / fish
+  for (const f of world.fishEvents) {
+    const p = isoToScreen(f.col + 0.5, f.row + 0.5, camera);
+    if (f.phase === 'ripple') {
+      const rad = (Date.now() / f.speed) % 22;
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, rad, rad / 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (f.phase === 'fish') {
+      ctx.fillStyle = '#ffd54f';
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y - 6, 7, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ff8f00';
+      ctx.beginPath();
+      ctx.moveTo(p.x + 6, p.y - 6);
+      ctx.lineTo(p.x + 11, p.y - 9);
+      ctx.lineTo(p.x + 11, p.y - 3);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
 
   // Draw lumber items on ground
   if (world.lumber) {

@@ -35,6 +35,13 @@ export const SHOP_BUILDING_ROW = 16;
 export const OTHER_BUILDING_COL = 42;
 export const OTHER_BUILDING_ROW = 3;
 
+// src/constants.js (suggested additions)
+export const FISH_RIPPLE_SPAWN_MS = 4000;   // new ripple every ~4s
+export const FISH_RIPPLE_RAMP_MS = 2500;    // time ripple takes to speed up
+export const FISH_VISIBLE_MS = 1500;       // fish "out" for 1.5s
+export const FISH_CATCH_RADIUS = 1.2;
+export const FISH_SALE_PRICE = 150;
+
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 1.3; 
 export const SHOPKEEPER_ROW = 12;
