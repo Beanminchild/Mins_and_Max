@@ -20,7 +20,7 @@ import {
   tryTakeFromMin,
   tryCollectSoul
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS } from "./constants.js";
 
 import { showModal, isModalOpen, closeModal } from "./modal.js";
 
@@ -137,7 +137,7 @@ function buyShopItem(item) {
 
 function syncHUD() {
   const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying" || m.state === "carrying_lumber" || m.state === "carrying_fish").length;
-
+ 
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;
     const isSelected = toolName === world.selectedTool;
@@ -207,7 +207,7 @@ function syncHUD() {
       }
       countBadge.textContent = world.seedInventory || 0;
     }
-  });
+  }); 
 
   const countDisplay = document.getElementById("crop-count");
   if (countDisplay) {
@@ -226,9 +226,39 @@ function syncHUD() {
   if (walletDisplay) {
     walletDisplay.textContent = `${world.wallet}g`;
   }
+  
 
   updateClock();
+  updateTaskHUD();
 }
+
+
+function updateTaskHUD() {
+  const el = document.getElementById("task-list");
+  if (!el) return;
+
+  if (world.currentTaskIndex >= TASKS.length) {
+    el.innerHTML = "<strong>All tasks complete! Freedom from Unicorp!</strong>";
+    return;
+  }
+
+  const t = TASKS[world.currentTaskIndex];
+  const prog = world.stats[t.stat] || 0;
+  el.innerHTML = `<strong>Task:</strong> ${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
+
+  if (prog >= t.target) {
+    world.currentTaskIndex++;
+    if (world.currentTaskIndex >= TASKS.length && !world.allTasksDone) {
+      world.allTasksDone = true;
+      showModal({
+        title: "Victory!",
+        bodyHtml: "<p>You got the farm back from Unicorp!</p>",
+        buttons: [{ label: "Awesome", className: "modal-btn--close" }]
+      });
+    }
+  }
+}
+
 
 function handleToolAction() {
   if (world.dayEnded) return;

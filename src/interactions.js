@@ -311,6 +311,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
       watered: false,
       growth: 0,
       
+      
       growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
       stage: PLANT_STAGES.EMPTY,
       variant: topLeftQuadrant ? "decay" : null,
@@ -341,6 +342,9 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   return {
     box: createBox(),
     dominion: createDominion(),
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0 },
+    currentTaskIndex: 0,
+    allTasksDone: false,
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
     shopOpen: false,
     mins,
@@ -362,7 +366,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     seedsCollected: 0,
     isRefillingWater: false,
     refillTimer: 0,
-    seedInventory: 0,
+    seedInventory: 5,
     minInventory: 0,
 
     dayLengthMs: 5 * 60 * 1000,
@@ -793,6 +797,7 @@ export function tryHarvestCrop(character, world) {
         tile.stage = PLANT_STAGES.EMPTY;
         tile.type = TILE_TYPES.DIRT;
         character.held = "crop";
+        world.stats.harvested++;
         return true;
       }
     }
@@ -808,6 +813,7 @@ export function tryTakeFromMin(character, mins) {
 
     if (Math.hypot(min.col - character.col, min.row - character.row) <= MIN_INTERACTION_RADIUS) {
       character.held = min.state === "carrying" ? "crop" : (min.state === "carrying_fish" ? "fish" : "lumber");
+      if (character.held === "crop") world.stats.harvested++;
       min.state = "following";
       return true;
     }
@@ -942,6 +948,7 @@ export function useToolAtCursor(world, cursor) {
     tile.growth = 0;
     tile.stage = PLANT_STAGES.EMPTY;
     if (buriedSoul) buriedSoul.revealed = true; // dig up!
+    world.stats.hoed++;
     return true;
   }
 
@@ -953,6 +960,7 @@ export function useToolAtCursor(world, cursor) {
       tile.growDuration = GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN);
       tile.stage = PLANT_STAGES.SEED;
       world.seedInventory -= 1;
+      world.stats.planted++;
       return true;
     }
     return false;
@@ -962,6 +970,7 @@ export function useToolAtCursor(world, cursor) {
     if (tile.planted && !tile.watered && world.waterCanFillAmount > 0) {
       tile.watered = true;
       world.waterCanFillAmount -= 1;
+      world.stats.watered++;
       return true;
     }
     return false;

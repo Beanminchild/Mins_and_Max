@@ -43,7 +43,7 @@ export const OTHER_BUILDING_ROW = 3;
 export const FISH_RIPPLE_SPAWN_MS = 14000;   // new ripple every ~4s
 export const FISH_RIPPLE_RAMP_MS = 4500;    // time ripple takes to speed up
 export const FISH_VISIBLE_MS = 333;       // fish "out" for 1.5s
-export const FISH_CATCH_RADIUS = .50;
+export const FISH_CATCH_RADIUS = .75;
 export const FISH_SALE_PRICE = 150;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
@@ -54,6 +54,13 @@ export const WATER_CAN_MAX = 7;
 export const REFILL_RATE_MS = 1400;
 
 export const SEED_MAX = 99;
+
+export const TASKS = [
+  { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
+  { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
+  { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
+  { id: 'harvest', desc: 'Grab one crop',    stat: 'harvested', target: 1 }
+];
 
 export const TOOL_TYPES = {
   HOE: "hoe",
