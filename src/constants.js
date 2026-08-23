@@ -49,6 +49,8 @@ export const FISH_SALE_PRICE = 150;
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 1.3; 
 export const SHOPKEEPER_ROW = 12;
+export const MERCHANT_TEMP_COL = 30;
+export const MERCHANT_TEMP_ROW = 5;
 
 export const WATER_CAN_MAX = 7;
 export const REFILL_RATE_MS = 1400;
@@ -59,7 +61,10 @@ export const TASKS = [
   { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
   { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
   { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
-  { id: 'harvest', desc: 'Grab one crop',    stat: 'harvested', target: 1 }
+  { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
+  { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },
+  { id: 'axe',     desc: 'Chop down 3 tree', stat: 'treesChopped', target: 3 },
+
 ];
 
 export const TOOL_TYPES = {

@@ -26,6 +26,7 @@ import {
   WATER_POND_INTERACTION_RADIUS,
   SHOPKEEPER_COL,
   SHOPKEEPER_ROW,
+  TASKS,
   SEED_MAX,
   TREE_SWINGS_TO_FELL,
   TREE_CUT_TIME_1_MIN,
@@ -342,7 +343,8 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   return {
     box: createBox(),
     dominion: createDominion(),
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0 },
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0},
+    axeUnlocked: false,
     currentTaskIndex: 0,
     allTasksDone: false,
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
@@ -384,12 +386,35 @@ export function tryInteractWithShop(character, world) {
   if (!world.shopkeeper) return false;
 
   const distance = Math.hypot(character.col - world.shopkeeper.col, character.row - world.shopkeeper.row);
-  if (distance <= 1.6) {
-    world.shopOpen = true;
-    return true;
+  if (distance > 1.6) return false;
+
+  const giveIndex = TASKS.findIndex(t => t.id === 'give');
+  if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
+    if (character.held === 'crop') {
+      character.held = null;
+      world.stats.given++;
+      world.axeUnlocked = true;
+      // const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
+      // axeButtons.textContent = "🪓 Axe";
+      world.shopkeeper.col = SHOPKEEPER_COL;
+      world.shopkeeper.row = SHOPKEEPER_ROW;
+      showModal({
+        title: "Unicorn Merchant",
+        bodyHtml: "<p>Thank you, farmer! Take this axe — my shop is now open to you!</p>",
+        buttons: [{ label: "OK", className: "modal-btn--close" }]
+      });
+    } else {
+      showModal({
+        title: "Unicorn Merchant",
+        bodyHtml: "<p>Bring me a crop and I'll unlock my shop and give you an axe!</p>",
+        buttons: [{ label: "OK", className: "modal-btn--close" }]
+      });
+    }
+    return true; // interacted, but no shop yet
   }
 
-  return false;
+  world.shopOpen = true;
+  return true;
 }
 
 export function tryInteractWithGravestone(character, world) {
@@ -994,6 +1019,7 @@ export function useToolAtCursor(world, cursor) {
         row: row + 0.5,
         id: Date.now() + Math.random()
       });
+      world.stats.treesChopped++;
       return true;
     }
 

@@ -20,7 +20,7 @@ import {
   tryTakeFromMin,
   tryCollectSoul
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
 import { showModal, isModalOpen, closeModal } from "./modal.js";
 
@@ -50,11 +50,20 @@ const keys = setupInput();
 const character = createCharacter();
 const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
-shopkeeper.col = SHOPKEEPER_COL;
-shopkeeper.row = SHOPKEEPER_ROW;
 const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
 export const world = createWorld();
 world.shopkeeper = shopkeeper;
+if (world.stats.given < 1) {
+  shopkeeper.col = MERCHANT_TEMP_COL;
+  shopkeeper.row = MERCHANT_TEMP_ROW;
+} else {
+  shopkeeper.col = SHOPKEEPER_COL;
+  shopkeeper.row = SHOPKEEPER_ROW;
+}
+
+
+
+
 
 if (!world.selectedTool) {
   world.selectedTool = TOOL_TYPES.MIN;
@@ -143,6 +152,8 @@ function syncHUD() {
     const isSelected = toolName === world.selectedTool;
     slot.classList.toggle("active", isSelected);
 
+    
+
     if (toolName === "min") {
       let countBadge = slot.querySelector(".item-count");
       if (!countBadge) {
@@ -209,6 +220,11 @@ function syncHUD() {
     }
   }); 
 
+  const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
+    if (axeBtn) {
+      axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
+    }
+
   const countDisplay = document.getElementById("crop-count");
   if (countDisplay) {
     countDisplay.textContent = world.cropsCollected + world.lumberCollected;
@@ -253,7 +269,7 @@ function updateTaskHUD() {
       showModal({
         title: "Victory!",
         bodyHtml: "<p>You got the farm back from Unicorp!</p>",
-        buttons: [{ label: "Awesome", className: "modal-btn--close" }]
+        buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
       });
     }
   }
@@ -321,7 +337,9 @@ function startNextDay() {
 document.querySelectorAll(".tool-slot").forEach((slot) => {
   slot.addEventListener("click", (e) => {
     e.stopPropagation();
-    world.selectedTool = slot.dataset.tool;
+    const tool = slot.dataset.tool;
+    if (tool === "axe" && !world.axeUnlocked) return;
+    world.selectedTool = tool;
     syncHUD();
   });
 });
@@ -342,8 +360,9 @@ document.addEventListener("keydown", (event) => {
     Digit6: "empty-hands"
   };
 
-  const tool = map[event.code];
+    const tool = map[event.code];
   if (tool) {
+    if (tool === "axe" && !world.axeUnlocked) return;
     world.selectedTool = tool;
     syncHUD();
   }
@@ -405,9 +424,9 @@ function loop(timestamp) {
                     tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
-    if (!interacted && !world.shopOpen) {
+      if (!interacted && !world.shopOpen) {
       interacted = tryInteractWithShop(character, world);
-      if (interacted) openShop();
+      if (interacted && world.shopOpen) openShop(); // only open if shop is actually unlocked
     }
 
     if (!interacted) {
