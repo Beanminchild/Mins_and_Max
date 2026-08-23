@@ -343,8 +343,9 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   return {
     box: createBox(),
     dominion: createDominion(),
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0},
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 },
     axeUnlocked: false,
+    minUnlocked: false,
     currentTaskIndex: 0,
     allTasksDone: false,
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
@@ -388,6 +389,8 @@ export function tryInteractWithShop(character, world) {
   const distance = Math.hypot(character.col - world.shopkeeper.col, character.row - world.shopkeeper.row);
   if (distance > 1.6) return false;
 
+  
+
   const giveIndex = TASKS.findIndex(t => t.id === 'give');
   if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
     if (character.held === 'crop') {
@@ -412,7 +415,7 @@ export function tryInteractWithShop(character, world) {
     }
     return true; // interacted, but no shop yet
   }
-
+  world.stats.visitedShop = 1;
   world.shopOpen = true;
   return true;
 }
@@ -619,7 +622,7 @@ export function updateMins(character, mins, world) {
             id: Date.now() + Math.random()
           });
         }
-
+        world.stats.treesChopped++;
         min.state = "carrying_lumber";
         const pushDist = 2;
         const angle = Math.atan2(min.row - (tRow + 0.5), min.col - (tCol + 0.5));
@@ -707,6 +710,7 @@ export function updateMins(character, mins, world) {
           min.carryingFish = false;
         } else {
           world.cropsCollected += 1;
+          world.stats.cropsCollected++;
         }      
         min.state = "following";
         min.isDelivering = false;
@@ -777,6 +781,7 @@ export function tryDepositToBox(character, box, world) {
       world.fishCollected += 1;
     } else {
       world[`${character.held === "lumber" ? "lumber" : "crops"}Collected`] += 1;
+      if (character.held === "crop") world.stats.cropsCollected++;
     }
     character.held = null;
     return true;
@@ -846,7 +851,7 @@ export function tryTakeFromMin(character, mins) {
   return false;
 }
 
-export function tryCollectMin(character, mins) {
+export function tryCollectMin(character, mins, world) {
   for (const min of mins) {
     if (min.state !== "loose") continue;
 
@@ -859,6 +864,8 @@ export function tryCollectMin(character, mins) {
       min.throwDistance = 0;
       min.throwOrigin = null;
       min.lineToken = Date.now(); // Ensure min goes to back of line
+      world.stats.minObtained++;
+      world.minUnlocked = true;
       return min;
     }
   }

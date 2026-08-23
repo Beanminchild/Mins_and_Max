@@ -63,7 +63,10 @@ export const TASKS = [
   { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
   { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
   { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },
-  { id: 'axe',     desc: 'Chop down 3 tree', stat: 'treesChopped', target: 3 },
+  { id: 'axe',     desc: 'Chop down 3 trees', stat: 'treesChopped', target: 3 },
+  { id:'gotoshop', desc: 'Vist Unicorp local HQ and talk to the shopkeeper', stat: 'visitedShop', target: 1 },
+  { id: 'fivecrops', desc: 'Deposit 5 crops into collection box to sell', stat: 'cropsCollected', target: 5},
+  { id: 'fistMin', desc: 'Obtain your first Min!',  stat: 'minObtained', target: 1 }
 
 ];
 

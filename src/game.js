@@ -138,6 +138,8 @@ function buyShopItem(item) {
     world.selectedTool = "min";
     world.minInventory = (world.minInventory || 0) + 1;
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
+    world.stats.minObtained++;
+    world.minUnlocked = true;
   }
 
   
@@ -225,6 +227,13 @@ function syncHUD() {
       axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
     }
 
+  const minBtn = document.querySelector('.tool-slot[data-tool="min"]');
+    if (minBtn) {
+      const badge = minBtn.querySelector('.item-count');
+      minBtn.innerHTML = world.minUnlocked ? "🤖 Min" : "Empty";
+      if (badge) minBtn.appendChild(badge);
+    }
+  
   const countDisplay = document.getElementById("crop-count");
   if (countDisplay) {
     countDisplay.textContent = world.cropsCollected + world.lumberCollected;
@@ -339,11 +348,11 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
     e.stopPropagation();
     const tool = slot.dataset.tool;
     if (tool === "axe" && !world.axeUnlocked) return;
+    if (tool === "min" && !world.minUnlocked) return;
     world.selectedTool = tool;
     syncHUD();
   });
 });
-
 
 
 document.addEventListener("keydown", (event) => {
@@ -352,17 +361,18 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   const map = {
-    Digit1: "hoe",
-    Digit2: "seeds",
-    Digit3: "watering-can",
-    Digit4: "axe",
-    Digit5: "min",
-    Digit6: "empty-hands"
+    Digit2: "hoe",
+    Digit3: "seeds",
+    Digit4: "watering-can",
+    Digit5: "axe",
+    Digit6: "min",
+    Digit1: "empty-hands"
   };
 
     const tool = map[event.code];
   if (tool) {
     if (tool === "axe" && !world.axeUnlocked) return;
+    if (tool === "min" && !world.minUnlocked) return;
     world.selectedTool = tool;
     syncHUD();
   }
@@ -430,7 +440,7 @@ function loop(timestamp) {
     }
 
     if (!interacted) {
-      if (!tryCollectMin(character, mins)) {        
+      if (!tryCollectMin(character, mins, world)) {        
           if (!tryHarvestCrop(character, world)) {
             tryTakeFromMin(character, mins);
           }        
