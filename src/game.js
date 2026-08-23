@@ -18,6 +18,7 @@ import {
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
+  tryCollectSoul
 } from "./interactions.js";
 import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE } from "./constants.js";
 
@@ -371,7 +372,8 @@ function loop(timestamp) {
                     tryPickupLumber(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world, mins) ||
-                    tryInteractWithPond(character, world);
+                    tryInteractWithPond(character, world) ||
+                    tryCollectSoul(character,world);
 
     if (!interacted && !world.shopOpen) {
       interacted = tryInteractWithShop(character, world);

@@ -30,7 +30,11 @@ export const WATER_POND_COL = 16;
 export const WATER_POND_ROW = 15;
 export const WATER_POND_INTERACTION_RADIUS = 1.5;
 
-export const SHOP_BUILDING_COL = 17;
+
+export const POND_MIN_SOAK_MS = 5 * 60 * 1000; // 5 minutes real time in pond
+
+
+export const SHOP_BUILDING_COL = 10;
 export const SHOP_BUILDING_ROW = 16;
 export const OTHER_BUILDING_COL = 42;
 export const OTHER_BUILDING_ROW = 3;

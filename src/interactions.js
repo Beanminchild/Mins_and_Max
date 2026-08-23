@@ -36,7 +36,8 @@ import {
   FISH_RIPPLE_RAMP_MS,
   FISH_VISIBLE_MS,
   FISH_CATCH_RADIUS,
-  FISH_SALE_PRICE
+  FISH_SALE_PRICE,
+  POND_MIN_SOAK_MS
 } from "./constants.js";
 
 import { showModal } from "./modal.js";
@@ -136,7 +137,7 @@ function createMinSprite(state) {
   g.fillStyle = isFollowing ? "#f7c873" : "#8c5b2b";
   
   if (state === "going_to_box" || state === "returning_to_dominion") {
-    g.fillStyle = "#64b5f6";
+    g.fillStyle = "#2ee88b";
   }
 
   if (state === "tree_cutting") {
@@ -246,6 +247,15 @@ export function createWorld() {
       id: 0}   
   ];
 
+   // Mirror grave position into the other three quadrants
+  const g = gravestones[0];
+  const souls = [
+    { col: 21 + g.col, row: g.row, collected: false, revealed: false, id: "tr" },
+    { col: g.col,     row: 18 + g.row, collected: false, revealed: false, id: "bl" },
+    { col: 21 + g.col, row: 18 + g.row, collected: false, revealed: false, id: "br" }
+  ];
+
+
   // Generate lumber items in forest for variety
   const lumber = [];
 
@@ -300,6 +310,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
       planted: false,
       watered: false,
       growth: 0,
+      
       growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
       stage: PLANT_STAGES.EMPTY,
       variant: topLeftQuadrant ? "decay" : null,
@@ -335,6 +346,8 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     mins,
     tiles,
     gravestones,
+    souls,
+    soulsCollected: 0,
     lumber,
     treeSprite,
     gravestoneSprite,
@@ -398,8 +411,8 @@ function showGravestoneMessage(gravestone) {
       </p>
       <hr style="border:1px solid #5d4037;margin:20px 0;">
       <p style="font-size:14px;color:#6d4c41;">
-        Coming soon: <strong>A new luxury highrise apartment</strong><br>and a <strong>Chillies!</strong>
-      </p>`,
+        Coming soon: <strong>A new luxury highrise apartment</strong><br>and a <strong>Chillis!</strong>
+      </p><p style="font-size:14px;color:#6d4c41;">Wait theres a bit more... it says</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie, where the soil grows sour, yet here not I stay due to the souls divine power. Seek thee my soul piece three, scattered where id be in lands of grass, beach and trees"   "</strong>`,
     buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
 }
@@ -530,6 +543,16 @@ export function updateMins(character, mins, world) {
           return;
         }
       }
+    }
+
+    if (min.state === "in_pond") {
+      min.soakTimer -= 16; // matches existing tick used for cuttingTimer
+      if (min.soakTimer <= 0) {
+        min.state = "following";
+        min.isWaterMin = true;
+        min.lineToken = Date.now();
+      }
+      return;
     }
 
     // --- NEW: Tree Cutting Cooperation ---
@@ -677,6 +700,7 @@ export function updateMins(character, mins, world) {
         }
 
         if (!min.isDelivering && tile && tile.planted) {
+          if (min.isWaterMin && !tile.watered) tile.watered = true;
           min.state = "harvesting";
           min.targetTile = { col: tCol, row: tRow };
           min.col = tCol + 0.5;
@@ -687,7 +711,15 @@ export function updateMins(character, mins, world) {
           min.cuttingTreeRow = tRow;
           min.cuttingTimer = 0;
         } else if (!min.isDelivering) {
-          settleMin(min);
+          const pond = world.pond;
+          if (pond && tCol >= pond.col && tCol < pond.col + 2 && tRow >= pond.row && tRow < pond.row + 2) {
+            min.state = "in_pond";
+            min.soakTimer = POND_MIN_SOAK_MS;
+            min.col = pond.col + 1;
+            min.row = pond.row + 1;
+          } else {
+            settleMin(min);
+          }
         }
       }
     }
@@ -839,9 +871,12 @@ export function throwMin(character, mins, box, cursor = null) {
      console.log("somehow is delivering", availableMin.isDelivering)
 
   }
+  
     if (availableMin.state === "carrying_fish") {
     availableMin.isDelivering = true;
   }
+
+
     availableMin.atHome = false;
     availableMin.state = "thrown";
     availableMin.isDelivering = true;
@@ -883,14 +918,22 @@ export function useToolAtCursor(world, cursor) {
   const tile = world.tiles[row][col];
   if (!tile) return false;
 
+
+  // Define buried soul at this tile BEFORE using it
+  const buriedSoul = world.souls.find(s => !s.revealed && !s.collected && Math.floor(s.col) === col && Math.floor(s.row) === row);
+
   // Prevent interactions on stone tiles
   if (tile.type === TILE_TYPES.STONE) return false;
 
   // Prevent interactions on sand and water tiles
-  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER) return false;
+  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER){
+
+    if (!buriedSoul) return false;
+  } 
 
   if (world.selectedTool === TOOL_TYPES.HOE) {
     // Prevent hoe on tiles with trees
+    if (tile.variant === "decay" && world.soulsCollected < 3) return false;
     if (tile.hasTree) return false;
     
     tile.type = TILE_TYPES.DIRT;
@@ -898,6 +941,7 @@ export function useToolAtCursor(world, cursor) {
     tile.watered = false;
     tile.growth = 0;
     tile.stage = PLANT_STAGES.EMPTY;
+    if (buriedSoul) buriedSoul.revealed = true; // dig up!
     return true;
   }
 
@@ -950,6 +994,24 @@ export function useToolAtCursor(world, cursor) {
   return false;
 }
 
+export function tryCollectSoul(character, world) {
+  for (const soul of world.souls) {
+    if (soul.collected || !soul.revealed) continue; // must be dug up first
+    if (Math.hypot(character.col - soul.col, character.row - soul.row) <= 1.5) {
+      soul.collected = true;
+      world.soulsCollected++;
+      if (world.soulsCollected === 3) {
+        showModal({
+          title: "Souls Restored",
+          bodyHtml: `<p>Max! It's ya Grandpa — dead as hell but lowkey chill abt it fr fr 💀. You've farmed like a sigma, so I spent my ghost energy unlocking the decayed land! Go hoe that cursed soil and slay, queen! Crops grown there sell for <strong>DOUBLE</strong> the bag. Unicorp cant even stop ya. A Chillis is droppin' there, so property values boutta hit the MOON 📈. Love ya fam!</p>`,
+          buttons: [{ label: "Lit", className: "modal-btn--close" }]
+        });
+      }
+      return true;
+    }
+  }
+  return false;
+}
 
 // New function: pickup lumber like crops
 export function tryPickupLumber(character, world) {
