@@ -43,6 +43,8 @@ import {
 
 import { showModal } from "./modal.js";
 
+import { sfx } from "./sound.js";
+
 let waterCanFillAmount = 5;
 
 export function createBox() {
@@ -828,6 +830,7 @@ export function tryHarvestCrop(character, world) {
         tile.type = TILE_TYPES.DIRT;
         character.held = "crop";
         world.stats.harvested++;
+        sfx('pick');
         return true;
       }
     }
@@ -865,6 +868,7 @@ export function tryCollectMin(character, mins, world) {
       min.throwOrigin = null;
       min.lineToken = Date.now(); // Ensure min goes to back of line
       world.stats.minObtained++;
+      sfx('pick');
       world.minUnlocked = true;
       return min;
     }
@@ -1015,6 +1019,7 @@ export function useToolAtCursor(world, cursor) {
 
     // Decrement tree health
     tile.treeHealth -= 1;
+    sfx('chop');
 
     // If tree is felled
     if (tile.treeHealth <= 0) {
@@ -1042,6 +1047,7 @@ export function tryCollectSoul(character, world) {
     if (Math.hypot(character.col - soul.col, character.row - soul.row) <= 1.5) {
       soul.collected = true;
       world.soulsCollected++;
+      sfx('pick');
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",

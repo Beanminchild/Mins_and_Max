@@ -22,8 +22,16 @@ import {
 } from "./interactions.js";
 import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
-import { showModal, isModalOpen, closeModal } from "./modal.js";
+import { 
+  showModal, 
+  isModalOpen, 
+  closeModal 
+} from "./modal.js";
 
+import {
+  playSong,
+  sfx
+} from "./sound.js"
 
 function showSleepPrompt() {
   if (isModalOpen()) return;
@@ -82,14 +90,17 @@ canvas.style.cursor = "none";
 let cursor = null;
 let camera = { x: canvas.width / 2, y: 110 };
 let lastFrameTime = performance.now();
+let lastPhase = '';
 
 function updateClock() {
   const hand = document.getElementById("clock-hand");
   if (!hand) return;
 
-  const phase = Math.min(Math.max(world.dayProgress || 0, 0), 1);
-  const angle = 180 + (phase * 180);
+  const progress = Math.min(Math.max(world.dayProgress || 0, 0), 1);
+  const songPhase = progress < 0.2 ? 'dawn' : progress < 0.6 ? 'day' : progress < 0.8 ? 'dusk' : 'night';
+  if (songPhase !== lastPhase) { playSong(songPhase); lastPhase = songPhase; }
 
+  const angle = 180 + (progress * 180); // use numeric progress, not string
   hand.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
 }
 
