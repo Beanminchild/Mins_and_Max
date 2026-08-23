@@ -135,7 +135,7 @@ function buyShopItem(item) {
 }
 
 function syncHUD() {
-  const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying").length;
+  const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying" || m.state === "carrying_lumber" || m.state === "carrying_fish").length;
 
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;

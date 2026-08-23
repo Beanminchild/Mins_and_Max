@@ -518,8 +518,7 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       ctx.fillStyle = "#8b6f47";
       ctx.rotate(Math.PI / 4);
       ctx.fillRect(-10, -2, 20, 4);
-    }
-     } else if (character.held === "fish") {
+    } else if (character.held === "fish") {
       ctx.fillStyle = "#ffd54f";
       ctx.beginPath();
       ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
@@ -527,6 +526,7 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
     }
     ctx.restore();
   }
+}
 
 
 export function drawMin(ctx, min, camera, minSprites) {

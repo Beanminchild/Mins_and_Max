@@ -132,7 +132,7 @@ function createMinSprite(state) {
 
   g.translate(16, 16);
 
-  const isFollowing = state === "following" || state === "carrying" || state === "carrying_lumber";
+  const isFollowing = state === "following" || state === "carrying" || state === "carrying_lumber" || state === "carrying_fish";
   g.fillStyle = isFollowing ? "#f7c873" : "#8c5b2b";
   
   if (state === "going_to_box" || state === "returning_to_dominion") {
@@ -224,6 +224,8 @@ export function createWorld() {
     col: 15 + (index % 3) * 2,
     row: 15 + Math.floor(index / 3) * 2,
     state: "loose",
+    atHome: true,
+    lineToken: index + 1,
     followIndex: 0,
     target: null,
     targetTile: null,
@@ -433,6 +435,8 @@ function moveToward(min, targetCol, targetRow, speed = 0.12) {
 }
 
 function settleMin(min) {
+
+  
   
   min.state = "following";
   min.target = null;
@@ -441,6 +445,7 @@ function settleMin(min) {
   min.throwDistance = 0;
   min.landed = true;
   min.isDelivering = false;
+  min.lineToken = Date.now(); //min return to back of line to prevent fish grifting 
   
 }
 
@@ -450,6 +455,8 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
     col: col,
     row: row,
     state: initialState,
+    atHome:true,
+    lineToken: Date.now(),
     followIndex: 0,
     target: null,
     targetTile: null,
@@ -472,10 +479,10 @@ export function updateMins(character, mins, world) {
   // 1. Sort followers so that those carrying crops/lumber are at the front of the line
   const followers = mins.filter((min) => min.state === "following" || min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish");
   followers.sort((a, b) => {
-    // Carrying items (crops, lumber, fish) come first
     const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" || a.state === "carrying_fish" ? 1 : 0;
     const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" || b.state === "carrying_fish" ? 1 : 0;
-    return bCarrying - aCarrying;
+    if (aCarrying !== bCarrying) return bCarrying - aCarrying; // carriers front
+    return (a.lineToken || 0) - (b.lineToken || 0); // older tokens front, new ones back
   });
 
   followers.forEach((min, index) => {
@@ -486,6 +493,10 @@ export function updateMins(character, mins, world) {
     const targetRow = character.row - vector.dy * offsetAmount;
 
     moveToward(min, targetCol, targetRow, 0.12);
+
+    if (Math.hypot(min.col - targetCol, min.row - targetRow) < 0.15) {
+      min.atHome = true;
+    }
   });
 
   // --- Lumber Cleanup (performance fix) ---
@@ -608,8 +619,9 @@ export function updateMins(character, mins, world) {
     if (min.state === "returning_to_dominion") {
       moveToward(min, dominion.col, dominion.row, 0.14);
       if (Math.hypot(min.col - dominion.col, min.row - dominion.row) < 0.2) {
-        spawnNewMin(mins, dominion.col, dominion.row, "following");
+        spawnNewMin(mins, dominion.col, dominion.row, "following"); // sets lineToken internally
         min.state = "following";
+        min.lineToken = Date.now(); // returning min goes to back
       }
     }
 
@@ -632,23 +644,25 @@ export function updateMins(character, mins, world) {
       const reachedTarget = distanceToTarget <= 0.18;
 
     if (min.isDelivering && reachedTarget) {
-      console.log("min.state:", min.state);
+      //console.log("min.state:", min.state);
       if (min.carryingLumberForDelivery) {
-        console.log("Min delivered a lumber to the box!");
+        //console.log("Min delivered a lumber to the box!");
         world.lumberCollected += 1;
         
       }
       else if (min.state === "carrying_fish" || min.carryingFish) {
-        console.log("Min delivered a fish to the box!");
+        //console.log("Min delivered a fish to the box!");
         world.wallet += FISH_SALE_PRICE;
         world.fishCollected += 1;
+        min.carryingFish = false;
       }
       else{
-        console.log("Min delivered crops to box")
+        //console.log("Min delivered crops to box")
         world.cropsCollected += 1;
       }      
       min.state = "following";
       min.isDelivering = false;
+      min.lineToken = Date.now();
       return;
     }      
 
@@ -788,6 +802,7 @@ export function tryCollectMin(character, mins) {
       min.landed = false;
       min.throwDistance = 0;
       min.throwOrigin = null;
+      min.lineToken = Date.now(); // Ensure min goes to back of line
       return min;
     }
   }
@@ -796,11 +811,24 @@ export function tryCollectMin(character, mins) {
 
 
 export function throwMin(character, mins, box, cursor = null) {
-  // Prioritize mins: first carrying (crops/lumber), then following
-  const availableMin = mins.find((min) => min.state === "carrying" || min.state === "carrying_lumber") ||
-                       mins.find((min) => min.state === "following");
-  
-  if (!availableMin) return null;
+  // Respect line order: carriers front, then followers sorted by lineToken (front = lowest)
+  const lineMins = mins.filter((min) =>
+    min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish" ||
+    (min.state === "following" && min.atHome)
+  );
+  lineMins.sort((a, b) => {
+    const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" || a.state === "carrying_fish" ? 1 : 0;
+    const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" || b.state === "carrying_fish" ? 1 : 0;
+    if (aCarrying !== bCarrying) return bCarrying - aCarrying; // carriers first
+    return (a.lineToken || 0) - (b.lineToken || 0); // front of line first
+  });
+
+  // Pick frontmost carrier, else frontmost follower (i.e. first min in line)
+  const availableMin = lineMins.find((min) => min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish") ||
+                       lineMins.find((min) => min.state === "following");
+
+  if (!availableMin) return null; 
+
 
   availableMin.throwOrigin = { col: character.col, row: character.row };
   availableMin.throwDistance = 0;
@@ -821,6 +849,7 @@ export function throwMin(character, mins, box, cursor = null) {
     if (availableMin.state === "carrying_fish") {
     availableMin.isDelivering = true;
   }
+    availableMin.atHome = false;
     availableMin.state = "thrown";
     availableMin.isDelivering = true;
     availableMin.target = { col: box.col, row: box.row };
@@ -844,6 +873,7 @@ export function throwMin(character, mins, box, cursor = null) {
     col: character.col + (dx / Math.max(distance, 0.0001)) * clampedDistance,
     row: character.row + (dy / Math.max(distance, 0.0001)) * clampedDistance
   };
+  availableMin.atHome = false;
   availableMin.state = "thrown";
 
   return availableMin;
