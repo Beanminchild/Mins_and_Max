@@ -6,10 +6,10 @@ export const TILE_H = 32;
 export const moveStepSize = 0.25;
 export const moveStepMs = 60;
 
-export const BUTTON_REQUIRED_MIN = 3;
+
 export const MIN_SPAWN_COUNT = 5;
 export const MIN_INTERACTION_RADIUS = 1.2;
-export const BUTTON_INTERACTION_RADIUS = 1.2;
+
 export const HARVEST_RADIUS = 1.0;
 export let   TOOL_REACH_DISTANCE = 3.5;
 
@@ -30,19 +30,45 @@ export const WATER_POND_COL = 16;
 export const WATER_POND_ROW = 15;
 export const WATER_POND_INTERACTION_RADIUS = 1.5;
 
-export const SHOP_BUILDING_COL = 17;
+
+export const POND_MIN_SOAK_MS = 5 * 60 * 1000; // 5 minutes real time in pond
+
+
+export const SHOP_BUILDING_COL = 10;
 export const SHOP_BUILDING_ROW = 16;
 export const OTHER_BUILDING_COL = 42;
 export const OTHER_BUILDING_ROW = 3;
 
+// src/constants.js (suggested additions)
+export const FISH_RIPPLE_SPAWN_MS = 14000;   // new ripple every ~4s
+export const FISH_RIPPLE_RAMP_MS = 4500;    // time ripple takes to speed up
+export const FISH_VISIBLE_MS = 333;       // fish "out" for 1.5s
+export const FISH_CATCH_RADIUS = .75;
+export const FISH_SALE_PRICE = 150;
+
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 1.3; 
 export const SHOPKEEPER_ROW = 12;
+export const MERCHANT_TEMP_COL = 30;
+export const MERCHANT_TEMP_ROW = 5;
 
 export const WATER_CAN_MAX = 7;
 export const REFILL_RATE_MS = 1400;
 
 export const SEED_MAX = 99;
+
+export const TASKS = [
+  { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
+  { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
+  { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
+  { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
+  { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },
+  { id: 'axe',     desc: 'Chop down 3 trees', stat: 'treesChopped', target: 3 },
+  { id:'gotoshop', desc: 'Vist Unicorp local HQ and talk to the shopkeeper', stat: 'visitedShop', target: 1 },
+  { id: 'fivecrops', desc: 'Deposit 5 crops into collection box to sell', stat: 'cropsCollected', target: 5},
+  { id: 'fistMin', desc: 'Obtain your first Min!',  stat: 'minObtained', target: 1 }
+
+];
 
 export const TOOL_TYPES = {
   HOE: "hoe",

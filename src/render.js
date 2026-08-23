@@ -518,38 +518,37 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       ctx.fillStyle = "#8b6f47";
       ctx.rotate(Math.PI / 4);
       ctx.fillRect(-10, -2, 20, 4);
+    } else if (character.held === "fish") {
+      ctx.fillStyle = "#ffd54f";
+      ctx.beginPath();
+      ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
   }
 }
 
+const waterMinCache = new Map();
+
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-  const sprite = minSprites[min.state] || minSprites.loose;
+  let sprite = minSprites[min.state] || minSprites.loose;
+  if (min.isWaterMin) {
+    if (!waterMinCache.has(sprite)) {
+      const c = document.createElement("canvas");
+      c.width = sprite.width;
+      c.height = sprite.height;
+      const g = c.getContext("2d");
+      g.drawImage(sprite, 0, 0);
+      g.globalCompositeOperation = "source-atop";
+      g.fillStyle = "rgba(30, 144, 255, 0.6)";
+      g.fillRect(0, 0, c.width, c.height);
+      waterMinCache.set(sprite, c);
+    }
+    sprite = waterMinCache.get(sprite);
+  }
   ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
-}
-
-export function drawButton(ctx, button, camera) {
-  const p = isoToScreen(button.col, button.row, camera);
-
-  ctx.save();
-  ctx.translate(p.x, p.y - 6);
-
-  ctx.fillStyle = button.pressed ? "#48c774" : "#c74e4e";
-  ctx.beginPath();
-  ctx.moveTo(0, -14);
-  ctx.lineTo(16, -4);
-  ctx.lineTo(0, 6);
-  ctx.lineTo(-16, -4);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "12px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(button.pressed ? "true" : "false", 0, 2);
-  ctx.restore();
-}
+}  
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -687,7 +686,7 @@ function getTileSprite(type, shade, variant) {
   return s;
 }
 
-export function drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
+export function drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const tint = getTimeTint(world.dayProgress || 0);
@@ -711,7 +710,52 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
     }
 
     drawPlantOverlay(ctx, tile, c, r, camera);
+  }  
+
+ 
+  for (const soul of world.souls) {
+    if (soul.collected || !soul.revealed) continue; // hidden until hoed
+    const p = isoToScreen(soul.col, soul.row, camera);
+    ctx.save();
+    ctx.translate(p.x, p.y - 12);
+    const pulse = 1 + Math.sin(Date.now() / 200) * 0.2;
+    ctx.scale(pulse, pulse);
+    ctx.fillStyle = "rgba(170, 80, 255, 0.85)";
+    ctx.beginPath();
+    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.beginPath();
+    ctx.arc(0, -2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    }
+
+  // Draw fish ripples / fish
+  for (const f of world.fishEvents) {
+    const p = isoToScreen(f.col + 0.5, f.row + 0.5, camera);
+    if (f.phase === 'ripple') {
+      const rad = (Date.now() / f.speed) % 22;
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, rad, rad / 2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (f.phase === 'fish') {
+      ctx.fillStyle = '#ffd54f';
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y - 6, 7, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ff8f00';
+      ctx.beginPath();
+      ctx.moveTo(p.x + 6, p.y - 6);
+      ctx.lineTo(p.x + 11, p.y - 9);
+      ctx.lineTo(p.x + 11, p.y - 3);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
+
 
   // Draw lumber items on ground
   if (world.lumber) {
@@ -734,7 +778,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, button, mi
   drawBox(ctx, world.box, camera);
   drawDominion(ctx, world.dominion, camera);
   drawWaterPond(ctx, world.pond, camera);
-  drawButton(ctx, button, camera);
+
 
   // Shopkeeper drawn with their bank
   drawCharacter(ctx, shopkeeper, shopkeeperSpriteBank, camera);

@@ -99,6 +99,86 @@ canvas {
   box-shadow: 0 4px 0 #33691e;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 10, 12, 0.6);
+  z-index: 2000;
+}
+
+.modal-backdrop.hidden {
+  display: none;
+}
+
+.game-modal {
+  background: #fbe9e7; /* parchment, matches tool-slot / wallet-box */
+  border: 4px solid #5d4037; /* dark wood frame, matches hud/inventory */
+  padding: 20px 24px;
+  color: #3e2723; /* dark wood text */
+  text-align: center;
+  border-radius: 10px;
+  max-width: 600px;
+  box-shadow: 0 6px 0 #3e2723, inset 0 2px 0 rgba(255,255,255,0.4);
+}
+
+.game-modal h3 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #3e2723; /* matches .hud h1 */
+}
+
+.game-modal p {
+  margin: 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.modal-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 10px 18px;
+  cursor: pointer;
+  border: 3px solid #5d4037; /* wood frame like .tool-slot */
+  border-radius: 6px;
+  background: #fbe9e7;
+  color: #3e2723;
+  font-weight: 800;
+  font-size: 15px;
+  transition: transform 0.1s;
+}
+
+.modal-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Keep semantic colors but as wood-framed accents */
+.modal-btn--yes  { background: #a5d6a7; }
+.modal-btn--no   { background: #ef9a9a; }
+.modal-btn--close { background: #ce93d8; }
+#next-day-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #c8a63f, #a87e1a);
+  color: #221b0d;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .crop-counter {
   margin-left: auto;
   padding: 10px 18px;
@@ -220,13 +300,13 @@ canvas {
   z-index: 10;
 }
 
-/* --- Shop & Results (Unchanged styles) --- */
+
 .shop-overlay {
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(8, 10, 12, 0.72);
+  background: rgba(8, 10, 12, 0.6);
   z-index: 30;
 }
 
@@ -237,11 +317,11 @@ canvas {
 .shop-card {
   width: min(420px, 82vw);
   padding: 20px 18px 14px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(24, 28, 22, 0.97), rgba(12, 15, 12, 0.97));
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-  color: #eef2df;
+  border-radius: 12px;
+  background: #fbe9e7;              /* parchment, matches .game-modal */
+  border: 5px solid #5d4037;        /* dark wood frame, matches .inventory */
+  box-shadow: 0 6px 0 #3e2723, inset 0 2px 0 rgba(255,255,255,0.4);
+  color: #3e2723;
 }
 
 .shop-header {
@@ -251,88 +331,48 @@ canvas {
   margin-bottom: 16px;
 }
 
-.npc-portrait {
-  position: relative;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #f0d4b8, #d9a67b);
-  overflow: visible;
-  border: 2px solid rgba(255,255,255,0.1);
-}
-
-.npc-face {
-  position: absolute;
-  left: 50%;
-  top: 28%;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #f4d8ba;
-  transform: translateX(-50%);
-}
-
-.npc-hair {
-  position: absolute;
-  left: 50%;
-  top: 8px;
-  width: 40px;
-  height: 22px;
-  border-radius: 16px 16px 12px 12px;
-  background: #18c251;
-  transform: translateX(-50%);
-  box-shadow: inset 0 -4px 0 rgba(255,255,255,0.04);
-}
-
-.shop-title-wrap {
-  display: flex;
-  align-items: center;
-}
+.shop-title-wrap { display: flex; align-items: center; }
 
 .shop-title {
   font-size: 1.15rem;
-  font-weight: 800;
-  color: #f2d88c;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #3e2723;   /* matches .hud h1 / .game-modal h3 */
 }
 
-.shop-options {
-  display: grid;
-  gap: 10px;
-}
+.shop-options { display: grid; gap: 10px; }
 
 .shop-button {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  background: linear-gradient(180deg, #2d3930, #1b221a);
-  color: #f4f4ee;
+  border: 3px solid #5d4037;        /* wood frame like .tool-slot */
+  border-radius: 6px;
+  background: #fbe9e7;
+  color: #3e2723;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.1s;
 }
 
-.shop-button:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255,255,255,0.16);
-}
-
-.shop-button:active {
-  transform: translateY(0);
-}
+.shop-button:hover { transform: translateY(-2px); }
 
 .shop-dialogue {
   margin-top: 16px;
   padding: 12px 14px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #dfe7c5;
+  border-radius: 8px;
+  background: #a1887f;              /* lighter wood board, matches .inventory */
+  border: 3px solid #5d4037;
+  color: #fff;
   font-size: 0.96rem;
   text-align: center;
   font-style: italic;
+  text-shadow: 1px 1px 0 #3e2723;
 }
+
+
 
 .results-screen {
   position: fixed;
@@ -369,15 +409,3 @@ canvas {
   font-size: 1rem;
 }
 
-#next-day-button {
-  width: 100%;
-  margin-top: 14px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #c8a63f, #a87e1a);
-  color: #221b0d;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-}

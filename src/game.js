@@ -4,12 +4,12 @@ import { createSpriteBank, drawScene } from "./render.js";
 import {
   createWorld,
   throwMin,
-  tryCollectMin,
-  tryInteractWithButton,
+  tryCollectMin,  
   updateMins,
   updateWorld,
   useToolAtCursor,
-  tryHarvestCrop,  
+  tryHarvestCrop, 
+  tryCatchFish, 
   tryDepositToBox,
   tryDepositToDominion,
   tryInteractWithPond,
@@ -18,45 +18,29 @@ import {
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
+  tryCollectSoul
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
+import { showModal, isModalOpen, closeModal } from "./modal.js";
 
-
-
-let sleepPromptOpen = false;
 
 function showSleepPrompt() {
-  if (sleepPromptOpen) return;
-  sleepPromptOpen = true;
-
-  const modal = document.createElement("div");
-  modal.id = "sleep-modal";
-  modal.style.cssText = `
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: rgba(20, 20, 40, 0.95); border: 2px solid #5d4037;
-    padding: 20px; color: white; text-align: center; z-index: 2000; border-radius: 8px;
-  `;
-  modal.innerHTML = `
-    <h3>Go to bed for the night?</h3>
-    <p>This will end the current day.</p>
-    <button id="sleep-yes" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #48c774; border: none; color: white;">Yes (Sleep)</button>
-    <button id="sleep-no" style="padding: 10px 20px; margin: 10px; cursor: pointer; background: #c74e4e; border: none; color: white;">No</button>
-  `;
-  document.body.appendChild(modal);
-
-  document.getElementById("sleep-yes").onclick = () => {
-    modal.remove();
-    sleepPromptOpen = false;
-    endDay(); // Trigger the end of day sequence
-  };
-
-  document.getElementById("sleep-no").onclick = () => {
-    modal.remove();
-    // Briefly move character away so it doesn't re-trigger immediately
-    character.col += 1;
-    setTimeout(() => { sleepPromptOpen = false; }, 1000);
-  };
+  if (isModalOpen()) return;
+  showModal({
+    title: "Go to bed for the night?",
+    bodyHtml: "<p>This will end the current day.</p>",
+    buttons: [
+      { label: "Yes (Sleep)", className: "modal-btn--yes", onClick: endDay },
+      {
+        label: "No",
+        className: "modal-btn--no",
+        onClick: () => {
+          character.col += 1;          
+        },
+      },
+    ],
+  });
 }
 
 const canvas = document.getElementById("game");
@@ -66,17 +50,26 @@ const keys = setupInput();
 const character = createCharacter();
 const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
-shopkeeper.col = SHOPKEEPER_COL;
-shopkeeper.row = SHOPKEEPER_ROW;
 const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
 export const world = createWorld();
 world.shopkeeper = shopkeeper;
+if (world.stats.given < 1) {
+  shopkeeper.col = MERCHANT_TEMP_COL;
+  shopkeeper.row = MERCHANT_TEMP_ROW;
+} else {
+  shopkeeper.col = SHOPKEEPER_COL;
+  shopkeeper.row = SHOPKEEPER_ROW;
+}
+
+
+
+
 
 if (!world.selectedTool) {
   world.selectedTool = TOOL_TYPES.MIN;
 }
 
-const { button, mins } = world;
+const { mins } = world;
 
 const resultsScreen = document.getElementById("results-screen");
 const resultsCollected = document.getElementById("results-collected");
@@ -100,17 +93,29 @@ function updateClock() {
   hand.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
 }
 
+
 function openShop() {
-  if (shopOverlay) {
-    shopOverlay.classList.remove("hidden");
-  }
+  world.shopOpen = true;
+  showModal({
+    title: "Unicorn Merchant",
+    bodyHtml: `
+      <div class="shop-options">
+        <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
+        <button class="shop-button" data-buy="min">Min — 35g</button>
+      </div>
+      <p class="shop-dialogue">"Spend wisely, farmer!"</p>`,
+    buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
+  });
+
+  // Wire buy buttons after render
+  document.querySelectorAll(".shop-button[data-buy]").forEach((btn) => {
+    btn.onclick = () => buyShopItem(btn.dataset.buy);
+  });
 }
 
 function closeShop() {
-  if (shopOverlay) {
-    shopOverlay.classList.add("hidden");
-  }
   world.shopOpen = false;
+  closeModal();
 }
 
 function buyShopItem(item) {
@@ -133,19 +138,23 @@ function buyShopItem(item) {
     world.selectedTool = "min";
     world.minInventory = (world.minInventory || 0) + 1;
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
+    world.stats.minObtained++;
+    world.minUnlocked = true;
   }
 
-  closeShop();
+  
   syncHUD();
 }
 
 function syncHUD() {
-  const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying").length;
-
+  const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying" || m.state === "carrying_lumber" || m.state === "carrying_fish").length;
+ 
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;
     const isSelected = toolName === world.selectedTool;
     slot.classList.toggle("active", isSelected);
+
+    
 
     if (toolName === "min") {
       let countBadge = slot.querySelector(".item-count");
@@ -211,8 +220,20 @@ function syncHUD() {
       }
       countBadge.textContent = world.seedInventory || 0;
     }
-  });
+  }); 
 
+  const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
+    if (axeBtn) {
+      axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
+    }
+
+  const minBtn = document.querySelector('.tool-slot[data-tool="min"]');
+    if (minBtn) {
+      const badge = minBtn.querySelector('.item-count');
+      minBtn.innerHTML = world.minUnlocked ? "🤖 Min" : "Empty";
+      if (badge) minBtn.appendChild(badge);
+    }
+  
   const countDisplay = document.getElementById("crop-count");
   if (countDisplay) {
     countDisplay.textContent = world.cropsCollected + world.lumberCollected;
@@ -230,15 +251,45 @@ function syncHUD() {
   if (walletDisplay) {
     walletDisplay.textContent = `${world.wallet}g`;
   }
+  
 
   updateClock();
+  updateTaskHUD();
 }
+
+
+function updateTaskHUD() {
+  const el = document.getElementById("task-list");
+  if (!el) return;
+
+  if (world.currentTaskIndex >= TASKS.length) {
+    el.innerHTML = "<strong>All tasks complete! Freedom from Unicorp!</strong>";
+    return;
+  }
+
+  const t = TASKS[world.currentTaskIndex];
+  const prog = world.stats[t.stat] || 0;
+  el.innerHTML = `<strong>Task:</strong> ${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
+
+  if (prog >= t.target) {
+    world.currentTaskIndex++;
+    if (world.currentTaskIndex >= TASKS.length && !world.allTasksDone) {
+      world.allTasksDone = true;
+      showModal({
+        title: "Victory!",
+        bodyHtml: "<p>You got the farm back from Unicorp!</p>",
+        buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
+      });
+    }
+  }
+}
+
 
 function handleToolAction() {
   if (world.dayEnded) return;
 
   if (world.selectedTool === "min") {
-    throwMin(character, mins, button, world.box, cursor);
+    throwMin(character, mins, world.box, cursor);
   } 
   
     // Calculate distance between character and cursor for all other tools
@@ -286,10 +337,7 @@ function startNextDay() {
 
   character.col = OTHER_BUILDING_COL + 1.75;
   character.row = OTHER_BUILDING_ROW + 1.75;
-  character.dir = 2;
-
-  button.pressed = false;
-  button.minCount = 0;
+  character.dir = 2;  
 
   if (resultsScreen) resultsScreen.classList.add("hidden");
   syncHUD();
@@ -298,16 +346,14 @@ function startNextDay() {
 document.querySelectorAll(".tool-slot").forEach((slot) => {
   slot.addEventListener("click", (e) => {
     e.stopPropagation();
-    world.selectedTool = slot.dataset.tool;
+    const tool = slot.dataset.tool;
+    if (tool === "axe" && !world.axeUnlocked) return;
+    if (tool === "min" && !world.minUnlocked) return;
+    world.selectedTool = tool;
     syncHUD();
   });
 });
 
-document.querySelectorAll(".shop-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    buyShopItem(button.dataset.buyItem);
-  });
-});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && world.shopOpen) {
@@ -315,16 +361,18 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   const map = {
-    Digit1: "hoe",
-    Digit2: "seeds",
-    Digit3: "watering-can",
-    Digit4: "axe",
-    Digit5: "min",
-    Digit6: "empty-hands"
+    Digit2: "hoe",
+    Digit3: "seeds",
+    Digit4: "watering-can",
+    Digit5: "axe",
+    Digit6: "min",
+    Digit1: "empty-hands"
   };
 
-  const tool = map[event.code];
+    const tool = map[event.code];
   if (tool) {
+    if (tool === "axe" && !world.axeUnlocked) return;
+    if (tool === "min" && !world.minUnlocked) return;
     world.selectedTool = tool;
     syncHUD();
   }
@@ -360,12 +408,12 @@ function loop(timestamp) {
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 
-  if (!world.dayEnded) {   
+  if (!isModalOpen() && !world.dayEnded) {   
 
     updateCharacterFromControls(character,keys,deltaMs, world);
 
     const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
-    if (distToHome < 0.6 && !sleepPromptOpen) {
+    if (distToHome < 0.6) {
       showSleepPrompt();
     }
 
@@ -376,26 +424,26 @@ function loop(timestamp) {
       endDay();
     }
     updateWorld(world, deltaMs, character);
-    updateMins(character, mins, button, world);
+    updateMins(character, mins, world);
   if (keys.has("KeyE") || keys.has("Space")) {
     let interacted = tryInteractWithGravestone(character, world) ||
+                    tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world, mins) ||
-                    tryInteractWithPond(character, world);
+                    tryInteractWithPond(character, world) ||
+                    tryCollectSoul(character,world);
 
-    if (!interacted && !world.shopOpen) {
+      if (!interacted && !world.shopOpen) {
       interacted = tryInteractWithShop(character, world);
-      if (interacted) openShop();
+      if (interacted && world.shopOpen) openShop(); // only open if shop is actually unlocked
     }
 
     if (!interacted) {
-      if (!tryCollectMin(character, mins)) {
-        if (!tryInteractWithButton(character, button)) {
+      if (!tryCollectMin(character, mins, world)) {        
           if (!tryHarvestCrop(character, world)) {
             tryTakeFromMin(character, mins);
-          }
-        }
+          }        
       }
     }
 
@@ -411,10 +459,10 @@ function loop(timestamp) {
 
   syncHUD();
   camera = updateCamera(canvas, character);
-  drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
+  drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
 
   requestAnimationFrame(loop);
 }
 
-drawScene(ctx, canvas, character, spriteBank, camera, button, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
+drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
 requestAnimationFrame(loop);
