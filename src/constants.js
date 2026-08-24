@@ -53,7 +53,7 @@ export const MERCHANT_TEMP_COL = 30;
 export const MERCHANT_TEMP_ROW = 5;
 
 export const WATER_CAN_MAX = 7;
-export const REFILL_RATE_MS = 1400;
+
 
 export const SEED_MAX = 99;
 

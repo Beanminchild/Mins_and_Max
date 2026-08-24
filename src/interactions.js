@@ -9,22 +9,17 @@ import {
   TILE_TYPES,
   PLANT_STAGES,
   GROWTH_DURATION_MIN,
-  GROWTH_DURATION_MAX,
-  BOX_COL,
-  BOX_ROW,
-  BOX_INTERACTION_RADIUS,
-  DOMINION_COL,
-  DOMINION_ROW,
+  GROWTH_DURATION_MAX, 
+  BOX_INTERACTION_RADIUS,  
   DOMINION_INTERACTION_RADIUS,
   WATER_CAN_MAX,
-  REFILL_RATE_MS,
+  
   WATER_POND_COL,
   WATER_POND_ROW,
   WATER_POND_INTERACTION_RADIUS,
   SHOPKEEPER_COL,
   SHOPKEEPER_ROW,
-  TASKS,
-  SEED_MAX,
+  TASKS,  
   TREE_SWINGS_TO_FELL,
   TREE_CUT_TIME_1_MIN,
   TREE_CUT_TIME_2_MIN,
@@ -343,8 +338,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 },
     axeUnlocked: false,
     minUnlocked: false,
-    currentTaskIndex: 0,
-    allTasksDone: false,
+    currentTaskIndex: 0,    
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
     shopOpen: false,
     mins,
@@ -366,15 +360,14 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     seedsCollected: 0,
     isRefillingWater: false,
     refillTimer: 0,
-    seedInventory: 5,
-    minInventory: 0,
+    seedInventory: 5,   
 
     dayLengthMs: 5 * 60 * 1000,
     dayElapsedMs: 0,
     dayProgress: 0,
     dayNumber: 1,
     wallet: 25,
-    dayEnded: false
+    
   };
 }
 
@@ -939,10 +932,12 @@ function clampTileValue(value, max) {
   return Math.max(0, Math.min(max - 1, Math.floor(value)));
 }
 
-export function useToolAtCursor(world, cursor) {
+export function useToolAtCursor(world, cursor, character) {
   if (!cursor) return false;
+  
   const col = clampTileValue(cursor.col, cols);
   const row = clampTileValue(cursor.row, rows);
+  
   const tile = world.tiles[row][col];
   if (!tile) return false;
 
@@ -963,7 +958,7 @@ export function useToolAtCursor(world, cursor) {
     // Prevent hoe on tiles with trees
     if (tile.variant === "decay" && world.soulsCollected < 3) return false;
     if (tile.hasTree) return false;
-    sfx('hoe');
+    sfx('chop');
     
     tile.type = TILE_TYPES.DIRT;
     tile.planted = false;
@@ -992,10 +987,23 @@ export function useToolAtCursor(world, cursor) {
   }
 
   if (world.selectedTool === TOOL_TYPES.WATERING_CAN) {
+    
     if (tile.planted && !tile.watered && world.waterCanFillAmount > 0) {
       tile.watered = true;
       world.waterCanFillAmount -= 1;
       world.stats.watered++;
+      sfx('water');
+      return true;
+    }   
+
+    if (!character) return false;
+    console.log("Character position:", character.col, character.row, character);
+    const pondCenterX = WATER_POND_COL + 1.5;
+    const pondCenterY = WATER_POND_ROW + 1.5;
+    const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
+
+    if(distance < WATER_POND_INTERACTION_RADIUS + 2) {
+      world.waterCanFillAmount++;   
       sfx('water');
       return true;
     }
@@ -1041,7 +1049,7 @@ export function tryCollectSoul(character, world) {
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! Grandpa's ghost, dead but chill 💀 abt it fr. You farmed like a sigma, so I restored the soil! Hoe it — crops there sell for <strong>DOUBLE</strong>. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. Love ya fam!</p>`,
+          bodyHtml: `<p>Max! Grandpa's ghost, dead but chill 💀 abt it fr. You farmed like a sigma. Hoe the purple soil - crops there sell for DOUBLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. Love ya fam!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }
@@ -1106,26 +1114,4 @@ export function updateWorld(world, deltaMs, character) {
 
   updateFish(world, deltaMs);
 
-  // 2. Handle Water Refill Logic (unchanged)
-  if (world.isRefillingWater && character) {
-    const pondCenterX = WATER_POND_COL + 1.5;
-    const pondCenterY = WATER_POND_ROW + 1.5;
-    const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
-
-    if (distance > WATER_POND_INTERACTION_RADIUS + 2 || world.selectedTool !== TOOL_TYPES.WATERING_CAN) {
-      world.isRefillingWater = false;
-      world.refillTimer = 0;
-    } else {
-      world.refillTimer += deltaMs;
-      if (world.refillTimer >= REFILL_RATE_MS) {
-        if (world.waterCanFillAmount < WATER_CAN_MAX) {
-          world.waterCanFillAmount++;
-          world.refillTimer = 0;
-        } else {
-          world.isRefillingWater = false;
-          world.refillTimer = 0;
-        }
-      }
-    }
-  }
 }
