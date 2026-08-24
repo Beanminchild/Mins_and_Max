@@ -235,12 +235,14 @@ function syncHUD() {
 
   const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
     if (axeBtn) {
+      
       axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
     }
 
   const minBtn = document.querySelector('.tool-slot[data-tool="min"]');
     if (minBtn) {
       const badge = minBtn.querySelector('.item-count');
+      
       minBtn.innerHTML = world.minUnlocked ? "🤖 Min" : "Empty";
       if (badge) minBtn.appendChild(badge);
     }
@@ -284,6 +286,7 @@ function updateTaskHUD() {
 
   if (prog >= t.target) {
     world.currentTaskIndex++;
+    sfx("success");
     if (world.currentTaskIndex >= TASKS.length && !world.allTasksDone) {
       world.allTasksDone = true;
       showModal({
@@ -301,6 +304,7 @@ function handleToolAction() {
 
   if (world.selectedTool === "min") {
     throwMin(character, mins, world.box, cursor);
+    sfx("throw");
   } 
   
     // Calculate distance between character and cursor for all other tools

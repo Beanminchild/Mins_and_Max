@@ -977,6 +977,7 @@ export function useToolAtCursor(world, cursor) {
     // Prevent hoe on tiles with trees
     if (tile.variant === "decay" && world.soulsCollected < 3) return false;
     if (tile.hasTree) return false;
+    sfx('hoe');
     
     tile.type = TILE_TYPES.DIRT;
     tile.planted = false;
@@ -997,7 +998,9 @@ export function useToolAtCursor(world, cursor) {
       tile.stage = PLANT_STAGES.SEED;
       world.seedInventory -= 1;
       world.stats.planted++;
+      sfx('chop');
       return true;
+      
     }
     return false;
   }
@@ -1007,6 +1010,7 @@ export function useToolAtCursor(world, cursor) {
       tile.watered = true;
       world.waterCanFillAmount -= 1;
       world.stats.watered++;
+      sfx('water');
       return true;
     }
     return false;

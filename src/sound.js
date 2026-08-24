@@ -24,6 +24,13 @@ export function sfx(n) {
   else if (n === 'pick') { tone(600, t, 0.08, 'triangle', 0.2); tone(900, t + 0.07, 0.1, 'triangle', 0.15); }
   else if (n === 'throw') { tone(300, t, 0.12, 'sawtooth', 0.15); }
   else if (n === 'sleep') { tone(200, t, 0.5, 'sine', 0.2); }
+  else if (n === 'success') {
+    // Pleasing ascending chime arpeggio (C5 - E5 - G5 - C6)
+    tone(523.25, t, 0.15, 'sine', 0.15);
+    tone(659.25, t + 0.10, 0.15, 'sine', 0.15);
+    tone(783.99, t + 0.20, 0.25, 'sine', 0.18);
+    tone(1046.5, t + 0.32, 0.35, 'triangle', 0.12);
+  }
 }
 export function playSong(p) {
   A();
