@@ -1,10 +1,7 @@
 import {  
   MIN_SPAWN_COUNT,
   MIN_INTERACTION_RADIUS,  
-  DIRECTION_VECTORS,
-  THROW_TARGET_RADIUS,
-  THROW_SUCCESS_BASE,
-  THROW_SUCCESS_PER_DISTANCE,
+  DIRECTION_VECTORS,  
   THROW_MAX_DISTANCE,
   cols,
   rows,
@@ -44,8 +41,6 @@ import {
 import { showModal } from "./modal.js";
 
 import { sfx } from "./sound.js";
-
-let waterCanFillAmount = 5;
 
 export function createBox() {
   return {
@@ -394,29 +389,28 @@ export function tryInteractWithShop(character, world) {
   
 
   const giveIndex = TASKS.findIndex(t => t.id === 'give');
-  if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
-    if (character.held === 'crop') {
-      character.held = null;
-      world.stats.given++;
-      world.axeUnlocked = true;
-      // const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
-      // axeButtons.textContent = "🪓 Axe";
-      world.shopkeeper.col = SHOPKEEPER_COL;
-      world.shopkeeper.row = SHOPKEEPER_ROW;
-      showModal({
-        title: "Unicorn Merchant",
-        bodyHtml: "<p>Wow nice work Max! The farmer apple doesnt fall too far from the tree. Too bad gramps is dead, we could have gotten double the ROI... anyway as i promised; your grandpa's axe — If you need more supplies please come vist me at our local HQ in the middle of the farm, well sell you anything you need for slightly above market price! WELCOME TO THE UNICORP FAMILY MAX!</p>",
-        buttons: [{ label: "Take that horn and shove it, This is my farm and im taking it back", className: "modal-btn--close" }]
-      });
-    } else {
-      showModal({
-        title: "Unicorn Merchant",
-        bodyHtml: "<p>Before can sell your crops, please grow one and give it to me to prove youre capable of meeting our KPI's. Do this and Ill hire you and give you a one of your family heirlooms as an onboarding gift. </p>",
-        buttons: [{ label: "Wow how generous of you", className: "modal-btn--close" }]
-      });
-    }
-    return true; // interacted, but no shop yet
+if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
+  if (character.held === 'crop') {
+    character.held = null;
+    world.stats.given++;
+    world.axeUnlocked = true;
+    world.shopkeeper.col = SHOPKEEPER_COL;
+    world.shopkeeper.row = SHOPKEEPER_ROW;
+    showModal({
+      title: "Unicorn Merchant",
+      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, double ROI gone. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
+      buttons: [{ label: "Shove that horn, this farm's mine!", className: "modal-btn--close" }]
+    });
+  } else {
+    showModal({
+      title: "Unicorn Merchant",
+      bodyHtml: "<p>Prove you'll hit KPIs: grow a crop, hand it over. Then we 'hire' you and gift a family heirloom. Onboarding bonus, of course.</p>",
+      buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
+    });
   }
+  return true;
+}
+
   world.stats.visitedShop = 1;
   world.shopOpen = true;
   return true;
@@ -440,13 +434,12 @@ function showGravestoneMessage(gravestone) {
     title: "The Grave says:",
     bodyHtml: `
       <p style="font-size:18px;line-height:1.6;">
-        Here lies Max's Grandpa...<br><br>
-        <strong>Full Name: Max's Grandpa Sr.</strong>
+        Here lies Max's Grandpa Sr.
       </p>
       <hr style="border:1px solid #5d4037;margin:20px 0;">
       <p style="font-size:14px;color:#6d4c41;">
-        Coming soon: <strong>A new luxury highrise apartment</strong><br>and a <strong>Chillis!</strong>
-      </p><p style="font-size:14px;color:#6d4c41;">Wait theres a bit more... it says</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie, where the soil grows sour, yet here not I stay due to the souls divine power. Seek thee my soul piece three, scattered where id be in lands of grass, beach and trees"   "</strong>`,
+        (Luxury condos + a Chillis! coming soon)
+      </p><p style="font-size:14px;color:#6d4c41;">Psst... it reads:</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie where soil grows sour, yet rest I shan't by soul's divine power. Seek my three soul-parts: in grass, beach, and trees."</strong>`,
     buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
 }
@@ -791,7 +784,7 @@ export function tryDepositToBox(character, box, world) {
   return false;
 }
 
-export function tryDepositToDominion(character, dominion, world, mins) {
+export function tryDepositToDominion(character, dominion, mins) {
   if (character.held !== "crop") return false;
 
   if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
@@ -904,17 +897,10 @@ export function throwMin(character, mins, box, cursor = null) {
   // Carrying items (crops or lumber) go to box
   if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber" || availableMin.state === "carrying_fish")     {    
   
-  if (availableMin.state === "carrying_lumber"){   
-    availableMin.carryingLumberForDelivery = true;    
-    console.log("is lumber bein registered", availableMin.carryingLumberForDelivery)
+  if (availableMin.state === "carrying_lumber") {
+    availableMin.carryingLumberForDelivery = true;
   }
-  if ( availableMin.state === "carrying"){
-     availableMin.isDelivering = "true";
-     console.log("somehow is delivering", availableMin.isDelivering)
-
-  }
-  
-    if (availableMin.state === "carrying_fish") {
+  if (availableMin.state === "carrying" || availableMin.state === "carrying_fish") {
     availableMin.isDelivering = true;
   }
 
@@ -1055,7 +1041,7 @@ export function tryCollectSoul(character, world) {
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! It's ya Grandpa — dead as hell but lowkey chill abt it fr fr 💀. You've farmed like a sigma, so I spent my ghost energy unlocking the decayed land! Go hoe that cursed soil and slay, queen! Crops grown there sell for <strong>DOUBLE</strong> the bag. Unicorp cant even stop ya. A Chillis is droppin' there, so property values boutta hit the MOON 📈. Love ya fam!</p>`,
+          bodyHtml: `<p>Max! Grandpa's ghost, dead but chill 💀 abt it fr. You farmed like a sigma, so I restored the soil! Hoe it — crops there sell for <strong>DOUBLE</strong>. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. Love ya fam!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }
