@@ -28,7 +28,7 @@ body {
   gap: 12px;
 }
 
-/* --- HUD: Harvest Moon 64 Wooden Style --- */
+
 .hud {
   display: flex;
   align-items: center;
@@ -68,13 +68,13 @@ canvas {
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-/* --- Inventory & Tools: Carved Wooden Style --- */
+
 .inventory {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #a1887f; /* Lighter wood board */
+  background: #a1887f;
   border: 5px solid #5d4037;
   border-radius: 12px;
   box-shadow: 0 6px 0 #3e2723;
@@ -82,7 +82,7 @@ canvas {
 
 .tool-slot {
   border: 3px solid #5d4037;
-  background: #fbe9e7; /* Parchment/Paper color */
+  background: #fbe9e7;
   color: #3e2723;
   padding: 10px 14px;
   border-radius: 6px;
@@ -113,10 +113,10 @@ canvas {
 }
 
 .game-modal {
-  background: #fbe9e7; /* parchment, matches tool-slot / wallet-box */
-  border: 4px solid #5d4037; /* dark wood frame, matches hud/inventory */
+  background: #fbe9e7;
+  border: 4px solid #5d4037; 
   padding: 20px 24px;
-  color: #3e2723; /* dark wood text */
+  color: #3e2723; 
   text-align: center;
   border-radius: 10px;
   max-width: 600px;
@@ -318,8 +318,8 @@ canvas {
   width: min(420px, 82vw);
   padding: 20px 18px 14px;
   border-radius: 12px;
-  background: #fbe9e7;              /* parchment, matches .game-modal */
-  border: 5px solid #5d4037;        /* dark wood frame, matches .inventory */
+  background: #fbe9e7;
+  border: 5px solid #5d4037;
   box-shadow: 0 6px 0 #3e2723, inset 0 2px 0 rgba(255,255,255,0.4);
   color: #3e2723;
 }
@@ -339,7 +339,7 @@ canvas {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #fff;
-  text-shadow: 2px 2px 0 #3e2723;   /* matches .hud h1 / .game-modal h3 */
+  text-shadow: 2px 2px 0 #3e2723;
 }
 
 .shop-options { display: grid; gap: 10px; }

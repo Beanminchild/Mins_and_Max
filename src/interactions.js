@@ -1,10 +1,7 @@
 import {  
   MIN_SPAWN_COUNT,
   MIN_INTERACTION_RADIUS,  
-  DIRECTION_VECTORS,
-  THROW_TARGET_RADIUS,
-  THROW_SUCCESS_BASE,
-  THROW_SUCCESS_PER_DISTANCE,
+  DIRECTION_VECTORS,  
   THROW_MAX_DISTANCE,
   cols,
   rows,
@@ -43,7 +40,7 @@ import {
 
 import { showModal } from "./modal.js";
 
-let waterCanFillAmount = 5;
+import { sfx } from "./sound.js";
 
 export function createBox() {
   return {
@@ -392,29 +389,28 @@ export function tryInteractWithShop(character, world) {
   
 
   const giveIndex = TASKS.findIndex(t => t.id === 'give');
-  if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
-    if (character.held === 'crop') {
-      character.held = null;
-      world.stats.given++;
-      world.axeUnlocked = true;
-      // const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
-      // axeButtons.textContent = "🪓 Axe";
-      world.shopkeeper.col = SHOPKEEPER_COL;
-      world.shopkeeper.row = SHOPKEEPER_ROW;
-      showModal({
-        title: "Unicorn Merchant",
-        bodyHtml: "<p>Thank you, farmer! Take this axe — my shop is now open to you!</p>",
-        buttons: [{ label: "OK", className: "modal-btn--close" }]
-      });
-    } else {
-      showModal({
-        title: "Unicorn Merchant",
-        bodyHtml: "<p>Bring me a crop and I'll unlock my shop and give you an axe!</p>",
-        buttons: [{ label: "OK", className: "modal-btn--close" }]
-      });
-    }
-    return true; // interacted, but no shop yet
+if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
+  if (character.held === 'crop') {
+    character.held = null;
+    world.stats.given++;
+    world.axeUnlocked = true;
+    world.shopkeeper.col = SHOPKEEPER_COL;
+    world.shopkeeper.row = SHOPKEEPER_ROW;
+    showModal({
+      title: "Unicorn Merchant",
+      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, double ROI gone. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
+      buttons: [{ label: "Shove that horn, this farm's mine!", className: "modal-btn--close" }]
+    });
+  } else {
+    showModal({
+      title: "Unicorn Merchant",
+      bodyHtml: "<p>Prove you'll hit KPIs: grow a crop, hand it over. Then we 'hire' you and gift a family heirloom. Onboarding bonus, of course.</p>",
+      buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
+    });
   }
+  return true;
+}
+
   world.stats.visitedShop = 1;
   world.shopOpen = true;
   return true;
@@ -438,13 +434,12 @@ function showGravestoneMessage(gravestone) {
     title: "The Grave says:",
     bodyHtml: `
       <p style="font-size:18px;line-height:1.6;">
-        Here lies Max's Grandpa...<br><br>
-        <strong>Full Name: Max's Grandpa Sr.</strong>
+        Here lies Max's Grandpa Sr.
       </p>
       <hr style="border:1px solid #5d4037;margin:20px 0;">
       <p style="font-size:14px;color:#6d4c41;">
-        Coming soon: <strong>A new luxury highrise apartment</strong><br>and a <strong>Chillis!</strong>
-      </p><p style="font-size:14px;color:#6d4c41;">Wait theres a bit more... it says</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie, where the soil grows sour, yet here not I stay due to the souls divine power. Seek thee my soul piece three, scattered where id be in lands of grass, beach and trees"   "</strong>`,
+        (Luxury condos + a Chillis! coming soon)
+      </p><p style="font-size:14px;color:#6d4c41;">Psst... it reads:</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie where soil grows sour, yet rest I shan't by soul's divine power. Seek my three soul-parts: in grass, beach, and trees."</strong>`,
     buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
 }
@@ -789,7 +784,7 @@ export function tryDepositToBox(character, box, world) {
   return false;
 }
 
-export function tryDepositToDominion(character, dominion, world, mins) {
+export function tryDepositToDominion(character, dominion, mins) {
   if (character.held !== "crop") return false;
 
   if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
@@ -828,6 +823,7 @@ export function tryHarvestCrop(character, world) {
         tile.type = TILE_TYPES.DIRT;
         character.held = "crop";
         world.stats.harvested++;
+        sfx('pick');
         return true;
       }
     }
@@ -865,6 +861,7 @@ export function tryCollectMin(character, mins, world) {
       min.throwOrigin = null;
       min.lineToken = Date.now(); // Ensure min goes to back of line
       world.stats.minObtained++;
+      sfx('pick');
       world.minUnlocked = true;
       return min;
     }
@@ -900,17 +897,10 @@ export function throwMin(character, mins, box, cursor = null) {
   // Carrying items (crops or lumber) go to box
   if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber" || availableMin.state === "carrying_fish")     {    
   
-  if (availableMin.state === "carrying_lumber"){   
-    availableMin.carryingLumberForDelivery = true;    
-    console.log("is lumber bein registered", availableMin.carryingLumberForDelivery)
+  if (availableMin.state === "carrying_lumber") {
+    availableMin.carryingLumberForDelivery = true;
   }
-  if ( availableMin.state === "carrying"){
-     availableMin.isDelivering = "true";
-     console.log("somehow is delivering", availableMin.isDelivering)
-
-  }
-  
-    if (availableMin.state === "carrying_fish") {
+  if (availableMin.state === "carrying" || availableMin.state === "carrying_fish") {
     availableMin.isDelivering = true;
   }
 
@@ -973,6 +963,7 @@ export function useToolAtCursor(world, cursor) {
     // Prevent hoe on tiles with trees
     if (tile.variant === "decay" && world.soulsCollected < 3) return false;
     if (tile.hasTree) return false;
+    sfx('hoe');
     
     tile.type = TILE_TYPES.DIRT;
     tile.planted = false;
@@ -993,7 +984,9 @@ export function useToolAtCursor(world, cursor) {
       tile.stage = PLANT_STAGES.SEED;
       world.seedInventory -= 1;
       world.stats.planted++;
+      sfx('chop');
       return true;
+      
     }
     return false;
   }
@@ -1003,6 +996,7 @@ export function useToolAtCursor(world, cursor) {
       tile.watered = true;
       world.waterCanFillAmount -= 1;
       world.stats.watered++;
+      sfx('water');
       return true;
     }
     return false;
@@ -1015,6 +1009,7 @@ export function useToolAtCursor(world, cursor) {
 
     // Decrement tree health
     tile.treeHealth -= 1;
+    sfx('chop');
 
     // If tree is felled
     if (tile.treeHealth <= 0) {
@@ -1042,10 +1037,11 @@ export function tryCollectSoul(character, world) {
     if (Math.hypot(character.col - soul.col, character.row - soul.row) <= 1.5) {
       soul.collected = true;
       world.soulsCollected++;
+      sfx('pick');
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! It's ya Grandpa — dead as hell but lowkey chill abt it fr fr 💀. You've farmed like a sigma, so I spent my ghost energy unlocking the decayed land! Go hoe that cursed soil and slay, queen! Crops grown there sell for <strong>DOUBLE</strong> the bag. Unicorp cant even stop ya. A Chillis is droppin' there, so property values boutta hit the MOON 📈. Love ya fam!</p>`,
+          bodyHtml: `<p>Max! Grandpa's ghost, dead but chill 💀 abt it fr. You farmed like a sigma, so I restored the soil! Hoe it — crops there sell for <strong>DOUBLE</strong>. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. Love ya fam!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }

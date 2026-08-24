@@ -52,30 +52,7 @@ function drawGrassTile(ctx, col, row, camera) {
   ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
 }
 
-function drawDecayedGrassTile(ctx, col, row, camera) {
-  const p = isoToScreen(col, row, camera);
-  const shade = (col + row) % 3;
-  const decayedColors = ["#6a4f7e", "#7b5a8f", "#5a3f6d"];
 
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y - TILE_H / 2);
-  ctx.lineTo(p.x + TILE_W / 2, p.y);
-  ctx.lineTo(p.x, p.y + TILE_H / 2);
-  ctx.lineTo(p.x - TILE_W / 2, p.y);
-  ctx.closePath();
-
-  ctx.fillStyle = decayedColors[shade];
-  ctx.fill();
-  ctx.strokeStyle = "#3a2a4a";
-  ctx.lineWidth = 1.25;
-  ctx.stroke();
-
-  // Creepy subtle effect
-  ctx.fillStyle = "rgba(0,0,0,0.1)";
-  ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
-  ctx.fillStyle = "rgba(255,255,255,0.04)";
-  ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
-}
 
 function drawLumber(ctx, lumberItem, camera) {
   const p = isoToScreen(lumberItem.col, lumberItem.row, camera);
@@ -124,30 +101,6 @@ function drawTreeHealth(ctx, tile, col, row, camera) {
   ctx.restore();
 }
 
-function drawSandTile(ctx, col, row, camera) {
-  const p = isoToScreen(col, row, camera);
-  const shade = (col + row) % 3;
-  const sandColors = ["#d4af8f", "#e5c4a0", "#d4a574"];
-
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y - TILE_H / 2);
-  ctx.lineTo(p.x + TILE_W / 2, p.y);
-  ctx.lineTo(p.x, p.y + TILE_H / 2);
-  ctx.lineTo(p.x - TILE_W / 2, p.y);
-  ctx.closePath();
-
-  ctx.fillStyle = sandColors[shade];
-  ctx.fill();
-  ctx.strokeStyle = "#b8956a";
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-
-  // Sand texture
-  ctx.fillStyle = "rgba(255,255,255,0.08)";
-  ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
-  ctx.fillStyle = "rgba(0,0,0,0.05)";
-  ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
-}
 
 function drawWaterTile(ctx, col, row, camera) {
   const p = isoToScreen(col, row, camera);
@@ -174,25 +127,7 @@ function drawWaterTile(ctx, col, row, camera) {
   ctx.fillRect(p.x - 8, p.y - 2 + waveShift, 16, 3);
 }
 
-function drawDirtTile(ctx, col, row, camera) {
-  const p = isoToScreen(col, row, camera);
 
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y - TILE_H / 2);
-  ctx.lineTo(p.x + TILE_W / 2, p.y);
-  ctx.lineTo(p.x, p.y + TILE_H / 2);
-  ctx.lineTo(p.x - TILE_W / 2, p.y);
-  ctx.closePath();
-
-  ctx.fillStyle = "#8b5a2b";
-  ctx.fill();
-  ctx.strokeStyle = "#6a421f";
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(255,255,255,0.05)";
-  ctx.fillRect(p.x - 8, p.y - 3, 16, 2);
-}
 
 function drawPlantOverlay(ctx, tile, col, row, camera) {
   if (!tile.planted) return;

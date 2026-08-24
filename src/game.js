@@ -22,8 +22,16 @@ import {
 } from "./interactions.js";
 import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
-import { showModal, isModalOpen, closeModal } from "./modal.js";
+import { 
+  showModal, 
+  isModalOpen, 
+  closeModal 
+} from "./modal.js";
 
+import {
+  playSong,
+  sfx
+} from "./sound.js"
 
 function showSleepPrompt() {
   if (isModalOpen()) return;
@@ -82,14 +90,17 @@ canvas.style.cursor = "none";
 let cursor = null;
 let camera = { x: canvas.width / 2, y: 110 };
 let lastFrameTime = performance.now();
+let lastPhase = '';
 
 function updateClock() {
   const hand = document.getElementById("clock-hand");
   if (!hand) return;
 
-  const phase = Math.min(Math.max(world.dayProgress || 0, 0), 1);
-  const angle = 180 + (phase * 180);
+  const progress = Math.min(Math.max(world.dayProgress || 0, 0), 1);
+  const songPhase = progress < 0.2 ? 'dawn' : progress < 0.6 ? 'day' : progress < 0.8 ? 'dusk' : 'night';
+  if (songPhase !== lastPhase) { playSong(songPhase); lastPhase = songPhase; }
 
+  const angle = 180 + (progress * 180); // use numeric progress, not string
   hand.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
 }
 
@@ -97,13 +108,16 @@ function updateClock() {
 function openShop() {
   world.shopOpen = true;
   showModal({
-    title: "Unicorn Merchant",
+    title: "Ms. Emmie",
     bodyHtml: `
+      <p style="margin:0 0 10px; font-size:12px; color:#aaa; font-style:italic;">
+        Job Title: Community Displacement Strategist & Director of Unrequested Improvement III
+      </p>
       <div class="shop-options">
         <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
         <button class="shop-button" data-buy="min">Min — 35g</button>
       </div>
-      <p class="shop-dialogue">"Spend wisely, farmer!"</p>`,
+      <p class="shop-dialogue">"So your family owned this land for generations? Wow thats going to make a great plaque in front of our new lux shopping ditrict"</p>`,
     buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -224,12 +238,14 @@ function syncHUD() {
 
   const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
     if (axeBtn) {
+      
       axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
     }
 
   const minBtn = document.querySelector('.tool-slot[data-tool="min"]');
     if (minBtn) {
       const badge = minBtn.querySelector('.item-count');
+      
       minBtn.innerHTML = world.minUnlocked ? "🤖 Min" : "Empty";
       if (badge) minBtn.appendChild(badge);
     }
@@ -273,6 +289,7 @@ function updateTaskHUD() {
 
   if (prog >= t.target) {
     world.currentTaskIndex++;
+    sfx("success");
     if (world.currentTaskIndex >= TASKS.length && !world.allTasksDone) {
       world.allTasksDone = true;
       showModal({
@@ -290,6 +307,7 @@ function handleToolAction() {
 
   if (world.selectedTool === "min") {
     throwMin(character, mins, world.box, cursor);
+    sfx("throw");
   } 
   
     // Calculate distance between character and cursor for all other tools
