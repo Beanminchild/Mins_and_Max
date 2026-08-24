@@ -405,14 +405,14 @@ export function tryInteractWithShop(character, world) {
       world.shopkeeper.row = SHOPKEEPER_ROW;
       showModal({
         title: "Unicorn Merchant",
-        bodyHtml: "<p>Thank you, farmer! Take this axe — my shop is now open to you!</p>",
-        buttons: [{ label: "OK", className: "modal-btn--close" }]
+        bodyHtml: "<p>Wow nice work Max! The farmer apple doesnt fall too far from the tree. Too bad gramps is dead, we could have gotten double the ROI... anyway as i promised; your grandpa's axe — If you need more supplies please come vist me at our local HQ in the middle of the farm, well sell you anything you need for slightly above market price! WELCOME TO THE UNICORP FAMILY MAX!</p>",
+        buttons: [{ label: "Take that horn and shove it, This is my farm and im taking it back", className: "modal-btn--close" }]
       });
     } else {
       showModal({
         title: "Unicorn Merchant",
-        bodyHtml: "<p>Bring me a crop and I'll unlock my shop and give you an axe!</p>",
-        buttons: [{ label: "OK", className: "modal-btn--close" }]
+        bodyHtml: "<p>Before can sell your crops, please grow one and give it to me to prove youre capable of meeting our KPI's. Do this and Ill hire you and give you a one of your family heirlooms as an onboarding gift. </p>",
+        buttons: [{ label: "Wow how generous of you", className: "modal-btn--close" }]
       });
     }
     return true; // interacted, but no shop yet

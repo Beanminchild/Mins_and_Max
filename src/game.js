@@ -108,13 +108,16 @@ function updateClock() {
 function openShop() {
   world.shopOpen = true;
   showModal({
-    title: "Unicorn Merchant",
+    title: "Ms. Emmie",
     bodyHtml: `
+      <p style="margin:0 0 10px; font-size:12px; color:#aaa; font-style:italic;">
+        Job Title: Community Displacement Strategist & Director of Unrequested Improvement III
+      </p>
       <div class="shop-options">
         <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
         <button class="shop-button" data-buy="min">Min — 35g</button>
       </div>
-      <p class="shop-dialogue">"Spend wisely, farmer!"</p>`,
+      <p class="shop-dialogue">"So your family owned this land for generations? Wow thats going to make a great plaque in front of our new lux shopping ditrict"</p>`,
     buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
   });
 
