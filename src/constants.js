@@ -26,9 +26,9 @@ export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
 export const DOMINION_INTERACTION_RADIUS = 1.5;
 
-export const WATER_POND_COL = 16;
-export const WATER_POND_ROW = 15;
-export const WATER_POND_INTERACTION_RADIUS = 1.5;
+export const WATER_POND_COL = 39;
+export const WATER_POND_ROW = 1;
+
 
 
 export const POND_MIN_SOAK_MS = 5 * 60 * 1000; // 5 minutes real time in pond

@@ -11,8 +11,7 @@ import {
   tryHarvestCrop, 
   tryCatchFish, 
   tryDepositToBox,
-  tryDepositToDominion,
-  tryInteractWithPond,
+  tryDepositToDominion,  
   tryInteractWithShop,
   tryInteractWithGravestone,
   spawnNewMin, 
@@ -449,7 +448,7 @@ function loop(timestamp) {
                     tryPickupLumber(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world, mins) ||
-                    tryInteractWithPond(character, world) ||
+                    //tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
       if (!interacted && !world.shopOpen) {

@@ -15,8 +15,7 @@ import {
   WATER_CAN_MAX,
   
   WATER_POND_COL,
-  WATER_POND_ROW,
-  WATER_POND_INTERACTION_RADIUS,
+  WATER_POND_ROW,  
   SHOPKEEPER_COL,
   SHOPKEEPER_ROW,
   TASKS,  
@@ -438,22 +437,22 @@ function showGravestoneMessage(gravestone) {
 }
 
 // Logic to check if player can start refilling
-export function tryInteractWithPond(character, world) {
-  if (world.selectedTool !== TOOL_TYPES.WATERING_CAN) return false;
-  if (world.waterCanFillAmount >= WATER_CAN_MAX) return false;
+// export function tryInteractWithPond(character, world) {
+//   if (world.selectedTool !== TOOL_TYPES.WATERING_CAN) return false;
+//   if (world.waterCanFillAmount >= WATER_CAN_MAX) return false;
 
-  // Pond center (for a 3x3 pond starting at COL, ROW)
-  const pondCenterX = WATER_POND_COL + 1; 
-  const pondCenterY = WATER_POND_ROW + 1;
-  const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
+//   // Pond center (for a 3x3 pond starting at COL, ROW)
+//   const pondCenterX = WATER_POND_COL + 1; 
+//   const pondCenterY = WATER_POND_ROW + 1;
+//   const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
 
-  // Interaction check (radius + pond half-width)
-  if (distance <= WATER_POND_INTERACTION_RADIUS + 2) {
-    world.isRefillingWater = true;
-    return true;
-  }
-  return false;
-}
+//   // Interaction check (radius + pond half-width)
+//   if (distance <= WATER_POND_INTERACTION_RADIUS + 2) {
+//     world.watercanFillAmount++;
+//     return true;
+//   }
+//   return false;
+// }
 
 function moveToward(min, targetCol, targetRow, speed = 0.12) {
   const dx = targetCol - min.col;
@@ -949,7 +948,7 @@ export function useToolAtCursor(world, cursor, character) {
   if (tile.type === TILE_TYPES.STONE) return false;
 
   // Prevent interactions on sand and water tiles
-  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER){
+  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER && world.selectedTool !== TOOL_TYPES.WATERING_CAN){
 
     if (!buriedSoul) return false;
   } 
@@ -987,7 +986,15 @@ export function useToolAtCursor(world, cursor, character) {
   }
 
   if (world.selectedTool === TOOL_TYPES.WATERING_CAN) {
-    
+    // Refill can if clicking on the pond (assuming 3x3 pond)
+    const isPondTile = col >= WATER_POND_COL && col < WATER_POND_COL + 3 &&
+                       row >= WATER_POND_ROW && row < WATER_POND_ROW + 3;
+    if (isPondTile && world.waterCanFillAmount < WATER_CAN_MAX) {
+      world.waterCanFillAmount += 1;
+      sfx('water');
+      return true;
+    }
+
     if (tile.planted && !tile.watered && world.waterCanFillAmount > 0) {
       tile.watered = true;
       world.waterCanFillAmount -= 1;
@@ -995,18 +1002,6 @@ export function useToolAtCursor(world, cursor, character) {
       sfx('water');
       return true;
     }   
-
-    if (!character) return false;
-    console.log("Character position:", character.col, character.row, character);
-    const pondCenterX = WATER_POND_COL + 1.5;
-    const pondCenterY = WATER_POND_ROW + 1.5;
-    const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
-
-    if(distance < WATER_POND_INTERACTION_RADIUS + 2) {
-      world.waterCanFillAmount++;   
-      sfx('water');
-      return true;
-    }
     return false;
   }
   
