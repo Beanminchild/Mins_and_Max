@@ -37,6 +37,10 @@ import { sfx } from "./sound.js";
 
 
 
+
+
+
+
 export function createBox() {
   return {
     col: 6,
@@ -213,7 +217,7 @@ export function updateFish(world, deltaMs) {
 export function createWorld() {
 
    
-  const mins = [];
+   const mins = [];
 
   // Grandpas Graveyard (randomized positions)
   const gravestones = [
@@ -735,12 +739,12 @@ export function tryDepositToBox(character, box, world) {
   return false;
 }
 
-export function tryDepositToDominion(character, dominion, mins) {
+export function tryDepositToDominion(character, dominion, world) {
   if (character.held !== "crop") return false;
 
   if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
     character.held = null;
-    spawnNewMin(mins, dominion.col, dominion.row, "loose");
+    spawnNewMin(world.mins, dominion.col, dominion.row, "loose");
     return true;
   }
   return false;

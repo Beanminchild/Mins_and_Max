@@ -17,7 +17,8 @@ import {
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
-  tryCollectSoul
+  tryCollectSoul,
+  
 } from "./interactions.js";
 import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
@@ -44,7 +45,7 @@ function showSleepPrompt() {
 
   const buttons = [];
 
-  if (currentTaskIndex > 8) {
+  if (world.currentTaskIndex > 8) {
     buttons.push({
       label: "Yes (Sleep)",
       className: "modal-btn--yes",
@@ -86,7 +87,6 @@ if (world.stats.given < 1) {
   shopkeeper.col = SHOPKEEPER_COL;
   shopkeeper.row = SHOPKEEPER_ROW;
 }
-
 
 
 
@@ -394,7 +394,7 @@ function loop(timestamp) {
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
-                    tryDepositToDominion(character, world.dominion, world, mins) ||
+                    tryDepositToDominion(character, world.dominion, world) ||
                     //tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
