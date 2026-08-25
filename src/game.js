@@ -32,9 +32,12 @@ import {
   sfx
 } from "./sound.js"
 
+
+let DAYS_LEFT = 15;
+
 const $ = i => document.getElementById(i);
 const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-name"),
-      elTask = $("task-list"), elHand = $("clock-hand");
+      elTask = $("task-list"), elHand = $("clock-hand"), elDay = $("days-left");
 
 function showSleepPrompt() {
   if (isModalOpen()) return;
@@ -113,7 +116,7 @@ function openShop() {
         <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
         <button class="shop-button" data-buy="min">Min — 35g</button>
       </div>
-      <p class="shop-dialogue">"So your family owned this land for generations? Wow thats going to make a great plaque in front of our new lux shopping ditrict"</p>`,
+      <p class="shop-dialogue">"Your fam owned this land for generations? That going to make a gr8 plaque on a bench!"</p>`,
     buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -193,6 +196,7 @@ function syncHUD() {
     }
   
   elCrop.textContent = world.cropsCollected + world.lumberCollected;
+  elDay.textContent = DAYS_LEFT;
 
   elFarm.textContent = "Zachs Farm";
   elWallet.textContent = `${world.wallet}g`;
@@ -359,12 +363,18 @@ function loop(timestamp) {
       showSleepPrompt();
     }
 
-    world.dayElapsedMs += deltaMs;
-    world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
+    // example: only start ticking after 3 tasks finished
+  const TASKS_BEFORE_TIMER_STARTS = 3;   
 
-    if (world.dayProgress >= 1) {
-      endDay();
+  if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
+  world.dayElapsedMs += deltaMs;
     }
+  world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
+
+  if (world.dayProgress >= 1) {
+    DAYS_LEFT--;
+    endDay();
+}
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, world);
   if (keys.has("KeyE") || keys.has("Space")) {

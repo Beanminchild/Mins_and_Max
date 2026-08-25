@@ -317,7 +317,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   return {
     box: createBox(),
     dominion: createDominion(),
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 },
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0},
     axeUnlocked: false,
     minUnlocked: false,
     currentTaskIndex: 0,    
@@ -338,8 +338,9 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     fishEvents: [],
     fishSpawnTimer: 0,
     fishCollected: 0,
-    waterCanFillAmount: 5,
+    waterCanFillAmount: 0,
     seedsCollected: 0,
+    filledWater: 0,
     isRefillingWater: false,
     refillTimer: 0,
     seedInventory: 5,   
@@ -949,6 +950,7 @@ export function useToolAtCursor(world, cursor, character) {
                        row >= WATER_POND_ROW && row < WATER_POND_ROW + 3;
     if (isPondTile && world.waterCanFillAmount < WATER_CAN_MAX) {
       world.waterCanFillAmount += 1;
+      world.stats.filledWater++;
       sfx('water');
       return true;
     }

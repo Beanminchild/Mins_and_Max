@@ -14,6 +14,7 @@ export const MIN_INTERACTION_RADIUS = 1.2;
 export let   TOOL_REACH_DISTANCE = 3.5;
 
 
+
 export const THROW_MAX_DISTANCE = 8;
 
 export const BOX_COL = 6;
@@ -32,7 +33,7 @@ export const WATER_POND_ROW = 1;
 export const POND_MIN_SOAK_MS = 5 * 60 * 1000; // 5 minutes real time in pond
 
 
-export const SHOP_BUILDING_COL = 24;
+export const SHOP_BUILDING_COL = 18;
 export const SHOP_BUILDING_ROW = 16;
 export const OTHER_BUILDING_COL = 42;
 export const OTHER_BUILDING_ROW = 3;
@@ -45,7 +46,7 @@ export const FISH_CATCH_RADIUS = .75;
 export const FISH_SALE_PRICE = 150;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
-export const SHOPKEEPER_COL = 24.5; 
+export const SHOPKEEPER_COL = 18.5; 
 export const SHOPKEEPER_ROW = 16.5;
 export const MERCHANT_TEMP_COL = 30;
 export const MERCHANT_TEMP_ROW = 5;
@@ -55,6 +56,7 @@ export const WATER_CAN_MAX = 7;
 export const TASKS = [
   { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
   { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
+  { id: 'fillwater', desc: 'Fill water can', stat: 'filledWater', target: 3 },
   { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
   { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
   { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },
