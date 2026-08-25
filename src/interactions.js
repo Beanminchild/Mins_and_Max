@@ -36,6 +36,8 @@ import { showModal } from "./modal.js";
 
 import { sfx } from "./sound.js";
 
+
+
 export function createBox() {
   return {
     col: 6,
@@ -349,7 +351,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     treeSprite,
     gravestoneSprite,
     minSprites,
-    selectedTool: TOOL_TYPES.HOE,
+    selectedTool: TOOL_TYPES.HANDS,
     cropsCollected: 0,
     lumberCollected: 0,
     fishEvents: [],
@@ -390,13 +392,13 @@ if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
     world.shopkeeper.row = SHOPKEEPER_ROW;
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, double ROI gone. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
-      buttons: [{ label: "Shove that horn, this farm's mine!", className: "modal-btn--close" }]
+      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, coulda doubled da ROI. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
+      buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Prove you'll hit KPIs: grow a crop, hand it over. Then we 'hire' you and gift a family heirloom. Onboarding bonus, of course.</p>",
+      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, hand it over. If it good, ur hired and will get family heirloom back as an Onboarding bonus!</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }
@@ -424,14 +426,7 @@ export function tryInteractWithGravestone(character, world) {
 function showGravestoneMessage(gravestone) {
   showModal({
     title: "The Grave says:",
-    bodyHtml: `
-      <p style="font-size:18px;line-height:1.6;">
-        Here lies Max's Grandpa Sr.
-      </p>
-      <hr style="border:1px solid #5d4037;margin:20px 0;">
-      <p style="font-size:14px;color:#6d4c41;">
-        (Luxury condos + a Chillis! coming soon)
-      </p><p style="font-size:14px;color:#6d4c41;">Psst... it reads:</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie where soil grows sour, yet rest I shan't by soul's divine power. Seek my three soul-parts: in grass, beach, and trees."</strong>`,
+    bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Seek thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
     buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
 }
@@ -1026,7 +1021,7 @@ export function tryCollectSoul(character, world) {
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! Grandpa's ghost, dead but chill 💀 abt it fr. You farmed like a sigma. Hoe the purple soil - crops there sell for DOUBLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. Love ya fam!</p>`,
+          bodyHtml: `<p>Max! Its me!, dead but chill 💀 abt it fr. You farmed like a sigma. Hoe the purple soil - crops there sell for DOUBLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. luv u!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }

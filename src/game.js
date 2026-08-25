@@ -32,6 +32,10 @@ import {
   sfx
 } from "./sound.js"
 
+const $ = i => document.getElementById(i);
+const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-name"),
+      elTask = $("task-list"), elHand = $("clock-hand");
+
 function showSleepPrompt() {
   if (isModalOpen()) return;
   showModal({
@@ -78,12 +82,6 @@ if (!world.selectedTool) {
 
 const { mins } = world;
 
-const resultsScreen = document.getElementById("results-screen");
-const resultsCollected = document.getElementById("results-collected");
-const resultsPayout = document.getElementById("results-payout");
-const resultsWallet = document.getElementById("results-wallet");
-const nextDayButton = document.getElementById("next-day-button");
-const shopOverlay = document.getElementById("shop-overlay");
 
 canvas.style.cursor = "none";
 let cursor = null;
@@ -92,8 +90,7 @@ let lastFrameTime = performance.now();
 let lastPhase = '';
 
 function updateClock() {
-  const hand = document.getElementById("clock-hand");
-  if (!hand) return;
+  const hand = elHand;
 
   const progress = Math.min(Math.max(world.dayProgress || 0, 0), 1);
   const songPhase = progress < 0.2 ? 'dawn' : progress < 0.6 ? 'day' : progress < 0.8 ? 'dusk' : 'night';
@@ -162,78 +159,24 @@ function buyShopItem(item) {
 function syncHUD() {
   const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying" || m.state === "carrying_lumber" || m.state === "carrying_fish").length;
  
+    const badge = (slot, txt) => {
+    let b = slot.querySelector(".item-count");
+    if (!b) {
+      b = document.createElement("span");
+      b.className = "item-count";
+      slot.style.position = "relative";
+      slot.appendChild(b);
+    }
+    b.textContent = txt;
+  };
+
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;
-    const isSelected = toolName === world.selectedTool;
-    slot.classList.toggle("active", isSelected);
-
-    
-
-    if (toolName === "min") {
-      let countBadge = slot.querySelector(".item-count");
-      if (!countBadge) {
-        countBadge = document.createElement("span");
-        countBadge.className = "item-count";
-        Object.assign(countBadge.style, {
-          position: 'absolute',
-          bottom: '2px',
-          right: '2px',
-          background: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '0 4px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          pointerEvents: 'none'
-        });
-        slot.style.position = 'relative';
-        slot.appendChild(countBadge);
-      }
-      countBadge.textContent = followingMins;
-    }
-
-    if (toolName === "watering-can") {
-      let countBadge = slot.querySelector(".item-count");
-      if (!countBadge) {
-        countBadge = document.createElement("span");
-        countBadge.className = "item-count";
-        Object.assign(countBadge.style, {
-          position: 'absolute',
-          bottom: '2px',
-          right: '2px',
-          background: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '0 4px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          pointerEvents: 'none'
-        });
-        slot.style.position = 'relative';
-        slot.appendChild(countBadge);
-      }
-      countBadge.textContent = world.waterCanFillAmount;
-    }
-    if (toolName === "seeds") {
-      let countBadge = slot.querySelector(".item-count");
-      if (!countBadge) {
-        countBadge = document.createElement("span");
-        countBadge.className = "item-count";
-        Object.assign(countBadge.style, {
-          position: 'absolute',
-          bottom: '2px',
-          right: '2px',
-          background: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '0 4px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          pointerEvents: 'none'
-        });
-        slot.style.position = 'relative';
-        slot.appendChild(countBadge);
-      }
-      countBadge.textContent = world.seedInventory || 0;
-    }
-  }); 
+    slot.classList.toggle("active", toolName === world.selectedTool);
+    if (toolName === "min") badge(slot, followingMins);
+    if (toolName === "watering-can") badge(slot, world.waterCanFillAmount);
+    if (toolName === "seeds") badge(slot, world.seedInventory || 0);
+  });
 
   const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
     if (axeBtn) {
@@ -249,23 +192,11 @@ function syncHUD() {
       if (badge) minBtn.appendChild(badge);
     }
   
-  const countDisplay = document.getElementById("crop-count");
-  if (countDisplay) {
-    countDisplay.textContent = world.cropsCollected + world.lumberCollected;
-  }
+  elCrop.textContent = world.cropsCollected + world.lumberCollected;
 
-
-   
-  const farmDisplay = document.getElementById("farm-name");
-  if (farmDisplay) {
-    farmDisplay.textContent = "Zachs Farm";
-    
-  }
-
-  const walletDisplay = document.getElementById("wallet-amount");
-  if (walletDisplay) {
-    walletDisplay.textContent = `${world.wallet}g`;
-  }
+  elFarm.textContent = "Zachs Farm";
+  elWallet.textContent = `${world.wallet}g`;
+ 
   
 
   updateClock();
@@ -274,8 +205,7 @@ function syncHUD() {
 
 
 function updateTaskHUD() {
-  const el = document.getElementById("task-list");
-  if (!el) return;
+  const el = elTask;
 
   if (world.currentTaskIndex >= TASKS.length) {
     el.innerHTML = "<strong>All tasks complete! Freedom from Unicorp!</strong>";
@@ -328,20 +258,18 @@ function handleToolAction() {
 
 function endDay() {
   if (world.dayEnded) return;
-
   world.dayEnded = true;
   const cropPayout = world.cropsCollected * 25;
   const lumberPayout = world.lumberCollected * 5;
   const totalPayout = cropPayout + lumberPayout;
-  
   world.wallet += totalPayout;
-
-  if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected + world.lumberCollected);
-  if (resultsPayout) resultsPayout.textContent = `${totalPayout}g (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)`;
-  if (resultsWallet) resultsWallet.textContent = `${world.wallet}g`;
-
-  if (resultsScreen) resultsScreen.classList.remove("hidden");
-  syncHUD();
+  showModal({
+    title: "Day Complete",
+    bodyHtml: `<p>You collected <strong>${world.cropsCollected + world.lumberCollected}</strong> items.</p>
+      <p>Payday: <strong>${totalPayout}g</strong> (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)</p>
+      <p>Wallet: <strong>${world.wallet}g</strong></p>`,
+    buttons: [{ label: "Start Next Day", className: "modal-btn--yes", onClick: startNextDay }]
+  });
 }
 
 function startNextDay() {
@@ -356,7 +284,6 @@ function startNextDay() {
   character.row = OTHER_BUILDING_ROW + 1.75;
   character.dir = 2;  
 
-  if (resultsScreen) resultsScreen.classList.add("hidden");
   syncHUD();
 }
 
@@ -378,12 +305,13 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   const map = {
+    Digit1: "empty-hands",
     Digit2: "hoe",
     Digit3: "seeds",
     Digit4: "watering-can",
     Digit5: "axe",
-    Digit6: "min",
-    Digit1: "empty-hands"
+    Digit6: "min"
+    
   };
 
     const tool = map[event.code];
@@ -395,9 +323,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-if (nextDayButton) {
-  nextDayButton.addEventListener("click", startNextDay);
-}
 
 syncHUD();
 

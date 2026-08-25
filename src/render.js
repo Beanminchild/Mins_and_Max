@@ -558,19 +558,53 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   ctx.fill();
 
   // Roof
-  ctx.fillStyle = isShop ? "#c02fd3" : "#ec0404"; // Red for shop, Grey for other
-  ctx.beginPath();
-  ctx.moveTo(-32, -45); ctx.lineTo(0, -70); ctx.lineTo(32, -45); ctx.lineTo(0, -29);
-  ctx.fill();
-
-  // Door (on the right wall)
+   // Door (drawn before roof/head so they sit above)
   ctx.fillStyle = "#212121";
   ctx.beginPath();
   ctx.moveTo(12, 10); ctx.lineTo(24, 4); ctx.lineTo(24, -16); ctx.lineTo(12, -10);
   ctx.fill();
 
+    if (isShop) {
+    // Flat office roof — fills entire wall top (no see-through gap)
+    ctx.fillStyle = "#4e5a6b";
+    ctx.beginPath();
+    ctx.moveTo(-32, -45); ctx.lineTo(0, -29); ctx.lineTo(32, -45); ctx.lineTo(32, -52); ctx.lineTo(-32, -52);
+    ctx.closePath(); ctx.fill();
+    // Unicorn head on top
+    ctx.save();
+    ctx.translate(0, -52);
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(0, -14, 11, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ffd700";
+    ctx.beginPath(); ctx.moveTo(-2, -22); ctx.lineTo(0, -40); ctx.lineTo(2, -22); ctx.fill();
+    ctx.fillStyle = "#222";
+    ctx.beginPath(); ctx.arc(4, -14, 2, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ffb7c5";
+    ctx.beginPath(); ctx.moveTo(-10, -18); ctx.lineTo(-14, -30); ctx.lineTo(-6, -20); ctx.fill();
+    ctx.restore();
+
+        // Animated rainbow smog from roof
+    const t = Date.now() / 400;
+    for (let i = 0; i < 5; i++) {
+      const ph = t + i * 1.3;
+      const sx = ((i - 2) * 10) + Math.sin(ph) * 4;
+      const sy = -54 - ((ph * 8) % 40);
+      const rad = 5 + Math.sin(ph * 1.7) * 2;
+      ctx.fillStyle = `hsla(${(ph * 60) % 360},80%,65%,0.35)`;
+      ctx.beginPath();
+      ctx.arc(sx, sy, rad, 0, 7);
+      ctx.fill();
+    }
+  } else {
+    // Pitched red roof for other building
+    ctx.fillStyle = "#ec0404";
+    ctx.beginPath();
+    ctx.moveTo(-32, -45); ctx.lineTo(0, -70); ctx.lineTo(32, -45); ctx.lineTo(0, -29);
+    ctx.fill();
+  }
+
   ctx.restore();
-}
+} 
 
 const tileOrder = [];
 for (let r = 0; r < rows; r++) {

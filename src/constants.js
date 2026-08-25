@@ -10,12 +10,10 @@ export const moveStepMs = 60;
 export const MIN_SPAWN_COUNT = 5;
 export const MIN_INTERACTION_RADIUS = 1.2;
 
-export const HARVEST_RADIUS = 1.0;
+
 export let   TOOL_REACH_DISTANCE = 3.5;
 
-export const THROW_TARGET_RADIUS = 2.4;
-export const THROW_SUCCESS_BASE = 0.5;
-export const THROW_SUCCESS_PER_DISTANCE = 0.08;
+
 export const THROW_MAX_DISTANCE = 8;
 
 export const BOX_COL = 6;
@@ -54,9 +52,6 @@ export const MERCHANT_TEMP_ROW = 5;
 
 export const WATER_CAN_MAX = 7;
 
-
-export const SEED_MAX = 99;
-
 export const TASKS = [
   { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
   { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
@@ -64,7 +59,7 @@ export const TASKS = [
   { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
   { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },
   { id: 'axe',     desc: 'Chop down 3 trees', stat: 'treesChopped', target: 3 },
-  { id:'gotoshop', desc: 'Vist Unicorp local HQ and talk to the shopkeeper', stat: 'visitedShop', target: 1 },
+  { id:'gotoshop', desc: 'Visit Unicorp local HQ and talk to the shopkeeper', stat: 'visitedShop', target: 1 },
   { id: 'fivecrops', desc: 'Deposit 5 crops into collection box to sell', stat: 'cropsCollected', target: 5},
   { id: 'fistMin', desc: 'Obtain your first Min!',  stat: 'minObtained', target: 1 }
 
