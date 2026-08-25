@@ -1,5 +1,4 @@
-import {  
-  MIN_SPAWN_COUNT,
+import {    
   MIN_INTERACTION_RADIUS,  
   DIRECTION_VECTORS,  
   THROW_MAX_DISTANCE,
@@ -214,25 +213,7 @@ export function updateFish(world, deltaMs) {
 export function createWorld() {
 
    
-  const mins = Array.from({ length: MIN_SPAWN_COUNT }, (_, index) => ({
-    id: index + 1,
-    col: 15 + (index % 3) * 2,
-    row: 15 + Math.floor(index / 3) * 2,
-    state: "loose",
-    atHome: true,
-    lineToken: index + 1,
-    followIndex: 0,
-    target: null,
-    targetTile: null,
-    throwOrigin: null,
-    throwDistance: 0,
-    landed: false,
-    isDelivering: false,
-    carryingLumberForDelivery: false,
-    cuttingTimer: 0,
-    cuttingTreeCol: null,
-    cuttingTreeRow: null
-  }));
+  const mins = [];
 
   // Grandpas Graveyard (randomized positions)
   const gravestones = [

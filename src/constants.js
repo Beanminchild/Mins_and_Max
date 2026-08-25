@@ -7,7 +7,7 @@ export const moveStepSize = 0.25;
 export const moveStepMs = 60;
 
 
-export const MIN_SPAWN_COUNT = 5;
+
 export const MIN_INTERACTION_RADIUS = 1.2;
 
 
@@ -32,7 +32,7 @@ export const WATER_POND_ROW = 1;
 export const POND_MIN_SOAK_MS = 5 * 60 * 1000; // 5 minutes real time in pond
 
 
-export const SHOP_BUILDING_COL = 10;
+export const SHOP_BUILDING_COL = 24;
 export const SHOP_BUILDING_ROW = 16;
 export const OTHER_BUILDING_COL = 42;
 export const OTHER_BUILDING_ROW = 3;
@@ -45,8 +45,8 @@ export const FISH_CATCH_RADIUS = .75;
 export const FISH_SALE_PRICE = 150;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
-export const SHOPKEEPER_COL = 1.3; 
-export const SHOPKEEPER_ROW = 12;
+export const SHOPKEEPER_COL = 24.5; 
+export const SHOPKEEPER_ROW = 16.5;
 export const MERCHANT_TEMP_COL = 30;
 export const MERCHANT_TEMP_ROW = 5;
 
