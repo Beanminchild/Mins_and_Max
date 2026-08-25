@@ -436,24 +436,6 @@ function showGravestoneMessage(gravestone) {
   });
 }
 
-// Logic to check if player can start refilling
-// export function tryInteractWithPond(character, world) {
-//   if (world.selectedTool !== TOOL_TYPES.WATERING_CAN) return false;
-//   if (world.waterCanFillAmount >= WATER_CAN_MAX) return false;
-
-//   // Pond center (for a 3x3 pond starting at COL, ROW)
-//   const pondCenterX = WATER_POND_COL + 1; 
-//   const pondCenterY = WATER_POND_ROW + 1;
-//   const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
-
-//   // Interaction check (radius + pond half-width)
-//   if (distance <= WATER_POND_INTERACTION_RADIUS + 2) {
-//     world.watercanFillAmount++;
-//     return true;
-//   }
-//   return false;
-// }
-
 function moveToward(min, targetCol, targetRow, speed = 0.12) {
   const dx = targetCol - min.col;
   const dy = targetRow - min.row;

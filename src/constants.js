@@ -94,8 +94,8 @@ export const PLANT_STAGES = {
   CROP: "crop"
 };
 
-export const GROWTH_DURATION_MIN = 60000;
-export const GROWTH_DURATION_MAX = 90000;
+export const GROWTH_DURATION_MIN = 15000;
+export const GROWTH_DURATION_MAX = 30000;
 
 export const TREE_SWINGS_TO_FELL = 33;
 
