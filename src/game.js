@@ -41,22 +41,34 @@ const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-
 
 function showSleepPrompt() {
   if (isModalOpen()) return;
+
+  const buttons = [];
+
+  if (currentTaskIndex > 8) {
+    buttons.push({
+      label: "Yes (Sleep)",
+      className: "modal-btn--yes",
+      onClick: () => {
+        endDay();
+        DAYS_LEFT--;
+      }
+    });
+  }
+
+  buttons.push({
+    label: "No",
+    className: "modal-btn--no",
+    onClick: () => {
+      character.col += 1;          
+    },
+  });
+
   showModal({
     title: "Go to bed for the night?",
     bodyHtml: "<p>This will end the current day.</p>",
-    buttons: [
-      { label: "Yes (Sleep)", className: "modal-btn--yes", onClick: endDay },
-      {
-        label: "No",
-        className: "modal-btn--no",
-        onClick: () => {
-          character.col += 1;          
-        },
-      },
-    ],
+    buttons: buttons,
   });
 }
-
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -364,7 +376,7 @@ function loop(timestamp) {
     }
 
     // example: only start ticking after 3 tasks finished
-  const TASKS_BEFORE_TIMER_STARTS = 3;   
+  const TASKS_BEFORE_TIMER_STARTS = 8;   
 
   if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
   world.dayElapsedMs += deltaMs;

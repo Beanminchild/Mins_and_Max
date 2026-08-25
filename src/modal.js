@@ -32,8 +32,9 @@ export function showModal({ title, bodyHtml, buttons = [], variant = "" }) {
     btn.textContent = b.label;
     btn.className = "modal-btn " + (b.className || "");
     btn.onclick = () => {
-      if (b.onClick) b.onClick();
       closeModal();
+      if (b.onClick) b.onClick();
+      
     };
     actions.appendChild(btn);
   });
