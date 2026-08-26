@@ -12,7 +12,8 @@ import {
   BOX_INTERACTION_RADIUS,  
   DOMINION_INTERACTION_RADIUS,
   WATER_CAN_MAX,
-  
+  BOX_COL,
+  BOX_ROW,  
   WATER_POND_COL,
   WATER_POND_ROW,  
   SHOPKEEPER_COL,
@@ -43,8 +44,8 @@ import { sfx } from "./sound.js";
 
 export function createBox() {
   return {
-    col: 6,
-    row: 14
+    col: BOX_COL,
+    row: BOX_ROW
   };
 }
 
