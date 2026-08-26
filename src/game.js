@@ -73,7 +73,18 @@ function showSleepPrompt() {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const keys = setupInput();
+const keys = setupInput(new Set(),
+  (code) => {
+    const map = { Digit1:"empty-hands", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
+    const tool = map[code];
+    if (!tool) return;
+    if (tool === "axe" && !world.axeUnlocked) return;
+    if (tool === "min" && !world.minUnlocked) return;
+    world.selectedTool = tool;
+    syncHUD();
+  },
+  () => { if (world.shopOpen) closeShop(); }
+);
 const character = createCharacter();
 const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
@@ -128,7 +139,7 @@ function openShop() {
         <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
         <button class="shop-button" data-buy="min">Min — 35g</button>
       </div>
-      <p class="shop-dialogue">"Your fam owned this land for generations? That going to make a gr8 plaque on a bench!"</p>`,
+      <p class="shop-dialogue">"Ur fam owned this land 4 gens? Gr8 plaque 4 a bench!"</p>`,
     buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -306,29 +317,8 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
 });
 
 
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && world.shopOpen) {
-    closeShop();
-    return;
-  }
-  const map = {
-    Digit1: "empty-hands",
-    Digit2: "hoe",
-    Digit3: "seeds",
-    Digit4: "watering-can",
-    Digit5: "axe",
-    Digit6: "min"
-    
-  };
 
-    const tool = map[event.code];
-  if (tool) {
-    if (tool === "axe" && !world.axeUnlocked) return;
-    if (tool === "min" && !world.minUnlocked) return;
-    world.selectedTool = tool;
-    syncHUD();
-  }
-});
+
 
 
 syncHUD();
@@ -419,5 +409,5 @@ function loop(timestamp) {
   requestAnimationFrame(loop);
 }
 
-drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
+
 requestAnimationFrame(loop);

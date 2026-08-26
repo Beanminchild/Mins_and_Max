@@ -438,27 +438,17 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
   }
 }
 
-const waterMinCache = new Map();
+
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-  let sprite = minSprites[min.state] || minSprites.loose;
-  if (min.isWaterMin) {
-    if (!waterMinCache.has(sprite)) {
-      const c = document.createElement("canvas");
-      c.width = sprite.width;
-      c.height = sprite.height;
-      const g = c.getContext("2d");
-      g.drawImage(sprite, 0, 0);
-      g.globalCompositeOperation = "source-atop";
-      g.fillStyle = "rgba(30, 144, 255, 0.6)";
-      g.fillRect(0, 0, c.width, c.height);
-      waterMinCache.set(sprite, c);
-    }
-    sprite = waterMinCache.get(sprite);
-  }
+  const sprite = minSprites[min.state] || minSprites.loose;
   ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
-}  
+  if (min.isWaterMin) {
+    ctx.fillStyle = "rgba(30, 144, 255, 0.6)";
+    ctx.fillRect(p.x - 16, p.y - 22, 32, 32);
+  }
+} 
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -633,10 +623,6 @@ function getTileSprite(type, shade, variant) {
 export function drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const tint = getTimeTint(world.dayProgress || 0);
-  ctx.fillStyle = `rgba(${tint.r}, ${tint.g}, ${tint.b}, ${tint.a})`;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   for (const [c, r] of tileOrder) {
     const tile = world.tiles[r][c];
     const p = isoToScreen(c, r, camera);
@@ -709,6 +695,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   }
 
   // Time cycle tint over world
+  const tint = getTimeTint(world.dayProgress || 0);
   if (tint.a > 0) {
     ctx.save();
     if (world.dayProgress > 0.6) {
