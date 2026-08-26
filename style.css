@@ -166,29 +166,6 @@ canvas {
 .modal-btn--yes  { background: #a5d6a7; }
 .modal-btn--no   { background: #ef9a9a; }
 .modal-btn--close { background: #ce93d8; }
-#next-day-button {
-  width: 100%;
-  margin-top: 14px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #c8a63f, #a87e1a);
-  color: #221b0d;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.crop-counter {
-  margin-left: auto;
-  padding: 10px 18px;
-  background: #5d4037;
-  border-radius: 6px;
-  font-weight: 800;
-  color: #fff;
-  border: 2px solid #3e2723;
-  text-shadow: 1px 1px 0 #000;
-}
 
 .tool-slot { position: relative; }
 .item-count {
@@ -201,14 +178,6 @@ canvas {
   border-radius: 3px;
   font-size: 11px;
   border: 1px solid #3e2723;
-}
-
-.min-count {
-  background: #c62828;
-  color: white;
-  padding: 0 4px;
-  border-radius: 4px;
-  font-size: 10px;
 }
 
 .hud-right {
@@ -301,55 +270,13 @@ canvas {
 }
 
 
-.shop-overlay {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(8, 10, 12, 0.6);
-  z-index: 30;
-}
-
-.shop-overlay.hidden {
-  display: none;
-}
-
-.shop-card {
-  width: min(420px, 82vw);
-  padding: 20px 18px 14px;
-  border-radius: 12px;
-  background: #fbe9e7;
-  border: 5px solid #5d4037;
-  box-shadow: 0 6px 0 #3e2723, inset 0 2px 0 rgba(255,255,255,0.4);
-  color: #3e2723;
-}
-
-.shop-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.shop-title-wrap { display: flex; align-items: center; }
-
-.shop-title {
-  font-size: 1.15rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #fff;
-  text-shadow: 2px 2px 0 #3e2723;
-}
-
-.shop-options { display: grid; gap: 10px; }
 
 .shop-button {
   width: 100%;
   padding: 12px 14px;
   border: 3px solid #5d4037;        /* wood frame like .tool-slot */
   border-radius: 6px;
-  background: #fbe9e7;
+  background: #a5d6a7;;
   color: #3e2723;
   font-size: 1rem;
   font-weight: 800;
@@ -359,53 +286,24 @@ canvas {
 
 .shop-button:hover { transform: translateY(-2px); }
 
-.shop-dialogue {
-  margin-top: 16px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: #a1887f;              /* lighter wood board, matches .inventory */
-  border: 3px solid #5d4037;
+.crop-counter {
+  margin-left: auto;
+  padding: 10px 18px;
+  background: #5d4037;
+  border-radius: 6px;
+  font-weight: 800;
   color: #fff;
-  font-size: 0.96rem;
+  border: 2px solid #3e2723;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.days-left {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  font-size: 10px;
+  font-weight: 900;
+  color: #469;
   text-align: center;
-  font-style: italic;
-  text-shadow: 1px 1px 0 #3e2723;
 }
-
-
-
-.results-screen {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(9, 10, 12, 0.7);
-  z-index: 20;
-}
-
-.results-screen.hidden {
-  display: none;
-}
-
-.results-card {
-  width: min(360px, 80vw);
-  padding: 22px 20px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(28, 31, 25, 0.97), rgba(18, 22, 18, 0.96));
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #eef3df;
-  text-align: center;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-}
-
-.results-card h2 {
-  margin: 0 0 12px;
-  font-size: 1.7rem;
-  color: #f2d88c;
-}
-
-.results-card p {
-  margin: 8px 0;
-  font-size: 1rem;
-}
-

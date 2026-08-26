@@ -1,36 +1,16 @@
-export function setupInput(keys = new Set()) {
+export function setupInput(keys = new Set(), onToolSelect, onEscape) {
   window.addEventListener("keydown", (event) => {
     const key = event.code || event.key;
-     
-    const handledKeys = new Set([
-      "ArrowLeft",
-      "ArrowRight",
-      "ArrowUp",
-      "ArrowDown",
-      "Space",
-      "KeyE",
-      "KeyF",
-      "KeyW",
-      "KeyA",
-      "KeyS",
-      "KeyD",
-      "Digit1",
-      "Digit2",
-      "Digit3",
-      "Digit4",
-      "Digit5"
-
-    ]);
-
-    if (handledKeys.has(key)) {
+    if (key.startsWith("Arrow") || key.startsWith("Key") || key.startsWith("Digit") || key === "Space") {
       event.preventDefault();
       keys.add(key);
     }
+    if (key === "Escape") onEscape && onEscape();
+    if (key.startsWith("Digit")) onToolSelect && onToolSelect(key);
   });
 
   window.addEventListener("keyup", (event) => {
     keys.delete(event.code || event.key);
-    //handledKeys.delete(event.key.toLowerCase());
   });
 
   return keys;

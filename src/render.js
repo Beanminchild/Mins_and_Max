@@ -28,31 +28,6 @@ export function isoToScreen(col, row, camera) {
   };
 }
 
-function drawGrassTile(ctx, col, row, camera) {
-  const p = isoToScreen(col, row, camera);
-  const shade = (col + row) % 3;
-  const grassColors = ["#5a8737", "#6da145", "#547e30"];
-
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y - TILE_H / 2);
-  ctx.lineTo(p.x + TILE_W / 2, p.y);
-  ctx.lineTo(p.x, p.y + TILE_H / 2);
-  ctx.lineTo(p.x - TILE_W / 2, p.y);
-  ctx.closePath();
-
-  ctx.fillStyle = grassColors[shade];
-  ctx.fill();
-  ctx.strokeStyle = "#29451f";
-  ctx.lineWidth = 1.25;
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(255,255,255,0.06)";
-  ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
-  ctx.fillStyle = "rgba(0,0,0,0.08)";
-  ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
-}
-
-
 
 function drawLumber(ctx, lumberItem, camera) {
   const p = isoToScreen(lumberItem.col, lumberItem.row, camera);
@@ -463,27 +438,17 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
   }
 }
 
-const waterMinCache = new Map();
+
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-  let sprite = minSprites[min.state] || minSprites.loose;
-  if (min.isWaterMin) {
-    if (!waterMinCache.has(sprite)) {
-      const c = document.createElement("canvas");
-      c.width = sprite.width;
-      c.height = sprite.height;
-      const g = c.getContext("2d");
-      g.drawImage(sprite, 0, 0);
-      g.globalCompositeOperation = "source-atop";
-      g.fillStyle = "rgba(30, 144, 255, 0.6)";
-      g.fillRect(0, 0, c.width, c.height);
-      waterMinCache.set(sprite, c);
-    }
-    sprite = waterMinCache.get(sprite);
-  }
+  const sprite = minSprites[min.state] || minSprites.loose;
   ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
-}  
+  if (min.isWaterMin) {
+    ctx.fillStyle = "rgba(30, 144, 255, 0.6)";
+    ctx.fillRect(p.x - 16, p.y - 22, 32, 32);
+  }
+} 
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -558,19 +523,53 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   ctx.fill();
 
   // Roof
-  ctx.fillStyle = isShop ? "#c02fd3" : "#ec0404"; // Red for shop, Grey for other
-  ctx.beginPath();
-  ctx.moveTo(-32, -45); ctx.lineTo(0, -70); ctx.lineTo(32, -45); ctx.lineTo(0, -29);
-  ctx.fill();
-
-  // Door (on the right wall)
+   // Door (drawn before roof/head so they sit above)
   ctx.fillStyle = "#212121";
   ctx.beginPath();
   ctx.moveTo(12, 10); ctx.lineTo(24, 4); ctx.lineTo(24, -16); ctx.lineTo(12, -10);
   ctx.fill();
 
+    if (isShop) {
+    // Flat office roof — fills entire wall top (no see-through gap)
+    ctx.fillStyle = "#4e5a6b";
+    ctx.beginPath();
+    ctx.moveTo(-32, -45); ctx.lineTo(0, -29); ctx.lineTo(32, -45); ctx.lineTo(32, -52); ctx.lineTo(-32, -52);
+    ctx.closePath(); ctx.fill();
+    // Unicorn head on top
+    ctx.save();
+    ctx.translate(0, -52);
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(0, -14, 11, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ffd700";
+    ctx.beginPath(); ctx.moveTo(-2, -22); ctx.lineTo(0, -40); ctx.lineTo(2, -22); ctx.fill();
+    ctx.fillStyle = "#222";
+    ctx.beginPath(); ctx.arc(4, -14, 2, 0, 7); ctx.fill();
+    ctx.fillStyle = "#ffb7c5";
+    ctx.beginPath(); ctx.moveTo(-10, -18); ctx.lineTo(-14, -30); ctx.lineTo(-6, -20); ctx.fill();
+    ctx.restore();
+
+        // Animated rainbow smog from roof
+    const t = Date.now() / 400;
+    for (let i = 0; i < 5; i++) {
+      const ph = t + i * 1.3;
+      const sx = ((i - 2) * 10) + Math.sin(ph) * 4;
+      const sy = -54 - ((ph * 8) % 40);
+      const rad = 5 + Math.sin(ph * 1.7) * 2;
+      ctx.fillStyle = `hsla(${(ph * 60) % 360},80%,65%,0.35)`;
+      ctx.beginPath();
+      ctx.arc(sx, sy, rad, 0, 7);
+      ctx.fill();
+    }
+  } else {
+    // Pitched red roof for other building
+    ctx.fillStyle = "#ec0404";
+    ctx.beginPath();
+    ctx.moveTo(-32, -45); ctx.lineTo(0, -70); ctx.lineTo(32, -45); ctx.lineTo(0, -29);
+    ctx.fill();
+  }
+
   ctx.restore();
-}
+} 
 
 const tileOrder = [];
 for (let r = 0; r < rows; r++) {
@@ -623,10 +622,6 @@ function getTileSprite(type, shade, variant) {
 
 export function drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const tint = getTimeTint(world.dayProgress || 0);
-  ctx.fillStyle = `rgba(${tint.r}, ${tint.g}, ${tint.b}, ${tint.a})`;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (const [c, r] of tileOrder) {
     const tile = world.tiles[r][c];
@@ -700,6 +695,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   }
 
   // Time cycle tint over world
+  const tint = getTimeTint(world.dayProgress || 0);
   if (tint.a > 0) {
     ctx.save();
     if (world.dayProgress > 0.6) {

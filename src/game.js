@@ -11,14 +11,14 @@ import {
   tryHarvestCrop, 
   tryCatchFish, 
   tryDepositToBox,
-  tryDepositToDominion,
-  tryInteractWithPond,
+  tryDepositToDominion,  
   tryInteractWithShop,
   tryInteractWithGravestone,
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
-  tryCollectSoul
+  tryCollectSoul,
+  
 } from "./interactions.js";
 import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
@@ -33,28 +33,58 @@ import {
   sfx
 } from "./sound.js"
 
+
+let DAYS_LEFT = 15;
+
+const $ = i => document.getElementById(i);
+const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-name"),
+      elTask = $("task-list"), elHand = $("clock-hand"), elDay = $("days-left");
+
 function showSleepPrompt() {
   if (isModalOpen()) return;
+
+  const buttons = [];
+
+  if (world.currentTaskIndex > 8) {
+    buttons.push({
+      label: "Yes (Sleep)",
+      className: "modal-btn--yes",
+      onClick: () => {
+        endDay();
+        DAYS_LEFT--;
+      }
+    });
+  }
+
+  buttons.push({
+    label: "No",
+    className: "modal-btn--no",
+    onClick: () => {
+      character.col += 1;          
+    },
+  });
+
   showModal({
     title: "Go to bed for the night?",
     bodyHtml: "<p>This will end the current day.</p>",
-    buttons: [
-      { label: "Yes (Sleep)", className: "modal-btn--yes", onClick: endDay },
-      {
-        label: "No",
-        className: "modal-btn--no",
-        onClick: () => {
-          character.col += 1;          
-        },
-      },
-    ],
+    buttons: buttons,
   });
 }
-
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const keys = setupInput();
+const keys = setupInput(new Set(),
+  (code) => {
+    const map = { Digit1:"empty-hands", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
+    const tool = map[code];
+    if (!tool) return;
+    if (tool === "axe" && !world.axeUnlocked) return;
+    if (tool === "min" && !world.minUnlocked) return;
+    world.selectedTool = tool;
+    syncHUD();
+  },
+  () => { if (world.shopOpen) closeShop(); }
+);
 const character = createCharacter();
 const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
@@ -72,19 +102,12 @@ if (world.stats.given < 1) {
 
 
 
-
 if (!world.selectedTool) {
   world.selectedTool = TOOL_TYPES.MIN;
 }
 
 const { mins } = world;
 
-const resultsScreen = document.getElementById("results-screen");
-const resultsCollected = document.getElementById("results-collected");
-const resultsPayout = document.getElementById("results-payout");
-const resultsWallet = document.getElementById("results-wallet");
-const nextDayButton = document.getElementById("next-day-button");
-const shopOverlay = document.getElementById("shop-overlay");
 
 canvas.style.cursor = "none";
 let cursor = null;
@@ -93,8 +116,7 @@ let lastFrameTime = performance.now();
 let lastPhase = '';
 
 function updateClock() {
-  const hand = document.getElementById("clock-hand");
-  if (!hand) return;
+  const hand = elHand;
 
   const progress = Math.min(Math.max(world.dayProgress || 0, 0), 1);
   const songPhase = progress < 0.2 ? 'dawn' : progress < 0.6 ? 'day' : progress < 0.8 ? 'dusk' : 'night';
@@ -117,7 +139,7 @@ function openShop() {
         <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
         <button class="shop-button" data-buy="min">Min — 35g</button>
       </div>
-      <p class="shop-dialogue">"So your family owned this land for generations? Wow thats going to make a great plaque in front of our new lux shopping ditrict"</p>`,
+      <p class="shop-dialogue">"Ur fam owned this land 4 gens? Gr8 plaque 4 a bench!"</p>`,
     buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -165,118 +187,43 @@ function syncHUD() {
  
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;
-    const isSelected = toolName === world.selectedTool;
-    slot.classList.toggle("active", isSelected);
+    slot.classList.toggle("active", toolName === world.selectedTool);
 
-    
+    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
+    else if (toolName === "min") slot.textContent = world.minUnlocked ? "🤖 Min" : "Empty";
 
-    if (toolName === "min") {
-      let countBadge = slot.querySelector(".item-count");
-      if (!countBadge) {
-        countBadge = document.createElement("span");
-        countBadge.className = "item-count";
-        Object.assign(countBadge.style, {
-          position: 'absolute',
-          bottom: '2px',
-          right: '2px',
-          background: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '0 4px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          pointerEvents: 'none'
-        });
-        slot.style.position = 'relative';
-        slot.appendChild(countBadge);
+    let txt = null;
+    if (toolName === "min") txt = followingMins;
+    if (toolName === "watering-can") txt = world.waterCanFillAmount;
+    if (toolName === "seeds") txt = world.seedInventory || 0;
+
+    let b = slot.querySelector(".item-count");
+    if (txt !== null) {
+      if (!b) {
+        b = document.createElement("span");
+        b.className = "item-count";
+        slot.style.position = "relative";
+        slot.appendChild(b);
       }
-      countBadge.textContent = followingMins;
+      b.textContent = txt;
+    } else if (b) {
+      b.remove();
     }
+  });
 
-    if (toolName === "watering-can") {
-      let countBadge = slot.querySelector(".item-count");
-      if (!countBadge) {
-        countBadge = document.createElement("span");
-        countBadge.className = "item-count";
-        Object.assign(countBadge.style, {
-          position: 'absolute',
-          bottom: '2px',
-          right: '2px',
-          background: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '0 4px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          pointerEvents: 'none'
-        });
-        slot.style.position = 'relative';
-        slot.appendChild(countBadge);
-      }
-      countBadge.textContent = world.waterCanFillAmount;
-    }
-    if (toolName === "seeds") {
-      let countBadge = slot.querySelector(".item-count");
-      if (!countBadge) {
-        countBadge = document.createElement("span");
-        countBadge.className = "item-count";
-        Object.assign(countBadge.style, {
-          position: 'absolute',
-          bottom: '2px',
-          right: '2px',
-          background: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '0 4px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          pointerEvents: 'none'
-        });
-        slot.style.position = 'relative';
-        slot.appendChild(countBadge);
-      }
-      countBadge.textContent = world.seedInventory || 0;
-    }
-  }); 
+  elCrop.textContent = world.cropsCollected + world.lumberCollected;
+  elDay.textContent = DAYS_LEFT;
 
-  const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
-    if (axeBtn) {
-      
-      axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
-    }
-
-  const minBtn = document.querySelector('.tool-slot[data-tool="min"]');
-    if (minBtn) {
-      const badge = minBtn.querySelector('.item-count');
-      
-      minBtn.innerHTML = world.minUnlocked ? "🤖 Min" : "Empty";
-      if (badge) minBtn.appendChild(badge);
-    }
-  
-  const countDisplay = document.getElementById("crop-count");
-  if (countDisplay) {
-    countDisplay.textContent = world.cropsCollected + world.lumberCollected;
-  }
-
-
-   
-  const farmDisplay = document.getElementById("farm-name");
-  if (farmDisplay) {
-    farmDisplay.textContent = "Zachs Farm";
-    
-  }
-
-  const walletDisplay = document.getElementById("wallet-amount");
-  if (walletDisplay) {
-    walletDisplay.textContent = `${world.wallet}g`;
-  }
-  
-
+  elFarm.textContent = "Zachs Farm";
+  elWallet.textContent = `${world.wallet}g`;
+ 
   updateClock();
   updateTaskHUD();
 }
 
 
 function updateTaskHUD() {
-  const el = document.getElementById("task-list");
-  if (!el) return;
+  const el = elTask;
 
   if (world.currentTaskIndex >= TASKS.length) {
     el.innerHTML = "<strong>All tasks complete! Freedom from Unicorp!</strong>";
@@ -329,20 +276,18 @@ function handleToolAction() {
 
 function endDay() {
   if (world.dayEnded) return;
-
   world.dayEnded = true;
   const cropPayout = world.cropsCollected * 25;
   const lumberPayout = world.lumberCollected * 5;
   const totalPayout = cropPayout + lumberPayout;
-  
   world.wallet += totalPayout;
-
-  if (resultsCollected) resultsCollected.textContent = String(world.cropsCollected + world.lumberCollected);
-  if (resultsPayout) resultsPayout.textContent = `${totalPayout}g (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)`;
-  if (resultsWallet) resultsWallet.textContent = `${world.wallet}g`;
-
-  if (resultsScreen) resultsScreen.classList.remove("hidden");
-  syncHUD();
+  showModal({
+    title: "Day Complete",
+    bodyHtml: `<p>You collected <strong>${world.cropsCollected + world.lumberCollected}</strong> items.</p>
+      <p>Payday: <strong>${totalPayout}g</strong> (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)</p>
+      <p>Wallet: <strong>${world.wallet}g</strong></p>`,
+    buttons: [{ label: "Start Next Day", className: "modal-btn--yes", onClick: startNextDay }]
+  });
 }
 
 function startNextDay() {
@@ -357,7 +302,6 @@ function startNextDay() {
   character.row = OTHER_BUILDING_ROW + 1.75;
   character.dir = 2;  
 
-  if (resultsScreen) resultsScreen.classList.add("hidden");
   syncHUD();
 }
 
@@ -373,32 +317,9 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
 });
 
 
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && world.shopOpen) {
-    closeShop();
-    return;
-  }
-  const map = {
-    Digit2: "hoe",
-    Digit3: "seeds",
-    Digit4: "watering-can",
-    Digit5: "axe",
-    Digit6: "min",
-    Digit1: "empty-hands"
-  };
 
-    const tool = map[event.code];
-  if (tool) {
-    if (tool === "axe" && !world.axeUnlocked) return;
-    if (tool === "min" && !world.minUnlocked) return;
-    world.selectedTool = tool;
-    syncHUD();
-  }
-});
 
-if (nextDayButton) {
-  nextDayButton.addEventListener("click", startNextDay);
-}
+
 
 syncHUD();
 
@@ -435,12 +356,18 @@ function loop(timestamp) {
       showSleepPrompt();
     }
 
-    world.dayElapsedMs += deltaMs;
-    world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
+    // example: only start ticking after 3 tasks finished
+  const TASKS_BEFORE_TIMER_STARTS = 8;   
 
-    if (world.dayProgress >= 1) {
-      endDay();
+  if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
+  world.dayElapsedMs += deltaMs;
     }
+  world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
+
+  if (world.dayProgress >= 1) {
+    DAYS_LEFT--;
+    endDay();
+}
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, world);
   if (keys.has("KeyE") || keys.has("Space")) {
@@ -448,8 +375,8 @@ function loop(timestamp) {
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
-                    tryDepositToDominion(character, world.dominion, world, mins) ||
-                    tryInteractWithPond(character, world) ||
+                    tryDepositToDominion(character, world.dominion, world) ||
+                    //tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
       if (!interacted && !world.shopOpen) {
@@ -482,5 +409,5 @@ function loop(timestamp) {
   requestAnimationFrame(loop);
 }
 
-drawScene(ctx, canvas, character, spriteBank, camera, mins, cursor, world, shopkeeper, shopkeeperSpriteBank);
+
 requestAnimationFrame(loop);

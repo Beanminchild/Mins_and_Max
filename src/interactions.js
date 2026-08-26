@@ -1,5 +1,4 @@
-import {  
-  MIN_SPAWN_COUNT,
+import {    
   MIN_INTERACTION_RADIUS,  
   DIRECTION_VECTORS,  
   THROW_MAX_DISTANCE,
@@ -9,22 +8,17 @@ import {
   TILE_TYPES,
   PLANT_STAGES,
   GROWTH_DURATION_MIN,
-  GROWTH_DURATION_MAX,
-  BOX_COL,
-  BOX_ROW,
-  BOX_INTERACTION_RADIUS,
-  DOMINION_COL,
-  DOMINION_ROW,
+  GROWTH_DURATION_MAX, 
+  BOX_INTERACTION_RADIUS,  
   DOMINION_INTERACTION_RADIUS,
   WATER_CAN_MAX,
-  REFILL_RATE_MS,
+  BOX_COL,
+  BOX_ROW,  
   WATER_POND_COL,
-  WATER_POND_ROW,
-  WATER_POND_INTERACTION_RADIUS,
+  WATER_POND_ROW,  
   SHOPKEEPER_COL,
   SHOPKEEPER_ROW,
-  TASKS,
-  SEED_MAX,
+  TASKS,  
   TREE_SWINGS_TO_FELL,
   TREE_CUT_TIME_1_MIN,
   TREE_CUT_TIME_2_MIN,
@@ -42,10 +36,16 @@ import { showModal } from "./modal.js";
 
 import { sfx } from "./sound.js";
 
+
+
+
+
+
+
 export function createBox() {
   return {
-    col: 6,
-    row: 14
+    col: BOX_COL,
+    row: BOX_ROW
   };
 }
 
@@ -218,25 +218,7 @@ export function updateFish(world, deltaMs) {
 export function createWorld() {
 
    
-  const mins = Array.from({ length: MIN_SPAWN_COUNT }, (_, index) => ({
-    id: index + 1,
-    col: 15 + (index % 3) * 2,
-    row: 15 + Math.floor(index / 3) * 2,
-    state: "loose",
-    atHome: true,
-    lineToken: index + 1,
-    followIndex: 0,
-    target: null,
-    targetTile: null,
-    throwOrigin: null,
-    throwDistance: 0,
-    landed: false,
-    isDelivering: false,
-    carryingLumberForDelivery: false,
-    cuttingTimer: 0,
-    cuttingTreeCol: null,
-    cuttingTreeRow: null
-  }));
+   const mins = [];
 
   // Grandpas Graveyard (randomized positions)
   const gravestones = [
@@ -340,11 +322,10 @@ const tiles = Array.from({ length: rows }, (_, row) =>
   return {
     box: createBox(),
     dominion: createDominion(),
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 },
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0},
     axeUnlocked: false,
     minUnlocked: false,
-    currentTaskIndex: 0,
-    allTasksDone: false,
+    currentTaskIndex: 0,    
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
     shopOpen: false,
     mins,
@@ -356,25 +337,25 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     treeSprite,
     gravestoneSprite,
     minSprites,
-    selectedTool: TOOL_TYPES.HOE,
+    selectedTool: TOOL_TYPES.HANDS,
     cropsCollected: 0,
     lumberCollected: 0,
     fishEvents: [],
     fishSpawnTimer: 0,
     fishCollected: 0,
-    waterCanFillAmount: 5,
+    waterCanFillAmount: 0,
     seedsCollected: 0,
+    filledWater: 0,
     isRefillingWater: false,
     refillTimer: 0,
-    seedInventory: 5,
-    minInventory: 0,
+    seedInventory: 5,   
 
     dayLengthMs: 5 * 60 * 1000,
     dayElapsedMs: 0,
     dayProgress: 0,
     dayNumber: 1,
     wallet: 25,
-    dayEnded: false
+    
   };
 }
 
@@ -398,13 +379,13 @@ if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
     world.shopkeeper.row = SHOPKEEPER_ROW;
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, double ROI gone. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
-      buttons: [{ label: "Shove that horn, this farm's mine!", className: "modal-btn--close" }]
+      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, coulda doubled da ROI. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
+      buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Prove you'll hit KPIs: grow a crop, hand it over. Then we 'hire' you and gift a family heirloom. Onboarding bonus, of course.</p>",
+      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, hand it over. If it good, ur hired and will get family heirloom back as an Onboarding bonus!</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }
@@ -432,34 +413,9 @@ export function tryInteractWithGravestone(character, world) {
 function showGravestoneMessage(gravestone) {
   showModal({
     title: "The Grave says:",
-    bodyHtml: `
-      <p style="font-size:18px;line-height:1.6;">
-        Here lies Max's Grandpa Sr.
-      </p>
-      <hr style="border:1px solid #5d4037;margin:20px 0;">
-      <p style="font-size:14px;color:#6d4c41;">
-        (Luxury condos + a Chillis! coming soon)
-      </p><p style="font-size:14px;color:#6d4c41;">Psst... it reads:</p><strong style="font-size:12px;color:#6d4c41;">"Here I lie where soil grows sour, yet rest I shan't by soul's divine power. Seek my three soul-parts: in grass, beach, and trees."</strong>`,
+    bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Seek thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
     buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
-}
-
-// Logic to check if player can start refilling
-export function tryInteractWithPond(character, world) {
-  if (world.selectedTool !== TOOL_TYPES.WATERING_CAN) return false;
-  if (world.waterCanFillAmount >= WATER_CAN_MAX) return false;
-
-  // Pond center (for a 3x3 pond starting at COL, ROW)
-  const pondCenterX = WATER_POND_COL + 1; 
-  const pondCenterY = WATER_POND_ROW + 1;
-  const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
-
-  // Interaction check (radius + pond half-width)
-  if (distance <= WATER_POND_INTERACTION_RADIUS + 2) {
-    world.isRefillingWater = true;
-    return true;
-  }
-  return false;
 }
 
 function moveToward(min, targetCol, targetRow, speed = 0.12) {
@@ -784,12 +740,12 @@ export function tryDepositToBox(character, box, world) {
   return false;
 }
 
-export function tryDepositToDominion(character, dominion, mins) {
+export function tryDepositToDominion(character, dominion, world) {
   if (character.held !== "crop") return false;
 
   if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
     character.held = null;
-    spawnNewMin(mins, dominion.col, dominion.row, "loose");
+    spawnNewMin(world.mins, dominion.col, dominion.row, "loose");
     return true;
   }
   return false;
@@ -939,10 +895,12 @@ function clampTileValue(value, max) {
   return Math.max(0, Math.min(max - 1, Math.floor(value)));
 }
 
-export function useToolAtCursor(world, cursor) {
+export function useToolAtCursor(world, cursor, character) {
   if (!cursor) return false;
+  
   const col = clampTileValue(cursor.col, cols);
   const row = clampTileValue(cursor.row, rows);
+  
   const tile = world.tiles[row][col];
   if (!tile) return false;
 
@@ -954,7 +912,7 @@ export function useToolAtCursor(world, cursor) {
   if (tile.type === TILE_TYPES.STONE) return false;
 
   // Prevent interactions on sand and water tiles
-  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER){
+  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER && world.selectedTool !== TOOL_TYPES.WATERING_CAN){
 
     if (!buriedSoul) return false;
   } 
@@ -963,7 +921,7 @@ export function useToolAtCursor(world, cursor) {
     // Prevent hoe on tiles with trees
     if (tile.variant === "decay" && world.soulsCollected < 3) return false;
     if (tile.hasTree) return false;
-    sfx('hoe');
+    sfx('chop');
     
     tile.type = TILE_TYPES.DIRT;
     tile.planted = false;
@@ -992,13 +950,23 @@ export function useToolAtCursor(world, cursor) {
   }
 
   if (world.selectedTool === TOOL_TYPES.WATERING_CAN) {
+    // Refill can if clicking on the pond (assuming 3x3 pond)
+    const isPondTile = col >= WATER_POND_COL && col < WATER_POND_COL + 3 &&
+                       row >= WATER_POND_ROW && row < WATER_POND_ROW + 3;
+    if (isPondTile && world.waterCanFillAmount < WATER_CAN_MAX) {
+      world.waterCanFillAmount += 1;
+      world.stats.filledWater++;
+      sfx('water');
+      return true;
+    }
+
     if (tile.planted && !tile.watered && world.waterCanFillAmount > 0) {
       tile.watered = true;
       world.waterCanFillAmount -= 1;
       world.stats.watered++;
       sfx('water');
       return true;
-    }
+    }   
     return false;
   }
   
@@ -1041,7 +1009,7 @@ export function tryCollectSoul(character, world) {
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! Grandpa's ghost, dead but chill 💀 abt it fr. You farmed like a sigma, so I restored the soil! Hoe it — crops there sell for <strong>DOUBLE</strong>. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. Love ya fam!</p>`,
+          bodyHtml: `<p>Max! Its me!, dead but chill 💀 abt it fr. You farmed like a sigma. Hoe the purple soil - crops there sell for DOUBLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. luv u!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }
@@ -1106,26 +1074,4 @@ export function updateWorld(world, deltaMs, character) {
 
   updateFish(world, deltaMs);
 
-  // 2. Handle Water Refill Logic (unchanged)
-  if (world.isRefillingWater && character) {
-    const pondCenterX = WATER_POND_COL + 1.5;
-    const pondCenterY = WATER_POND_ROW + 1.5;
-    const distance = Math.hypot(character.col - pondCenterX, character.row - pondCenterY);
-
-    if (distance > WATER_POND_INTERACTION_RADIUS + 2 || world.selectedTool !== TOOL_TYPES.WATERING_CAN) {
-      world.isRefillingWater = false;
-      world.refillTimer = 0;
-    } else {
-      world.refillTimer += deltaMs;
-      if (world.refillTimer >= REFILL_RATE_MS) {
-        if (world.waterCanFillAmount < WATER_CAN_MAX) {
-          world.waterCanFillAmount++;
-          world.refillTimer = 0;
-        } else {
-          world.isRefillingWater = false;
-          world.refillTimer = 0;
-        }
-      }
-    }
-  }
 }

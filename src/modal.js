@@ -1,7 +1,6 @@
 // Reusable modal system — one backdrop + one modal element reused by all callers.
 let backdropEl = null;
 let modalEl = null;
-let onCloseCb = null;
 let isOpen = false;
 
 export function isModalOpen() {
@@ -32,8 +31,9 @@ export function showModal({ title, bodyHtml, buttons = [], variant = "" }) {
     btn.textContent = b.label;
     btn.className = "modal-btn " + (b.className || "");
     btn.onclick = () => {
-      if (b.onClick) b.onClick();
       closeModal();
+      if (b.onClick) b.onClick();
+      
     };
     actions.appendChild(btn);
   });
@@ -45,13 +45,5 @@ export function showModal({ title, bodyHtml, buttons = [], variant = "" }) {
 export function closeModal() {
   if (!backdropEl || !isOpen) return;
   backdropEl.classList.add("hidden");
-  isOpen = false;
-  if (onCloseCb) {
-    onCloseCb();
-    onCloseCb = null;
-  }
-}
-
-export function setModalCloseHandler(cb) {
-  onCloseCb = cb;
+  isOpen = false;  
 }
