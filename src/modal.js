@@ -52,7 +52,3 @@ export function closeModal() {
     onCloseCb = null;
   }
 }
-
-export function setModalCloseHandler(cb) {
-  onCloseCb = cb;
-}

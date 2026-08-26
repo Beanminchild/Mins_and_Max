@@ -28,31 +28,6 @@ export function isoToScreen(col, row, camera) {
   };
 }
 
-function drawGrassTile(ctx, col, row, camera) {
-  const p = isoToScreen(col, row, camera);
-  const shade = (col + row) % 3;
-  const grassColors = ["#5a8737", "#6da145", "#547e30"];
-
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y - TILE_H / 2);
-  ctx.lineTo(p.x + TILE_W / 2, p.y);
-  ctx.lineTo(p.x, p.y + TILE_H / 2);
-  ctx.lineTo(p.x - TILE_W / 2, p.y);
-  ctx.closePath();
-
-  ctx.fillStyle = grassColors[shade];
-  ctx.fill();
-  ctx.strokeStyle = "#29451f";
-  ctx.lineWidth = 1.25;
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(255,255,255,0.06)";
-  ctx.fillRect(p.x - 8, p.y - 4, 16, 2);
-  ctx.fillStyle = "rgba(0,0,0,0.08)";
-  ctx.fillRect(p.x - 10, p.y + 3, 20, 1);
-}
-
-
 
 function drawLumber(ctx, lumberItem, camera) {
   const p = isoToScreen(lumberItem.col, lumberItem.row, camera);

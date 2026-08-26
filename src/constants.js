@@ -54,9 +54,9 @@ export const MERCHANT_TEMP_ROW = 5;
 export const WATER_CAN_MAX = 7;
 
 export const TASKS = [
-  { id: 'hoe',     desc: 'Hoe 3 tiles (Click)',      stat: 'hoed',      target: 3 },
-  { id: 'plant',   desc: 'Plant 3 seeds (Click)',    stat: 'planted',   target: 3 },
-  { id: 'fillwater', desc: 'Fill water can in Pond (Click)', stat: 'filledWater', target: 3 },
+  { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
+  { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
+  { id: 'fillwater', desc: 'Fill water can in Pond (Click)', stat: 'filledWater', target: 7 },
   { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
   { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
   { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },

@@ -174,47 +174,38 @@ function buyShopItem(item) {
 function syncHUD() {
   const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying" || m.state === "carrying_lumber" || m.state === "carrying_fish").length;
  
-    const badge = (slot, txt) => {
-    let b = slot.querySelector(".item-count");
-    if (!b) {
-      b = document.createElement("span");
-      b.className = "item-count";
-      slot.style.position = "relative";
-      slot.appendChild(b);
-    }
-    b.textContent = txt;
-  };
-
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;
     slot.classList.toggle("active", toolName === world.selectedTool);
-    if (toolName === "min") badge(slot, followingMins);
-    if (toolName === "watering-can") badge(slot, world.waterCanFillAmount);
-    if (toolName === "seeds") badge(slot, world.seedInventory || 0);
+
+    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
+    else if (toolName === "min") slot.textContent = world.minUnlocked ? "🤖 Min" : "Empty";
+
+    let txt = null;
+    if (toolName === "min") txt = followingMins;
+    if (toolName === "watering-can") txt = world.waterCanFillAmount;
+    if (toolName === "seeds") txt = world.seedInventory || 0;
+
+    let b = slot.querySelector(".item-count");
+    if (txt !== null) {
+      if (!b) {
+        b = document.createElement("span");
+        b.className = "item-count";
+        slot.style.position = "relative";
+        slot.appendChild(b);
+      }
+      b.textContent = txt;
+    } else if (b) {
+      b.remove();
+    }
   });
 
-  const axeBtn = document.querySelector('.tool-slot[data-tool="axe"]');
-    if (axeBtn) {
-      
-      axeBtn.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
-    }
-
-  const minBtn = document.querySelector('.tool-slot[data-tool="min"]');
-    if (minBtn) {
-      const badge = minBtn.querySelector('.item-count');
-      
-      minBtn.innerHTML = world.minUnlocked ? "🤖 Min" : "Empty";
-      if (badge) minBtn.appendChild(badge);
-    }
-  
   elCrop.textContent = world.cropsCollected + world.lumberCollected;
   elDay.textContent = DAYS_LEFT;
 
   elFarm.textContent = "Zachs Farm";
   elWallet.textContent = `${world.wallet}g`;
  
-  
-
   updateClock();
   updateTaskHUD();
 }

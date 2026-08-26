@@ -166,29 +166,6 @@ canvas {
 .modal-btn--yes  { background: #a5d6a7; }
 .modal-btn--no   { background: #ef9a9a; }
 .modal-btn--close { background: #ce93d8; }
-#next-day-button {
-  width: 100%;
-  margin-top: 14px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #c8a63f, #a87e1a);
-  color: #221b0d;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.crop-counter {
-  margin-left: auto;
-  padding: 10px 18px;
-  background: #5d4037;
-  border-radius: 6px;
-  font-weight: 800;
-  color: #fff;
-  border: 2px solid #3e2723;
-  text-shadow: 1px 1px 0 #000;
-}
 
 .tool-slot { position: relative; }
 .item-count {
@@ -201,14 +178,6 @@ canvas {
   border-radius: 3px;
   font-size: 11px;
   border: 1px solid #3e2723;
-}
-
-.min-count {
-  background: #c62828;
-  color: white;
-  padding: 0 4px;
-  border-radius: 4px;
-  font-size: 10px;
 }
 
 .hud-right {
@@ -307,7 +276,7 @@ canvas {
   padding: 12px 14px;
   border: 3px solid #5d4037;        /* wood frame like .tool-slot */
   border-radius: 6px;
-  background: #26ffb7;
+  background: #a5d6a7;;
   color: #3e2723;
   font-size: 1rem;
   font-weight: 800;
