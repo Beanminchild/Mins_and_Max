@@ -189,6 +189,17 @@ function createMinSprite(state) {
 }
 
 
+
+function createCowSprite() {
+  const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+  const g = s.getContext("2d"); g.translate(16, 18);
+  g.fillStyle = "#f0f0f0"; g.beginPath(); g.ellipse(0, 0, 9, 6, 0, 0, 7); g.fill();
+  g.fillStyle = "#222"; g.fillRect(-6, -4, 3, 3); g.fillRect(4, -3, 3, 3); // patches
+  g.fillStyle = "#ffb6c1"; g.fillRect(-2, 4, 4, 5); // legs/udders
+  g.fillStyle = "#222"; g.beginPath(); g.arc(8, -2, 3, 0, 7); g.fill(); // head
+  return s;
+}
+
 export function updateFish(world, deltaMs) {
   // spawn
   world.fishSpawnTimer += deltaMs;
@@ -362,8 +373,10 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     filledWater: 0,
     isRefillingWater: false,
     refillTimer: 0,
-    seedInventory: 5,   
-
+    seedInventory: 5,    
+    cows: [],
+    milkJugs: [],
+    cowSprite: createCowSprite(), 
     dayLengthMs: 5 * 60 * 1000,
     dayElapsedMs: 0,
     dayProgress: 0,
@@ -532,7 +545,7 @@ export function updateMins(character, mins, world) {
       for (let i = world.lumber.length - 1; i >= 0; i--) {
         const lumberItem = world.lumber[i];
         const distToLumber = Math.hypot(min.col - lumberItem.col, min.row - lumberItem.row);
-        if (distToLumber < 0.3) {
+        if (distToLumber < 0.75) {
           min.state = "carrying_lumber";
           min.carryingLumberForDelivery = false;
           world.lumber.splice(i, 1);
@@ -626,7 +639,7 @@ export function updateMins(character, mins, world) {
       moveToward(min, box.col, box.row, 0.14);
       const dx = min.col - box.col;
       const dy = min.row - box.row;
-      if (dx * dx + dy * dy < 0.2 * 0.2) {
+      if (dx * dx + dy * dy < 0.12 * 0.12) {
         if (world.cropsCollected > 0) {
           world.cropsCollected--;
           min.state = "returning_to_dominion";
@@ -640,7 +653,7 @@ export function updateMins(character, mins, world) {
       moveToward(min, dominion.col, dominion.row, 0.14);
       const dx = min.col - dominion.col;
       const dy = min.row - dominion.row;
-      if (dx * dx + dy * dy < 0.2 * 0.2) {
+      if (dx * dx + dy * dy < 0.12 * 0.12) {
         spawnNewMin(mins, dominion.col, dominion.row, "following");
         min.state = "following";
         min.lineToken = Date.now();
@@ -667,9 +680,9 @@ export function updateMins(character, mins, world) {
       const reachedTarget = (dxT * dxT + dyT * dyT) <= 0.18 * 0.18;
 
       if (min.isDelivering && reachedTarget) {
-        if (min.carryingLumberForDelivery) {
-          world.lumberCollected += 1;
-          world.stats.lumberEver = (world.stats.lumberEver || 0) + 1;
+          if (min.carryingLumberForDelivery) {
+          if (min.carryingMilk) { world.wallet += MILK_SALE_PRICE; min.carryingMilk = false; }
+          else { world.lumberCollected += 1; world.stats.lumberEver = (world.stats.lumberEver || 0) + 1; }
         } else if (min.state === "carrying_fish" || min.carryingFish) {
           world.wallet += FISH_SALE_PRICE;
           world.fishCollected += 1;
@@ -716,9 +729,20 @@ export function updateMins(character, mins, world) {
             min.soakTimer = POND_MIN_SOAK_MS;
             min.col = pond.col + 1;
             min.row = pond.row + 1;
-          } else {
-            settleMin(min);
+            return;
           }
+        const cow = world.cows.find(c => Math.hypot(c.col - target.col, c.row - target.row) < 1);
+        if (!min.isDelivering && cow) {
+          if (world.cropsCollected > 0) { world.cropsCollected--; cow.fed = true; }
+          min.state = "following"; min.lineToken = Date.now(); return;
+        }
+        const jug = world.milkJugs.find(j => Math.floor(j.col)===tCol && Math.floor(j.row)===tRow);
+        if (!min.isDelivering && jug) {
+          world.milkJugs.splice(world.milkJugs.indexOf(jug),1);
+          min.state = "carrying_lumber"; min.carryingLumberForDelivery = true; min.isDelivering = true; min.carryingMilk = true; return;
+        } else {
+            settleMin(min);
+        }
         }
       }
     }
@@ -738,11 +762,50 @@ export function updateMins(character, mins, world) {
   });
 }
 
+
+
+export function updateCows(world, deltaMs) {
+  for (const cow of world.cows) {
+    if (!cow.wanderTarget || Math.hypot(cow.col - cow.wanderTarget.col, cow.row - cow.wanderTarget.row) < 0.5) {
+      cow.wanderTarget = { col: Math.random()*cols, row: Math.random()*rows };
+    }
+    const dx = cow.wanderTarget.col - cow.col, dy = cow.wanderTarget.row - cow.row;
+    const d = Math.hypot(dx, dy) || 1;
+    cow.col += (dx/d) * COW_WANDER_SPEED; cow.row += (dy/d) * COW_WANDER_SPEED;
+  }
+}
+
+export function tryFeedCow(character, world) {
+  if (character.held !== "crop") return false;
+  for (const cow of world.cows) {
+    if (Math.hypot(cow.col - character.col, cow.row - character.row) <= 1.5) {
+      character.held = null; cow.fed = true; return true;
+    }
+  }
+  return false;
+}
+
+export function tryPickupMilk(character, world) {
+  if (character.held) return false;
+  for (let i = world.milkJugs.length-1; i>=0; i--) {
+    const m = world.milkJugs[i];
+    if (Math.floor(m.col) === Math.floor(character.col) && Math.floor(m.row) === Math.floor(character.row)) {
+      character.held = "milk"; world.milkJugs.splice(i,1); return true;
+    }
+  }
+  return false;
+}
+
 export function tryDepositToBox(character, box, world) {
   if (!character.held) return false;
 
-    if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {
-    if (character.held === "fish") {
+  if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {
+    if (character.held === "milk") {
+      world.wallet += MILK_SALE_PRICE;
+      character.held = null;
+      return true;
+    }
+    if (character.held === "fish") {      
       world.wallet += FISH_SALE_PRICE;
       world.fishCollected += 1;
     } else {

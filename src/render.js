@@ -719,6 +719,16 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
       drawGravestone(ctx, gravestone, camera, world.gravestoneSprite);
     }
   }
+  
+  for (const cow of world.cows) {
+    const p = isoToScreen(cow.col, cow.row, camera);
+    ctx.drawImage(world.cowSprite, p.x - 16, p.y - 24);
+    if (cow.fed) { ctx.fillStyle = "#f66"; ctx.fillText("♥", p.x, p.y - 40); }
+  }
+  for (const m of world.milkJugs) {
+    const p = isoToScreen(m.col, m.row, camera);
+    ctx.fillStyle = "#eee"; ctx.fillRect(p.x - 4, p.y - 10, 8, 10);
+  }
 
   for (const min of mins) {
     if (min.state !== "delivered") {

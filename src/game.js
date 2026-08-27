@@ -18,9 +18,11 @@ import {
   tryPickupLumber,
   tryTakeFromMin,
   tryCollectSoul,
-  
+  tryFeedCow,
+  tryPickupMilk,
+  updateCows
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW, COW_COST } from "./constants.js";
 
 import { 
   showModal, 
@@ -137,6 +139,9 @@ function openShop() {
   shopButtons.push(
     `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Barn — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
+  if (world.barnBought) {
+    shopButtons.push(`<button class="shop-button" data-buy="cow">Cow — ${COW_COST}g</button>`);
+  }
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 35g</button>`);
   showModal({
@@ -167,7 +172,8 @@ function buyShopItem(item) {
   const priceMap = {
     seeds: 5,
     min: 35,
-    barn: 3000
+    barn: 3000,
+    cow: COW_COST
   };
 
   const price = priceMap[item];
@@ -192,6 +198,10 @@ function buyShopItem(item) {
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
     world.stats.minObtained++;
     world.minUnlocked = true;
+  }
+
+  if (item === "cow") {
+    world.cows.push({ col: 20, row: 16, fed: false, wanderTarget: null });
   }
 
   if (item === "barn") {
@@ -298,6 +308,10 @@ function handleToolAction() {
 function endDay() {
   if (world.dayEnded) return;
   world.dayEnded = true;
+
+  // Cows drop milk jugs at their last position if fed
+  world.cows.forEach(c => { if (c.fed) world.milkJugs.push({ col: c.col, row: c.row }); });
+
   const cropPayout = world.cropsCollected * 25;
   const lumberPayout = world.lumberCollected * 5;
   const totalPayout = cropPayout + lumberPayout;
@@ -319,6 +333,9 @@ function startNextDay() {
   world.lumberCollected = 0;
   world.dayNumber += 1;
 
+  // Reset cows to barn and clear fed state
+  world.cows.forEach(c => { c.col = 20; c.row = 16; c.fed = false; c.wanderTarget = null; });
+
   character.col = OTHER_BUILDING_COL + 1.75;
   character.row = OTHER_BUILDING_ROW + 1.75;
   character.dir = 2;  
@@ -336,8 +353,6 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
     syncHUD();
   });
 });
-
-
 
 
 
@@ -391,12 +406,15 @@ function loop(timestamp) {
 }
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, world);
+    updateCows(world, deltaMs);
   if (keys.has("KeyE") || keys.has("Space")) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
+                    tryPickupMilk(character, world) ||
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world) ||
+                    tryFeedCow(character, world) ||
                     //tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
