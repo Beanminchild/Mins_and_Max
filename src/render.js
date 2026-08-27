@@ -440,9 +440,24 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 
+const waterMinCache = {};
+
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-  ctx.drawImage(minSprites[min.state] || minSprites.loose, p.x - 16, p.y - 22);
+  let sprite = minSprites[min.state] || minSprites.loose;
+  if (min.isWaterMin) {
+    waterMinCache[min.state] ||= (() => {
+      const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+      const g = s.getContext("2d");
+      g.drawImage(sprite, 0, 0);
+      g.globalCompositeOperation = "source-atop";
+      g.fillStyle = "rgba(30,144,255,0.55)";
+      g.fillRect(0, 0, 32, 32);
+      return s;
+    })();
+    sprite = waterMinCache[min.state];
+  }
+  ctx.drawImage(sprite, p.x - 16, p.y - 22);
 }
 
 export function drawCursor(ctx, cursor, camera, character) {
@@ -733,7 +748,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   for (const min of mins) {
     if (min.state !== "delivered") {
       
-      drawMin(ctx, min, camera, min.isWaterMin ? world.waterMinSprites : world.minSprites);
+        drawMin(ctx, min, camera, world.minSprites);
     }
   }
 

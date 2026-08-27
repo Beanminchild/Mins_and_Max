@@ -330,16 +330,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     tree_cutting: createMinSprite("tree_cutting")
   };
 
-   const waterMinSprites = {};
-  for (const k in minSprites) {
-    const s = document.createElement("canvas"); s.width = 32; s.height = 32;
-    const g = s.getContext("2d");
-    g.drawImage(minSprites[k], 0, 0);
-    g.globalCompositeOperation = "source-atop";
-    g.fillStyle = "rgba(30,144,255,0.55)";
-    g.fillRect(0, 0, 32, 32);
-    waterMinSprites[k] = s;
-  }
+  
 
 
   return {
@@ -353,7 +344,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
     shopOpen: false,
     mins,    
-    waterMinSprites,
+    
     tiles,
     gravestones,
     souls,
@@ -381,8 +372,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     dayElapsedMs: 0,
     dayProgress: 0,
     dayNumber: 1,
-    wallet: 25,
-    barnBought: false,
+    wallet: 25    
   };
 }
 
