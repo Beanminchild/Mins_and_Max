@@ -127,8 +127,18 @@ function updateClock() {
 }
 
 
+
+
 function openShop() {
-  world.shopOpen = true;
+  world.shopOpen = true;  
+  const shopButtons = [];
+  const lumberHave = world.stats.lumberEver || 0;
+  const barnLocked = world.barnBought || lumberHave < 50;
+  shopButtons.push(
+    `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Barn — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
+  );
+  shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="min">Min — 35g</button>`);
   showModal({
     title: "Ms. Emmie",
     bodyHtml: `
@@ -136,8 +146,7 @@ function openShop() {
         Job Title: Community Displacement Strategist & Director of Unrequested Improvement III
       </p>
       <div class="shop-options">
-        <button class="shop-button" data-buy="seeds">Seeds — 5g</button>
-        <button class="shop-button" data-buy="min">Min — 35g</button>
+        ${shopButtons.join("")}
       </div>
       <p class="shop-dialogue">"Ur fam owned this land 4 gens? Gr8 plaque 4 a bench!"</p>`,
     buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
@@ -157,11 +166,18 @@ function closeShop() {
 function buyShopItem(item) {
   const priceMap = {
     seeds: 5,
-    min: 35
+    min: 35,
+    barn: 3000
   };
 
   const price = priceMap[item];
   if (!price || world.wallet < price) return;
+  if (item === "barn" && (world.barnBought || (world.stats.lumberEver || 0) < 50)) return;
+
+ 
+  if (item === "barn") {
+    world.barnBought = true;
+  }
 
   world.wallet -= price;
 
@@ -178,9 +194,14 @@ function buyShopItem(item) {
     world.minUnlocked = true;
   }
 
-  
+  if (item === "barn") {
+    world.barnBought = true;
+  }
+
   syncHUD();
 }
+
+
 
 function syncHUD() {
   const followingMins = mins.filter(m => m.state === "following" || m.state === "carrying" || m.state === "carrying_lumber" || m.state === "carrying_fish").length;

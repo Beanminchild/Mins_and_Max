@@ -307,3 +307,8 @@ canvas {
   color: #469;
   text-align: center;
 }
+.shop-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}

@@ -30,7 +30,7 @@ export const WATER_POND_ROW = 1;
 
 
 
-export const POND_MIN_SOAK_MS = 5 * 60 * 1000; // 5 minutes real time in pond
+export const POND_MIN_SOAK_MS = 2 * 60 * 1000; // 2 minutes real time in pond
 
 
 export const SHOP_BUILDING_COL = 18;

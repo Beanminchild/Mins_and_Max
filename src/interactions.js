@@ -319,16 +319,30 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     tree_cutting: createMinSprite("tree_cutting")
   };
 
+   const waterMinSprites = {};
+  for (const k in minSprites) {
+    const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+    const g = s.getContext("2d");
+    g.drawImage(minSprites[k], 0, 0);
+    g.globalCompositeOperation = "source-atop";
+    g.fillStyle = "rgba(30,144,255,0.55)";
+    g.fillRect(0, 0, 32, 32);
+    waterMinSprites[k] = s;
+  }
+
+
   return {
     box: createBox(),
     dominion: createDominion(),
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0},
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0},
+    barnBought: false,
     axeUnlocked: false,
     minUnlocked: false,
     currentTaskIndex: 0,    
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
     shopOpen: false,
-    mins,
+    mins,    
+    waterMinSprites,
     tiles,
     gravestones,
     souls,
@@ -355,7 +369,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     dayProgress: 0,
     dayNumber: 1,
     wallet: 25,
-    
+    barnBought: false,
   };
 }
 
@@ -655,6 +669,7 @@ export function updateMins(character, mins, world) {
       if (min.isDelivering && reachedTarget) {
         if (min.carryingLumberForDelivery) {
           world.lumberCollected += 1;
+          world.stats.lumberEver = (world.stats.lumberEver || 0) + 1;
         } else if (min.state === "carrying_fish" || min.carryingFish) {
           world.wallet += FISH_SALE_PRICE;
           world.fishCollected += 1;
@@ -732,6 +747,7 @@ export function tryDepositToBox(character, box, world) {
       world.fishCollected += 1;
     } else {
       world[`${character.held === "lumber" ? "lumber" : "crops"}Collected`] += 1;
+      if (character.held === "lumber") { world.stats.lumberEver = (world.stats.lumberEver || 0) + 1; world.stats.lumberCollected++; }
       if (character.held === "crop") world.stats.cropsCollected++;
     }
     character.held = null;

@@ -442,13 +442,8 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-  const sprite = minSprites[min.state] || minSprites.loose;
-  ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
-  if (min.isWaterMin) {
-    ctx.fillStyle = "rgba(30, 144, 255, 0.6)";
-    ctx.fillRect(p.x - 16, p.y - 22, 32, 32);
-  }
-} 
+  ctx.drawImage(minSprites[min.state] || minSprites.loose, p.x - 16, p.y - 22);
+}
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -716,6 +711,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
    
   drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);
   drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
+  if (world.barnBought) drawBuilding(ctx, 20, 16, camera, false, character);
 
   // Draw gravestones
   if (world.gravestones) {
@@ -726,7 +722,8 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
   for (const min of mins) {
     if (min.state !== "delivered") {
-      drawMin(ctx, min, camera, world.minSprites);
+      
+      drawMin(ctx, min, camera, min.isWaterMin ? world.waterMinSprites : world.minSprites);
     }
   }
 
