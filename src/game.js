@@ -42,6 +42,82 @@ const $ = i => document.getElementById(i);
 const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-name"),
       elTask = $("task-list"), elHand = $("clock-hand"), elDay = $("days-left");
 
+
+
+const SAVE_KEY = "minsMaxSave";
+
+
+
+// ---- Save / Load ----
+function saveGame() {
+  const data = {
+    wallet: world.wallet,
+    stats: world.stats,
+    currentTaskIndex: world.currentTaskIndex,
+    dayNumber: world.dayNumber,
+    daysLeft: DAYS_LEFT,
+    seedInventory: world.seedInventory,
+    waterCanFillAmount: world.waterCanFillAmount,
+    axeUnlocked: world.axeUnlocked,
+    minUnlocked: world.minUnlocked,
+    barnBought: world.barnBought,
+    selectedTool: world.selectedTool,
+    cropsCollected: world.cropsCollected,
+    bonusCropsCollected: world.bonusCropsCollected,
+    lumberCollected: world.lumberCollected,
+    fishCollected: world.fishCollected,
+    soulsCollected: world.soulsCollected,
+    tiles: world.tiles.map(row => row.map(t => ({
+      type: t.type, planted: t.planted, watered: t.watered, growth: t.growth,
+      growDuration: t.growDuration, stage: t.stage, variant: t.variant,
+      hasTree: t.hasTree, treeHealth: t.treeHealth, lumber: t.lumber
+    }))),
+    souls: world.souls,
+    gravestones: world.gravestones,
+    lumber: world.lumber,
+    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, carryingMilk:m.carryingMilk, isWaterMin:m.isWaterMin })),
+    cows: world.cows,
+    minInventory: world.minInventory || 0,
+    allTasksDone: world.allTasksDone || false,
+    milkJugs: world.milkJugs,
+    shopkeeper: { col: world.shopkeeper.col, row: world.shopkeeper.row }
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return false;
+  const d = JSON.parse(raw);
+  Object.assign(world, {
+    wallet: d.wallet, stats: d.stats, currentTaskIndex: d.currentTaskIndex,
+    dayNumber: d.dayNumber, seedInventory: d.seedInventory, waterCanFillAmount: d.waterCanFillAmount,
+    axeUnlocked: d.axeUnlocked, minUnlocked: d.minUnlocked, barnBought: d.barnBought,
+    selectedTool: d.selectedTool, cropsCollected: d.cropsCollected, bonusCropsCollected: d.bonusCropsCollected,
+    lumberCollected: d.lumberCollected, fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
+    souls: d.souls, gravestones: d.gravestones, lumber: d.lumber, cows: d.cows, milkJugs: d.milkJugs,minInventory: d.minInventory || 0,
+    allTasksDone: d.allTasksDone || false,
+  });
+  DAYS_LEFT = d.daysLeft;
+  d.tiles.forEach((row, r) => row.forEach((t, c) => Object.assign(world.tiles[r][c], t)));
+  world.mins.length = 0;
+  d.mins.forEach(m => world.mins.push({
+    ...m,
+    target: null,
+    targetTile: null,
+    throwOrigin: null,
+    throwDistance: 0,
+    landed: false,
+    isDelivering: false,
+    cuttingTimer: 0,
+    cuttingTreeCol: null,
+    cuttingTreeRow: null
+  }));
+  world.shopkeeper.col = d.shopkeeper.col;
+  world.shopkeeper.row = d.shopkeeper.row;
+  return true;
+}
+
 function showSleepPrompt() {
   if (isModalOpen()) return;
 
@@ -73,6 +149,53 @@ function showSleepPrompt() {
     buttons: buttons,
   });
 }
+
+function showStartMenu() {
+  const hasSave = !!localStorage.getItem(SAVE_KEY);
+  const buttons = [];
+
+  if (hasSave) {
+    buttons.push({
+      label: "Continue",
+      className: "modal-btn--yes",
+      onClick: () => {
+        loadGame();
+        closeModal();
+        syncHUD();
+      }
+    });
+  }
+
+  buttons.push({
+    label: "New Game",
+    className: hasSave ? "modal-btn--no" : "modal-btn--yes",
+    onClick: () => {
+      localStorage.removeItem(SAVE_KEY);
+      closeModal();
+    }
+  });
+
+  buttons.push({
+    label: "Story",
+    className: "modal-btn--no",
+    onClick: () => {
+      showModal({
+        title: "Story",
+        bodyHtml: "<p>Max's grandpa's farm was acquired by UniCorp. Fight back by farming, extracting souls, and defeating the KPI overlords.</p>",
+        buttons: [{ label: "Back", className: "modal-btn--close", onClick: showStartMenu }]
+      });
+    }
+  });
+
+  showModal({
+    title: "Mins & Max Vs UniCorp",
+    bodyHtml: "<p>Private Equity Farming Sim</p>",
+    buttons
+  });
+}
+
+
+  
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -341,7 +464,7 @@ function startNextDay() {
   character.col = OTHER_BUILDING_COL + 1.75;
   character.row = OTHER_BUILDING_ROW + 1.75;
   character.dir = 2;  
-
+  saveGame();
   syncHUD();
 }
 
@@ -360,6 +483,8 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
 
 
 syncHUD();
+showStartMenu();
+
 
 function updateCursorPosition(event) {
   const rect = canvas.getBoundingClientRect();
