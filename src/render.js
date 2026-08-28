@@ -460,7 +460,7 @@ export function drawMin(ctx, min, camera, minSprites) {
   ctx.drawImage(sprite, p.x - 16, p.y - 22);
 }
 
-export function drawCursor(ctx, cursor, camera, character) {
+export function drawCursor(ctx, cursor, camera, character, worldS) {
   if (!cursor) return;
 
   const p = isoToScreen(cursor.col, cursor.row, camera);

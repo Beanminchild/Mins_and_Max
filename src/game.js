@@ -47,7 +47,7 @@ function showSleepPrompt() {
 
   const buttons = [];
 
-  if (world.currentTaskIndex > 8) {
+  if (world.currentTaskIndex >= 8) {
     buttons.push({
       label: "Yes (Sleep)",
       className: "modal-btn--yes",
@@ -62,6 +62,7 @@ function showSleepPrompt() {
     label: "No",
     className: "modal-btn--no",
     onClick: () => {
+      closeModal();
       character.col += 1;          
     },
   });
@@ -242,7 +243,7 @@ function syncHUD() {
     }
   });
 
-  elCrop.textContent = world.cropsCollected + world.lumberCollected;
+  elCrop.textContent = world.cropsCollected + world.bonusCropsCollected + world.lumberCollected;
   elDay.textContent = DAYS_LEFT;
 
   elFarm.textContent = "Zachs Farm";
@@ -312,13 +313,13 @@ function endDay() {
   // Cows drop milk jugs at their last position if fed
   world.cows.forEach(c => { if (c.fed) world.milkJugs.push({ col: c.col, row: c.row }); });
 
-  const cropPayout = world.cropsCollected * 25;
+  const cropPayout = world.cropsCollected * 25 + world.bonusCropsCollected * 75;
   const lumberPayout = world.lumberCollected * 5;
   const totalPayout = cropPayout + lumberPayout;
   world.wallet += totalPayout;
   showModal({
     title: "Day Complete",
-    bodyHtml: `<p>You collected <strong>${world.cropsCollected + world.lumberCollected}</strong> items.</p>
+    bodyHtml: `<p>You collected <strong>${world.cropsCollected + world.bonusCropsCollected + world.lumberCollected}</strong> items.</p>
       <p>Payday: <strong>${totalPayout}g</strong> (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)</p>
       <p>Wallet: <strong>${world.wallet}g</strong></p>`,
     buttons: [{ label: "Start Next Day", className: "modal-btn--yes", onClick: startNextDay }]
@@ -330,6 +331,7 @@ function startNextDay() {
   world.dayProgress = 0;
   world.dayEnded = false;
   world.cropsCollected = 0;
+  world.bonusCropsCollected = 0;
   world.lumberCollected = 0;
   world.dayNumber += 1;
 

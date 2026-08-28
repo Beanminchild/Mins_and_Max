@@ -3,7 +3,7 @@ export const rows = 32;
 export const TILE_W = 64;
 export const TILE_H = 32;
 
-export const moveStepSize = 0.25;
+export const moveStepSize = 0.30;
 export const moveStepMs = 60;
 
 
@@ -95,8 +95,8 @@ export const PLANT_STAGES = {
   CROP: "crop"
 };
 
-export const GROWTH_DURATION_MIN = 15000;
-export const GROWTH_DURATION_MAX = 30000;
+export const GROWTH_DURATION_MIN = 7000;
+export const GROWTH_DURATION_MAX = 15000;
 
 export const TREE_SWINGS_TO_FELL = 33;
 

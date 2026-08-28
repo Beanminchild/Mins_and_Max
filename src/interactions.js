@@ -29,7 +29,9 @@ import {
   FISH_VISIBLE_MS,
   FISH_CATCH_RADIUS,
   FISH_SALE_PRICE,
-  POND_MIN_SOAK_MS
+  POND_MIN_SOAK_MS,
+  MILK_SALE_PRICE,
+  COW_WANDER_SPEED
 } from "./constants.js";
 
 import { showModal } from "./modal.js";
@@ -37,24 +39,7 @@ import { showModal } from "./modal.js";
 import { sfx } from "./sound.js";
 
 
-
-
-
-
-
-export function createBox() {
-  return {
-    col: BOX_COL,
-    row: BOX_ROW
-  };
-}
-
-export function createDominion() {
-  return {
-    col: 38,
-    row: 16
-  };
-}
+function isTopLeftQuadrant(col, row) { return col < cols / 2 && row < rows / 2; }
 
 function createTreeSprite() {
   const sprite = document.createElement("canvas");
@@ -209,7 +194,7 @@ export function updateFish(world, deltaMs) {
     for (let r=0; r<rows; r++) for (let c=0; c<cols; c++)
       if (world.tiles[r][c].type === TILE_TYPES.WATER) waterTiles.push({c,r});
     if (waterTiles.length) {
-      const t = waterTiles[Math.floor(Math.random()*waterTiles.length)];
+      const t = waterTiles[(Math.random()*waterTiles.length)|0];
       world.fishEvents.push({ col:t.c, row:t.r, phase:'ripple', timer:0, speed:1 });
     }
   }
@@ -245,77 +230,36 @@ export function createWorld() {
     { col: g.col,     row: 18 + g.row, collected: false, revealed: false, id: "bl" },
     { col: 21 + g.col, row: 18 + g.row, collected: false, revealed: false, id: "br" }
   ];
-
-
-  // Generate lumber items in forest for variety
+   
   const lumber = [];
 
-const tiles = Array.from({ length: rows }, (_, row) =>
-  Array.from({ length: cols }, (_, col) => {
-    // Stone paths defining quadrants
-    const squareWidth = 6;
-    const squareHeight = 64;
-    const squareColStart = 15;
-    const squareRowStart = 0;
-    const isTownSquare = col >= squareColStart && col < squareColStart + squareWidth && 
-                         row >= squareRowStart && row < squareRowStart + squareHeight;
+  const tiles = Array.from({ length: rows }, (_, row) =>
+    Array.from({ length: cols }, (_, col) => {
+      const TL = col < 15 && row < 15;
+      const TR = col >= 21 && row < 15;
+      const BR = col >= 21 && row >= 18;
+      const stone = (col>=15&&col<21) || (row>=15&&row<=17) || (col>=18&&col<20&&row===20);
+      const water = (row>=rows-3 && col<15);
+      const sand  = (row>=rows-6 && col<15 && row<rows-3);
+      const type = stone?TILE_TYPES.STONE : water?TILE_TYPES.WATER : sand?TILE_TYPES.SAND : TILE_TYPES.GRASS;
 
-    const walkwayRowStart = 15;
-    const walkwayRowEnd = 17;
-    const isWalkway = (col >= 0 && col < cols) && row >= walkwayRowStart && row <= walkwayRowEnd || (col >= 18 && col < 20) && row == 20 && row <= 32;
-    
-    const isStone = isTownSquare || isWalkway;
+      return {
+        type,
+        planted: false,
+        watered: false,
+        growth: 0,
+        growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
+        stage: PLANT_STAGES.EMPTY,
+        variant: TL ? "decay" : null,
+        hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
+                 (TR && (col === 21 || col === cols - 1 || row === 0 || row === 14)),
+        treeHealth: TREE_SWINGS_TO_FELL,
+        
+      };
+    })
+  );
 
-    // Define quadrant boundaries (adjusted for stone paths)
-    const topLeftQuadrant = col < 15 && row < 15;
-    const topRightQuadrant = col >= 21 && row < 15;
-    const bottomLeftQuadrant = col < 15 && row >= 18;
-    const bottomRightQuadrant = col >= 21 && row >= 18;
-
-    // Determine tile type based on quadrant
-    let tileType = TILE_TYPES.GRASS;
-
-    if (isStone) {
-      tileType = TILE_TYPES.STONE;
-    } else if (bottomLeftQuadrant) {
-      // Beach & Ocean quadrant
-      const distFromBottom = rows - row;
-      if (distFromBottom <= 3) {
-        tileType = TILE_TYPES.WATER;
-      } else if (distFromBottom <= 6) {
-        tileType = TILE_TYPES.SAND;
-      } else {
-        tileType = TILE_TYPES.GRASS;
-      }
-    } else if (bottomRightQuadrant) {
-      // Forest quadrant
-      tileType = TILE_TYPES.GRASS;
-    } else if (topLeftQuadrant) {
-      // Creepy grass quadrant
-      tileType = TILE_TYPES.GRASS;
-    }
-
-    return {
-      
-      type: tileType,
-      planted: false,
-      watered: false,
-      growth: 0,
-      
-      
-      growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
-      stage: PLANT_STAGES.EMPTY,
-      variant: topLeftQuadrant ? "decay" : null,
-        hasTree: (bottomRightQuadrant && col % 2 === 0 && row % 2 === 0) || 
-               (topRightQuadrant && (col === 21 || col === cols - 1 || row === 0 || row === 14)),
-
-      treeHealth: TREE_SWINGS_TO_FELL, // 10 swings to fell
-      lumber: false // Becomes true when tree is felled
-    };
-  })
-);
-
-  // Create sprite cache
+  
   const treeSprite = createTreeSprite();
   const gravestoneSprite = createGravestoneSprite();
   const minSprites = {
@@ -334,8 +278,8 @@ const tiles = Array.from({ length: rows }, (_, row) =>
 
 
   return {
-    box: createBox(),
-    dominion: createDominion(),
+    box: { col: BOX_COL, row: BOX_ROW },
+    dominion: { col: 38, row: 16 },
     stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0},
     barnBought: false,
     axeUnlocked: false,
@@ -344,6 +288,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
     shopOpen: false,
     mins,    
+    bonusCropsCollected: 0,
     
     tiles,
     gravestones,
@@ -361,9 +306,7 @@ const tiles = Array.from({ length: rows }, (_, row) =>
     fishCollected: 0,
     waterCanFillAmount: 0,
     seedsCollected: 0,
-    filledWater: 0,
-    isRefillingWater: false,
-    refillTimer: 0,
+    filledWater: 0,        
     seedInventory: 5,    
     cows: [],
     milkJugs: [],
@@ -677,10 +620,14 @@ export function updateMins(character, mins, world) {
           world.wallet += FISH_SALE_PRICE;
           world.fishCollected += 1;
           min.carryingFish = false;
-        } else {
-          world.cropsCollected += 1;
+        } else if (min.cropTL) {
+          world.bonusCropsCollected++;
           world.stats.cropsCollected++;
-        }      
+        } else {
+          world.cropsCollected++;
+          world.stats.cropsCollected++;
+        }
+        min.cropTL = false;     
         min.state = "following";
         min.isDelivering = false;
         min.lineToken = Date.now();
@@ -688,8 +635,8 @@ export function updateMins(character, mins, world) {
       }      
 
       if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
-        const tCol = Math.floor(target.col);
-        const tRow = Math.floor(target.row);
+        const tCol = target.col|0;
+        const tRow = target.row|0;
         const tile = world.tiles[tRow]?.[tCol];
 
         const activeFish = world.fishEvents.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
@@ -726,7 +673,7 @@ export function updateMins(character, mins, world) {
           if (world.cropsCollected > 0) { world.cropsCollected--; cow.fed = true; }
           min.state = "following"; min.lineToken = Date.now(); return;
         }
-        const jug = world.milkJugs.find(j => Math.floor(j.col)===tCol && Math.floor(j.row)===tRow);
+        const jug = world.milkJugs.find(j => j.col|0===tCol && j.row|0===tRow);
         if (!min.isDelivering && jug) {
           world.milkJugs.splice(world.milkJugs.indexOf(jug),1);
           min.state = "carrying_lumber"; min.carryingLumberForDelivery = true; min.isDelivering = true; min.carryingMilk = true; return;
@@ -746,6 +693,7 @@ export function updateMins(character, mins, world) {
         tile.stage = PLANT_STAGES.EMPTY;
         tile.type = TILE_TYPES.DIRT;
         min.state = "carrying";
+        min.cropTL = isTopLeftQuadrant(min.targetTile.col, min.targetTile.row);
         min.targetTile = null;
       }
     }
@@ -779,7 +727,7 @@ export function tryPickupMilk(character, world) {
   if (character.held) return false;
   for (let i = world.milkJugs.length-1; i>=0; i--) {
     const m = world.milkJugs[i];
-    if (Math.floor(m.col) === Math.floor(character.col) && Math.floor(m.row) === Math.floor(character.row)) {
+    if (m.col|0 === character.col|0 && m.row|0 === character.row|0) {
       character.held = "milk"; world.milkJugs.splice(i,1); return true;
     }
   }
@@ -798,12 +746,18 @@ export function tryDepositToBox(character, box, world) {
     if (character.held === "fish") {      
       world.wallet += FISH_SALE_PRICE;
       world.fishCollected += 1;
-    } else {
-      world[`${character.held === "lumber" ? "lumber" : "crops"}Collected`] += 1;
-      if (character.held === "lumber") { world.stats.lumberEver = (world.stats.lumberEver || 0) + 1; world.stats.lumberCollected++; }
-      if (character.held === "crop") world.stats.cropsCollected++;
+        } else {
+      if (character.held === "lumber") {
+        world.lumberCollected += 1;
+        world.stats.lumberEver = (world.stats.lumberEver || 0) + 1;
+        world.stats.lumberCollected++;
+      } else if (character.held === "crop") {
+        world.stats.cropsCollected++;
+        if (character.cropTL) world.bonusCropsCollected++;
+        else world.cropsCollected++;
+      }
     }
-    character.held = null;
+    character.held = null; character.cropTL = false;
     return true;
   }
   return false;
@@ -836,7 +790,7 @@ export function tryCatchFish(character, world) {
 export function tryHarvestCrop(character, world) {
   if (character.held) return false;
 
-  const c = Math.floor(character.col), r = Math.floor(character.row);
+const c = character.col|0, r = character.row|0;
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
       const tile = world.tiles[r + dy]?.[c + dx];
@@ -847,6 +801,7 @@ export function tryHarvestCrop(character, world) {
         tile.stage = PLANT_STAGES.EMPTY;
         tile.type = TILE_TYPES.DIRT;
         character.held = "crop";
+        character.cropTL = isTopLeftQuadrant(c + dx, r + dy);
         world.stats.harvested++;
         sfx('pick');
         return true;
@@ -864,6 +819,7 @@ export function tryTakeFromMin(character, mins) {
 
     if (Math.hypot(min.col - character.col, min.row - character.row) <= MIN_INTERACTION_RADIUS) {
       character.held = min.state === "carrying" ? "crop" : (min.state === "carrying_fish" ? "fish" : "lumber");
+      character.cropTL = min.state === "carrying" ? !!min.cropTL : false;
       if (character.held === "crop") world.stats.harvested++;
       min.state = "following";
       return true;
@@ -976,7 +932,6 @@ export function useToolAtCursor(world, cursor, character) {
 
   // Define buried soul at this tile BEFORE using it
   const buriedSoul = world.souls.find(s => !s.revealed && !s.collected && Math.floor(s.col) === col && Math.floor(s.row) === row);
-
   // Prevent interactions on stone tiles
   if (tile.type === TILE_TYPES.STONE) return false;
 
@@ -1103,7 +1058,7 @@ export function tryPickupLumber(character, world) {
       // Check if there's lumber at this tile
       for (let i = 0; i < world.lumber.length; i++) {
         const lumberItem = world.lumber[i];
-        if (Math.floor(lumberItem.col) === checkCol && Math.floor(lumberItem.row) === checkRow) {
+         if (Math.floor(lumberItem.col) === checkCol && Math.floor(lumberItem.row) === checkRow) {
           character.held = "lumber";
           world.lumber.splice(i, 1);
           return true;
