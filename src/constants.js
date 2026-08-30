@@ -28,10 +28,8 @@ export const DOMINION_INTERACTION_RADIUS = 1.5;
 export const WATER_POND_COL = 39;
 export const WATER_POND_ROW = 1;
 
-export const COW_COST = 1500;
-export const MILK_SALE_PRICE = 500;
-export const COW_WANDER_SPEED = 0.04;
-export const BARN_COL = 20, BARN_ROW = 16;
+
+
 
 export const POND_MIN_SOAK_MS = 2 * 60 * 1000; // 2 minutes real time in pond
 

@@ -460,7 +460,7 @@ export function drawMin(ctx, min, camera, minSprites) {
   ctx.drawImage(sprite, p.x - 16, p.y - 22);
 }
 
-export function drawCursor(ctx, cursor, camera, character, worldS) {
+export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
 
   const p = isoToScreen(cursor.col, cursor.row, camera);
@@ -726,7 +726,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
    
   drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);
   drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
-  if (world.barnBought) drawBuilding(ctx, 20, 16, camera, false, character);
+ 
 
   // Draw gravestones
   if (world.gravestones) {
@@ -735,15 +735,9 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
   }
   
-  for (const cow of world.cows) {
-    const p = isoToScreen(cow.col, cow.row, camera);
-    ctx.drawImage(world.cowSprite, p.x - 16, p.y - 24);
-    if (cow.fed) { ctx.fillStyle = "#f66"; ctx.fillText("♥", p.x, p.y - 40); }
-  }
-  for (const m of world.milkJugs) {
-    const p = isoToScreen(m.col, m.row, camera);
-    ctx.fillStyle = "#eee"; ctx.fillRect(p.x - 4, p.y - 10, 8, 10);
-  }
+
+
+
 
   for (const min of mins) {
     if (min.state !== "delivered") {

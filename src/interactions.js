@@ -30,8 +30,8 @@ import {
   FISH_CATCH_RADIUS,
   FISH_SALE_PRICE,
   POND_MIN_SOAK_MS,
-  MILK_SALE_PRICE,
-  COW_WANDER_SPEED
+  
+  
 } from "./constants.js";
 
 import { showModal } from "./modal.js";
@@ -174,17 +174,6 @@ function createMinSprite(state) {
 }
 
 
-
-function createCowSprite() {
-  const s = document.createElement("canvas"); s.width = 32; s.height = 32;
-  const g = s.getContext("2d"); g.translate(16, 18);
-  g.fillStyle = "#f0f0f0"; g.beginPath(); g.ellipse(0, 0, 9, 6, 0, 0, 7); g.fill();
-  g.fillStyle = "#222"; g.fillRect(-6, -4, 3, 3); g.fillRect(4, -3, 3, 3); // patches
-  g.fillStyle = "#ffb6c1"; g.fillRect(-2, 4, 4, 5); // legs/udders
-  g.fillStyle = "#222"; g.beginPath(); g.arc(8, -2, 3, 0, 7); g.fill(); // head
-  return s;
-}
-
 export function updateFish(world, deltaMs) {
   // spawn
   world.fishSpawnTimer += deltaMs;
@@ -308,9 +297,6 @@ export function createWorld() {
     seedsCollected: 0,
     filledWater: 0,        
     seedInventory: 5,    
-    cows: [],
-    milkJugs: [],
-    cowSprite: createCowSprite(), 
     dayLengthMs: 5 * 60 * 1000,
     dayElapsedMs: 0,
     dayProgress: 0,
@@ -339,13 +325,13 @@ if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
     world.shopkeeper.row = SHOPKEEPER_ROW;
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Good Max. Apple don't fall far from tree — pity gramps croaked, coulda doubled da ROI. Axe's yours. Unicorp HQ's mid-farm, fair-ish prices. WELCOME TO THE FAMILY.</p>",
+      bodyHtml: "<p>Max. Ur becommin more like ur grandfather — pity he croaked, coulda doubled da ROI. Axe's yours. WELCOME TO THE FAMILY.</p>",
       buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, hand it over. If it good, ur hired and will get family heirloom back as an Onboarding bonus!</p>",
+      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, hand it over. If it good, ur hired and will get family heirloom back, Onboarding bonus!</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }
@@ -667,22 +653,20 @@ export function updateMins(character, mins, world) {
             min.col = pond.col + 1;
             min.row = pond.row + 1;
             return;
-          }
-        const cow = world.cows.find(c => Math.hypot(c.col - target.col, c.row - target.row) < 1);
-        if (!min.isDelivering && cow) {
-          if (world.cropsCollected > 0) { world.cropsCollected--; cow.fed = true; }
-          min.state = "following"; min.lineToken = Date.now(); return;
-        }
-        const jug = world.milkJugs.find(j => j.col|0===tCol && j.row|0===tRow);
-        if (!min.isDelivering && jug) {
-          world.milkJugs.splice(world.milkJugs.indexOf(jug),1);
-          min.state = "carrying_lumber"; min.carryingLumberForDelivery = true; min.isDelivering = true; min.carryingMilk = true; return;
-        } else {
+          } else {
             settleMin(min);
+          }
+          return; 
         }
-        }
-      }
     }
+
+      }
+        
+        
+     
+      
+    
+  
 
     if (min.state === "harvesting") {
       const tile = world.tiles[min.targetTile.row][min.targetTile.col];
@@ -702,47 +686,12 @@ export function updateMins(character, mins, world) {
 
 
 
-export function updateCows(world, deltaMs) {
-  for (const cow of world.cows) {
-    if (!cow.wanderTarget || Math.hypot(cow.col - cow.wanderTarget.col, cow.row - cow.wanderTarget.row) < 0.5) {
-      cow.wanderTarget = { col: Math.random()*cols, row: Math.random()*rows };
-    }
-    const dx = cow.wanderTarget.col - cow.col, dy = cow.wanderTarget.row - cow.row;
-    const d = Math.hypot(dx, dy) || 1;
-    cow.col += (dx/d) * COW_WANDER_SPEED; cow.row += (dy/d) * COW_WANDER_SPEED;
-  }
-}
 
-export function tryFeedCow(character, world) {
-  if (character.held !== "crop") return false;
-  for (const cow of world.cows) {
-    if (Math.hypot(cow.col - character.col, cow.row - character.row) <= 1.5) {
-      character.held = null; cow.fed = true; return true;
-    }
-  }
-  return false;
-}
-
-export function tryPickupMilk(character, world) {
-  if (character.held) return false;
-  for (let i = world.milkJugs.length-1; i>=0; i--) {
-    const m = world.milkJugs[i];
-    if (m.col|0 === character.col|0 && m.row|0 === character.row|0) {
-      character.held = "milk"; world.milkJugs.splice(i,1); return true;
-    }
-  }
-  return false;
-}
 
 export function tryDepositToBox(character, box, world) {
   if (!character.held) return false;
 
-  if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {
-    if (character.held === "milk") {
-      world.wallet += MILK_SALE_PRICE;
-      character.held = null;
-      return true;
-    }
+  if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {    
     if (character.held === "fish") {      
       world.wallet += FISH_SALE_PRICE;
       world.fishCollected += 1;
@@ -811,7 +760,7 @@ const c = character.col|0, r = character.row|0;
   return false;
 }
 
-export function tryTakeFromMin(character, mins) {
+export function tryTakeFromMin(character, mins, world) {
   if (character.held) return false;
 
   for (const min of mins) {
@@ -1033,7 +982,7 @@ export function tryCollectSoul(character, world) {
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! Its me!, dead but chill 💀 abt it fr. You farmed like a sigma. Hoe the purple soil - crops there sell for DOUBLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈. luv u!</p>`,
+          bodyHtml: `<p>Max! It me!, Gramps. U farmed like a sigma! Hoe purple soil crops there sell for TRIPLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }

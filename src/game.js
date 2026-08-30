@@ -18,11 +18,9 @@ import {
   tryPickupLumber,
   tryTakeFromMin,
   tryCollectSoul,
-  tryFeedCow,
-  tryPickupMilk,
-  updateCows
+  
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW, COW_COST } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
 
 import { 
   showModal, 
@@ -75,11 +73,11 @@ function saveGame() {
     souls: world.souls,
     gravestones: world.gravestones,
     lumber: world.lumber,
-    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, carryingMilk:m.carryingMilk, isWaterMin:m.isWaterMin })),
-    cows: world.cows,
+    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin })),
+    
     minInventory: world.minInventory || 0,
     allTasksDone: world.allTasksDone || false,
-    milkJugs: world.milkJugs,
+    
     shopkeeper: { col: world.shopkeeper.col, row: world.shopkeeper.row }
   };
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -95,7 +93,7 @@ function loadGame() {
     axeUnlocked: d.axeUnlocked, minUnlocked: d.minUnlocked, barnBought: d.barnBought,
     selectedTool: d.selectedTool, cropsCollected: d.cropsCollected, bonusCropsCollected: d.bonusCropsCollected,
     lumberCollected: d.lumberCollected, fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
-    souls: d.souls, gravestones: d.gravestones, lumber: d.lumber, cows: d.cows, milkJugs: d.milkJugs,minInventory: d.minInventory || 0,
+    souls: d.souls, gravestones: d.gravestones, lumber: d.lumber,minInventory: d.minInventory || 0,
     allTasksDone: d.allTasksDone || false,
   });
   DAYS_LEFT = d.daysLeft;
@@ -178,18 +176,46 @@ function showStartMenu() {
   buttons.push({
     label: "Story",
     className: "modal-btn--no",
-    onClick: () => {
-      showModal({
-        title: "Story",
-        bodyHtml: "<p>Max's grandpa's farm was acquired by UniCorp. Fight back by farming, extracting souls, and defeating the KPI overlords.</p>",
-        buttons: [{ label: "Back", className: "modal-btn--close", onClick: showStartMenu }]
-      });
-    }
+    onClick: () => showStory(0) // Start at the first page
   });
 
   showModal({
     title: "Mins & Max Vs UniCorp",
     bodyHtml: "<p>Private Equity Farming Sim</p>",
+    buttons
+  });
+}
+
+function showStory(index) {
+  const blurbs = [
+  "Max: To save the family farm, I have to pay off Grandpa’s loans?",
+  "Emmie: Yep, or it becomes lux student apartments.",
+  "Max: I can't farm that fast!",
+  "Emmie: Use our new Min Tech! They're sub-agents that automate everything.",
+  "Max: Is it still farming if I do nothing?",
+  "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
+  "Max: Guess I have no choice."
+];
+
+  const buttons = [];
+  
+  // Back button logic
+  if (index === 0) {
+    buttons.push({ label: "Menu", className: "modal-btn--no", onClick: showStartMenu });
+  } else {
+    buttons.push({ label: "Back", className: "modal-btn--no", onClick: () => showStory(index - 1) });
+  }
+
+  // Next/Finish button logic
+  if (index < blurbs.length - 1) {
+    buttons.push({ label: "Next", className: "modal-btn--yes", onClick: () => showStory(index + 1) });
+  } else {
+    buttons.push({ label: "Let's Go!", className: "modal-btn--yes", onClick: showStartMenu });
+  }
+
+  showModal({
+    title: `The Story (${index + 1}/${blurbs.length})`,
+    bodyHtml: `<p>${blurbs[index]}</p>`,
     buttons
   });
 }
@@ -263,16 +289,14 @@ function openShop() {
   shopButtons.push(
     `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Barn — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
-  if (world.barnBought) {
-    shopButtons.push(`<button class="shop-button" data-buy="cow">Cow — ${COW_COST}g</button>`);
-  }
+  
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 35g</button>`);
   showModal({
-    title: "Ms. Emmie",
+    title: "",
     bodyHtml: `
       <p style="margin:0 0 10px; font-size:12px; color:#aaa; font-style:italic;">
-        Job Title: Community Displacement Strategist & Director of Unrequested Improvement III
+        Community Displacement Strategist & Director of Unrequested Improvement
       </p>
       <div class="shop-options">
         ${shopButtons.join("")}
@@ -297,7 +321,7 @@ function buyShopItem(item) {
     seeds: 5,
     min: 35,
     barn: 3000,
-    cow: COW_COST
+   
   };
 
   const price = priceMap[item];
@@ -324,17 +348,8 @@ function buyShopItem(item) {
     world.minUnlocked = true;
   }
 
-  if (item === "cow") {
-    world.cows.push({ col: 20, row: 16, fed: false, wanderTarget: null });
-  }
-
-  if (item === "barn") {
-    world.barnBought = true;
-  }
-
-  syncHUD();
+  closeShop();
 }
-
 
 
 function syncHUD() {
@@ -344,8 +359,8 @@ function syncHUD() {
     const toolName = slot.dataset.tool;
     slot.classList.toggle("active", toolName === world.selectedTool);
 
-    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
-    else if (toolName === "min") slot.textContent = world.minUnlocked ? "🤖 Min" : "Empty";
+    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "(5) 🪓 Axe" : "Empty";
+    else if (toolName === "min") slot.textContent = world.minUnlocked ? "(6) 🤖 Min" : "Empty";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
@@ -369,7 +384,7 @@ function syncHUD() {
   elCrop.textContent = world.cropsCollected + world.bonusCropsCollected + world.lumberCollected;
   elDay.textContent = DAYS_LEFT;
 
-  elFarm.textContent = "Zachs Farm";
+  elFarm.textContent = "Max's Farm";
   elWallet.textContent = `${world.wallet}g`;
  
   updateClock();
@@ -381,7 +396,7 @@ function updateTaskHUD() {
   const el = elTask;
 
   if (world.currentTaskIndex >= TASKS.length) {
-    el.innerHTML = "<strong>All tasks complete! Freedom from Unicorp!</strong>";
+    el.innerHTML = "<strong>WOO!</strong>";
     return;
   }
 
@@ -422,7 +437,7 @@ function handleToolAction() {
   
   if (world.selectedTool === "empty-hands") {
     if (!tryHarvestCrop(character, world)) {
-      tryTakeFromMin(character, mins);
+      tryTakeFromMin(character, mins, world);
     }
   } else {
     useToolAtCursor(world, cursor);
@@ -431,10 +446,7 @@ function handleToolAction() {
 
 function endDay() {
   if (world.dayEnded) return;
-  world.dayEnded = true;
-
-  // Cows drop milk jugs at their last position if fed
-  world.cows.forEach(c => { if (c.fed) world.milkJugs.push({ col: c.col, row: c.row }); });
+  world.dayEnded = true; 
 
   const cropPayout = world.cropsCollected * 25 + world.bonusCropsCollected * 75;
   const lumberPayout = world.lumberCollected * 5;
@@ -458,8 +470,7 @@ function startNextDay() {
   world.lumberCollected = 0;
   world.dayNumber += 1;
 
-  // Reset cows to barn and clear fed state
-  world.cows.forEach(c => { c.col = 20; c.row = 16; c.fed = false; c.wanderTarget = null; });
+ 
 
   character.col = OTHER_BUILDING_COL + 1.75;
   character.row = OTHER_BUILDING_ROW + 1.75;
@@ -533,15 +544,15 @@ function loop(timestamp) {
 }
     updateWorld(world, deltaMs, character);
     updateMins(character, mins, world);
-    updateCows(world, deltaMs);
-  if (keys.has("KeyE") || keys.has("Space")) {
+   
+  if ( keys.has("Space")) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
-                    tryPickupMilk(character, world) ||
+                    
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world) ||
-                    tryFeedCow(character, world) ||
+                    
                     //tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
@@ -553,19 +564,16 @@ function loop(timestamp) {
     if (!interacted) {
       if (!tryCollectMin(character, mins, world)) {        
           if (!tryHarvestCrop(character, world)) {
-            tryTakeFromMin(character, mins);
+            tryTakeFromMin(character, mins, world);
           }        
       }
     }
 
-    keys.delete("KeyE");
+    
     keys.delete("Space");
   }
 
-    if (keys.has("KeyF")) {
-      handleToolAction();
-      keys.delete("KeyF");
-    }
+  
   }
 
   syncHUD();
