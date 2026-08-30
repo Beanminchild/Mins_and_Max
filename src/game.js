@@ -142,8 +142,8 @@ function showSleepPrompt() {
   });
 
   showModal({
-    title: "Go to bed for the night?",
-    bodyHtml: "<p>This will end the current day.</p>",
+    title: "Go to bed?",
+    bodyHtml: "<p>This will end the day.</p>",
     buttons: buttons,
   });
 }
@@ -181,7 +181,7 @@ function showStartMenu() {
 
   showModal({
     title: "Mins & Max Vs UniCorp",
-    bodyHtml: "<p>Private Equity Farming Sim</p>",
+    bodyHtml: "<p>Agentic Farming Sim</p>",
     buttons
   });
 }
@@ -194,7 +194,7 @@ function showStory(index) {
   "Emmie: Use our new Min Tech! They're sub-agents that automate everything.",
   "Max: Is it still farming if I do nothing?",
   "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
-  "Max: Guess I have no choice."
+  
 ];
 
   const buttons = [];
@@ -293,7 +293,7 @@ function openShop() {
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 35g</button>`);
   showModal({
-    title: "",
+    title: "Emmie",
     bodyHtml: `
       <p style="margin:0 0 10px; font-size:12px; color:#aaa; font-style:italic;">
         Community Displacement Strategist & Director of Unrequested Improvement
@@ -301,8 +301,8 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"Ur fam owned this land 4 gens? Gr8 plaque 4 a bench!"</p>`,
-    buttons: [{ label: "Leave", className: "modal-btn--close", onClick: closeShop }],
+      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay"</p>`,
+    buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
   // Wire buy buttons after render

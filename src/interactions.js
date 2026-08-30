@@ -41,32 +41,17 @@ import { sfx } from "./sound.js";
 
 function isTopLeftQuadrant(col, row) { return col < cols / 2 && row < rows / 2; }
 
+
 function createTreeSprite() {
-  const sprite = document.createElement("canvas");
-  sprite.width = 64;
-  sprite.height = 64;
-  const g = sprite.getContext("2d");
-
-  g.translate(32, 32);
-  
-  // Trunk
-  g.fillStyle = "#654321";
-  g.fillRect(-4, 8, 8, 16);
-  
-  // Foliage (tree top)
-  g.fillStyle = "#2d5a2d";
-  g.beginPath();
-  g.arc(0, 0, 14, 0, Math.PI * 2);
-  g.fill();
-
-  // Lighter shade for depth
-  g.fillStyle = "#3d6a3d";
-  g.beginPath();
-  g.arc(-3, 2, 10, 0, Math.PI * 2);
-  g.fill();
-
-  return sprite;
+  const s = document.createElement("canvas");
+  s.width = s.height = 64;
+  const g = s.getContext("2d");
+  g.fillStyle = "#654321"; g.fillRect(28, 40, 8, 16); // Trunk
+  g.fillStyle = "#2d5a2d"; g.beginPath(); g.arc(32, 32, 14, 0, 7); g.fill(); // Top
+  g.fillStyle = "#3d6a3d"; g.beginPath(); g.arc(29, 34, 10, 0, 7); g.fill(); // Shade
+  return s;
 }
+
 
 function createGravestoneSprite() {
   const sprite = document.createElement("canvas");
@@ -74,39 +59,53 @@ function createGravestoneSprite() {
   sprite.height = 48;
   const g = sprite.getContext("2d");
 
-  g.translate(16, 24);
-
-  // Gravestone base
-  g.fillStyle = "#505050";
-  g.fillRect(-6, 0, 12, 4);
-
-  // Gravestone slab
-  g.fillStyle = "#707070";
-  g.beginPath();
-  g.moveTo(-8, -2);
-  g.lineTo(8, -2);
-  g.lineTo(6, -18);
-  g.lineTo(-6, -18);
-  g.closePath();
-  g.fill();
-
-  // Gravestone outline
-  g.strokeStyle = "#505050";
-  g.lineWidth = 1;
-  g.stroke();
-
-  // Creepy cross or marking
-  g.strokeStyle = "#888888";
-  g.lineWidth = 1.5;
-  g.beginPath();
-  g.moveTo(0, -16);
-  g.lineTo(0, -6);
-  g.moveTo(-3, -11);
-  g.lineTo(3, -11);
-  g.stroke();
+  g.font = "40px Arial";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText("⚰️", 16, 24);
 
   return sprite;
 }
+
+// function createGravestoneSprite() {
+//   const sprite = document.createElement("canvas");
+//   sprite.width = 32;
+//   sprite.height = 48;
+//   const g = sprite.getContext("2d");
+
+//   g.translate(16, 24);
+
+//   // Gravestone base
+//   g.fillStyle = "#505050";
+//   g.fillRect(-6, 0, 12, 4);
+
+//   // Gravestone slab
+//   g.fillStyle = "#707070";
+//   g.beginPath();
+//   g.moveTo(-8, -2);
+//   g.lineTo(8, -2);
+//   g.lineTo(6, -18);
+//   g.lineTo(-6, -18);
+//   g.closePath();
+//   g.fill();
+
+//   // Gravestone outline
+//   g.strokeStyle = "#505050";
+//   g.lineWidth = 1;
+//   g.stroke();
+
+//   // Creepy cross or marking
+//   g.strokeStyle = "#888888";
+//   g.lineWidth = 1.5;
+//   g.beginPath();
+//   g.moveTo(0, -16);
+//   g.lineTo(0, -6);
+//   g.moveTo(-3, -11);
+//   g.lineTo(3, -11);
+//   g.stroke();
+
+//   return sprite;
+// }
 
 function createMinSprite(state) {
   const sprite = document.createElement("canvas");
@@ -296,7 +295,7 @@ export function createWorld() {
     waterCanFillAmount: 0,
     seedsCollected: 0,
     filledWater: 0,        
-    seedInventory: 5,    
+    seedInventory: 9,    
     dayLengthMs: 5 * 60 * 1000,
     dayElapsedMs: 0,
     dayProgress: 0,
@@ -324,13 +323,13 @@ if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
     world.shopkeeper.col = SHOPKEEPER_COL;
     world.shopkeeper.row = SHOPKEEPER_ROW;
     showModal({
-      title: "Unicorn Merchant",
-      bodyHtml: "<p>Max. Ur becommin more like ur grandfather, pity he croaked, coulda doubled da ROI. Axe's yours. Come get ur first min at HQ.</p>",
+      title: "Emmie",
+      bodyHtml: "<p>Max. Ur becommin more like ur grandfather, pity he croaked, coulda doubled da ROI. Axe's yours.</p>",
       buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
     showModal({
-      title: "Unicorn Merchant",
+      title: "Emmie",
       bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, hand it over. If it good, ur hired and will get family heirloom back, Onboarding bonus!</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
@@ -358,7 +357,7 @@ export function tryInteractWithGravestone(character, world) {
 
 function showGravestoneMessage(gravestone) {
   showModal({
-    title: "The Grave says:",
+    title: "Gravestone:",
     bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Seek thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
     buttons: [{ label: "Close", className: "modal-btn--close" }],
   });
@@ -982,7 +981,7 @@ export function tryCollectSoul(character, world) {
       if (world.soulsCollected === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! It me!, Gramps. U farmed like a sigma! Hoe purple soil crops there sell for TRIPLE. Unicorp can't stop ya. Chillis droppin' soon, property values MOON 📈</p>`,
+          bodyHtml: `<p>Max! Gramps here. U farmed sigma! Purple soil crops = TRIPLE 💰. Unicorp can't stop ya. Chillis droppin', property MOON 📈</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }

@@ -3,7 +3,7 @@ export const rows = 32;
 export const TILE_W = 64;
 export const TILE_H = 32;
 
-export const moveStepSize = 0.30;
+export const moveStepSize = 0.33;
 export const moveStepMs = 60;
 
 
@@ -25,8 +25,8 @@ export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
 export const DOMINION_INTERACTION_RADIUS = 1.5;
 
-export const WATER_POND_COL = 39;
-export const WATER_POND_ROW = 1;
+export const WATER_POND_COL = 35;
+export const WATER_POND_ROW = 3;
 
 
 
@@ -40,9 +40,9 @@ export const OTHER_BUILDING_COL = 42;
 export const OTHER_BUILDING_ROW = 3;
 
 // src/constants.js (suggested additions)
-export const FISH_RIPPLE_SPAWN_MS = 14000;   // new ripple every ~4s
+export const FISH_RIPPLE_SPAWN_MS = 9000;   // new ripple every ~4s
 export const FISH_RIPPLE_RAMP_MS = 4500;    // time ripple takes to speed up
-export const FISH_VISIBLE_MS = 333;       // fish "out" for 1.5s
+export const FISH_VISIBLE_MS = 400;       // fish "out" for 1.5s
 export const FISH_CATCH_RADIUS = .75;
 export const FISH_SALE_PRICE = 150;
 
@@ -52,20 +52,20 @@ export const SHOPKEEPER_ROW = 16.5;
 export const MERCHANT_TEMP_COL = 30;
 export const MERCHANT_TEMP_ROW = 5;
 
-export const WATER_CAN_MAX = 7;
+export const WATER_CAN_MAX = 9;
 
 export const TASKS = [
-  { id: 'hoe',     desc: 'Hoe 3 tiles',      stat: 'hoed',      target: 3 },
-  { id: 'plant',   desc: 'Plant 3 seeds',    stat: 'planted',   target: 3 },
-  { id: 'fillwater', desc: 'Fill water can in Pond (Click)', stat: 'filledWater', target: 7 },
-  { id: 'water',   desc: 'Water 3 seeds',    stat: 'watered',   target: 3 },
+  { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
+  { id: 'plant',   desc: 'Plant seeds',    stat: 'planted',   target: 3 },
+  { id: 'fillwater', desc: 'Fill water can in Pond', stat: 'filledWater', target: 3 },
+  { id: 'water',   desc: 'Water seeds',    stat: 'watered',   target: 3 },
   { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
-  { id: 'give',    desc: 'Give crop to Unicorn', stat: 'given',  target: 1 },
-  { id: 'axe',     desc: 'Use Axe to Chop down a tree', stat: 'treesChopped', target: 1 },
-  { id:'gotoshop', desc: 'Visit Unicorp local HQ and talk to the shopkeeper', stat: 'visitedShop', target: 1 },
-  { id: 'firstcrops', desc: 'Deposit 3 crops into collection box to sell', stat: 'cropsCollected', target: 3},
-  { id: 'firstMin', desc: 'Obtain your first Min!(Buy or Create)',  stat: 'minObtained', target: 1 },
-   { id: 'minCrops', desc: 'Deposit 5 crops into collection box (Try Using a Min!)', stat: 'cropsCollected', target: 8},
+  { id: 'give',    desc: 'Give crop to Emmie', stat: 'given',  target: 1 },
+  { id: 'axe',     desc: 'Use Axe to cut tree', stat: 'treesChopped', target: 1 },
+  { id:'gotoshop', desc: 'Talk to Emmie @ Unicorp local HQ', stat: 'visitedShop', target: 1 },
+  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 'cropsCollected', target: 3},
+  { id: 'firstMin', desc: 'Buy your first Min!',  stat: 'minObtained', target: 1 },
+   { id: 'minCrops', desc: 'Deposit crops using min', stat: 'cropsCollected', target: 8},
 
 ];
 
@@ -94,9 +94,9 @@ export const PLANT_STAGES = {
 };
 
 export const GROWTH_DURATION_MIN = 7000;
-export const GROWTH_DURATION_MAX = 15000;
+export const GROWTH_DURATION_MAX = 9000;
 
-export const TREE_SWINGS_TO_FELL = 33;
+export const TREE_SWINGS_TO_FELL = 22;
 
 // Tree cutting with cooperative mins
 export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
