@@ -325,7 +325,7 @@ if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
     world.shopkeeper.row = SHOPKEEPER_ROW;
     showModal({
       title: "Unicorn Merchant",
-      bodyHtml: "<p>Max. Ur becommin more like ur grandfather — pity he croaked, coulda doubled da ROI. Axe's yours. WELCOME TO THE FAMILY.</p>",
+      bodyHtml: "<p>Max. Ur becommin more like ur grandfather, pity he croaked, coulda doubled da ROI. Axe's yours. Come get ur first min at HQ.</p>",
       buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
