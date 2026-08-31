@@ -184,13 +184,16 @@ export function drawBox(ctx, box, camera) {
 }
 
 export function drawDominion(ctx, dominion, camera) {
-  if (!dominionSprite) dominionSprite = createCachedSprite(g => {
-    g.translate(32, 32);
-    g.fillStyle = "#455a64"; g.beginPath(); g.moveTo(-25, 0); g.lineTo(0, 12); g.lineTo(25, 0); g.lineTo(0, -12); g.fill();
-  });
-  const p = isoToScreen(dominion.col, dominion.row, camera);
-  ctx.drawImage(dominionSprite, p.x - 32, p.y - 32);
+  if (!dominionSprite) dominionSprite = createCachedSprite(g => { /* ... */ });
+  
+  let { col, row } = dominion;
+  if (world.currentTaskIndex >= 8) {
+    const t = Date.now() / 3000;
+    col += Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
+    row += Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+  }
 
+  const p = isoToScreen(col, row, camera);
   const bob = Math.sin(Date.now() / 500) * 5;
   ctx.save();
   ctx.translate(p.x, p.y - 25 + bob);

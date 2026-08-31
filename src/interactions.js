@@ -63,7 +63,7 @@ function createGravestoneSprite() {
   g.font = "40px Arial";
   g.textAlign = "center";
   g.textBaseline = "middle";
-  g.fillText("⚰️", 16, 24);
+  g.fillText("🪦", 16, 24);
 
   return sprite;
 }
@@ -172,6 +172,16 @@ function createMinSprite(state) {
   return sprite;
   
 }
+
+export function getDominionPos(world) {
+  if (world.currentTaskIndex < 8) return world.dominion;
+  const t = Date.now() / 1200; // Slower time base for roaming
+  return { 
+    col: 5 + (Math.sin(t) * 15) + (Math.sin(t * 0.7) * 15), 
+    row: 5 + (Math.cos(t * 0.5) * 10) + (Math.cos(t * 1.2) * 5)
+  };
+}
+
 
 
 export function updateFish(world, deltaMs) {
@@ -607,11 +617,12 @@ export function updateMins(character, mins, world) {
     }
 
     if (min.state === "returning_to_dominion") {
-      moveToward(min, dominion.col, dominion.row, 0.14);
-      const dx = min.col - dominion.col;
-      const dy = min.row - dominion.row;
+      const target = getDominionPos(world); // Get current floating position
+      moveToward(min, target.col, target.row, 0.14);
+      const dx = min.col - target.col;
+      const dy = min.row - target.row;
       if (dx * dx + dy * dy < 0.12 * 0.12) {
-        spawnNewMin(mins, dominion.col, dominion.row, "following");
+        spawnNewMin(mins, target.col, target.row, "following");
         min.state = "following";
         min.lineToken = Date.now();
       }
@@ -759,9 +770,17 @@ export function tryDepositToBox(character, box, world) {
 export function tryDepositToDominion(character, dominion, world) {
   if (character.held !== "crop") return false;
 
-  if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
+  // Calculate the "current" position on the fly
+  let { col, row } = world.dominion;
+  if (world.currentTaskIndex >= 8) {
+    const t = Date.now() / 3000;
+    col += Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
+    row += Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+  }
+
+  if (Math.hypot(character.col - col, character.row - row) <= DOMINION_INTERACTION_RADIUS) {
     character.held = null;
-    spawnNewMin(world.mins, dominion.col, dominion.row, "loose");
+    spawnNewMin(world.mins, col, row, "loose");
     return true;
   }
   return false;
@@ -1088,6 +1107,8 @@ export function updateWorld(world, deltaMs, character) {
       }
     }
   }
+
+
 
   updateFish(world, deltaMs);
 
