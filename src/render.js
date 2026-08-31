@@ -19,6 +19,7 @@ import {
 import {
   world
 } from "./game.js";
+import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {
@@ -445,10 +446,13 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 const waterMinCache = {};
+const unicornMinCache = {}; // Added cache for Unicorn Min
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
   let sprite = minSprites[min.state] || minSprites.loose;
+
+  // Handle Water Min (Blue tint)
   if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {
       const s = document.createElement("canvas"); s.width = 32; s.height = 32;
@@ -461,8 +465,23 @@ export function drawMin(ctx, min, camera, minSprites) {
     })();
     sprite = waterMinCache[min.state];
   }
+
+  // Handle Unicorn Min (Pink glow)
+  if (min.isUnicornMin) {
+    unicornMinCache[min.state] ||= (() => {
+      const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+      const g = s.getContext("2d");
+      g.shadowColor = "#ff00ff";
+      g.shadowBlur = 8;
+      g.drawImage(sprite, 0, 0);
+      return s;
+    })();
+    sprite = unicornMinCache[min.state];
+  }
+
   ctx.drawImage(sprite, p.x - 16, p.y - 22);
 }
+
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -475,6 +494,8 @@ export function drawCursor(ctx, cursor, camera, character) {
   const inRangeMin = dist - 3.75 <= TOOL_REACH_DISTANCE;
 
   ctx.save();
+
+
   ctx.translate(p.x, p.y - 6);
 
   ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
@@ -654,9 +675,11 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
     drawPlantOverlay(ctx, tile, c, r, camera);
+    
   }  
 
- 
+  drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
+
   for (const soul of world.souls) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
     const p = isoToScreen(soul.col, soul.row, camera);

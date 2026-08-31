@@ -51,6 +51,32 @@ export const SHOPKEEPER_COL = 18.5;
 export const SHOPKEEPER_ROW = 16.5;
 export const WATER_CAN_MAX = 9;
 
+export const SIGNPOST_INTERACTION_RADIUS = 1.5;
+
+export const SIGNPOSTS = [
+  { 
+    col: 23, 
+    row: 12, 
+    title: "Old Wooden Sign", 
+    text: "Welcome to the valley! Press <b>[E]</b> to use tools. Press <b>[Space]</b> to throw items." 
+  },
+  { 
+    col: 36, 
+    row: 4, 
+    title: "Pond Notice", 
+    text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+  },
+  { 
+    col: 17, 
+    row: 17, 
+    title: "Unicorp Directory", 
+    text: "Visit Emmie inside for all your corporate farming quotas and gear upgrades." 
+  }
+];
+
+
+
+
 export const TASKS = [
   { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
   { id: 'plant',   desc: 'Plant seeds',    stat: 'planted',   target: 3 },
