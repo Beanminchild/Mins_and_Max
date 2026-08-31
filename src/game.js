@@ -20,7 +20,7 @@ import {
   tryCollectSoul,
   
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, MERCHANT_TEMP_COL, MERCHANT_TEMP_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW } from "./constants.js";
 
 import { 
   showModal, 
@@ -244,8 +244,8 @@ const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: f
 export const world = createWorld();
 world.shopkeeper = shopkeeper;
 if (world.stats.given < 1) {
-  shopkeeper.col = MERCHANT_TEMP_COL;
-  shopkeeper.row = MERCHANT_TEMP_ROW;
+  shopkeeper.col = WATER_POND_COL+3;
+  shopkeeper.row = WATER_POND_ROW+2;
 } else {
   shopkeeper.col = SHOPKEEPER_COL;
   shopkeeper.row = SHOPKEEPER_ROW;
@@ -289,6 +289,12 @@ function openShop() {
   shopButtons.push(
     `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Unicorp Farm-maxxing Cert — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
+
+   // New buttons appear only if barn is bought
+  if (world.barnBought) {
+    shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
+    shopButtons.push(`<button class="shop-button" data-buy="fence">Unicorn Min — 500g</button>`);
+  }
   
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
@@ -301,7 +307,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay"</p>`,
+      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay 100000g & ${TASKS.length} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -321,6 +327,7 @@ function buyShopItem(item) {
     seeds: 5,
     min: 35,
     barn: 3000,
+    farm: 100000
    
   };
 
@@ -347,6 +354,11 @@ function buyShopItem(item) {
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
     world.stats.minObtained++;
     world.minUnlocked = true;
+  }
+  if (item === 'farm'){
+   world.stats.farmSaved++;
+
+
   }
    sfx("pick");
   //closeShop(); // we dont want to close after one pruchase

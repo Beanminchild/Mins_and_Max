@@ -198,7 +198,7 @@ canvas {
   color: #8d6e63;
 }
 
-#wallet-amount {
+#wallet-amount, #task-list {
   font-weight: 900;
   color: #2e7d32;
   font-size: 1.1rem;

@@ -49,9 +49,6 @@ export const FISH_SALE_PRICE = 150;
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 18.5; 
 export const SHOPKEEPER_ROW = 16.5;
-export const MERCHANT_TEMP_COL = 30;
-export const MERCHANT_TEMP_ROW = 5;
-
 export const WATER_CAN_MAX = 9;
 
 export const TASKS = [
@@ -70,7 +67,9 @@ export const TASKS = [
    { id: 'mC', desc: 'Deposit crops', stat: 'cropsCollected', target: 30},
    { id: 'mF', desc: 'Catch fish using min', stat: 'fishCaught', target: 1},   
    { id: 'mC2', desc: 'Deposit crops', stat: 'cropsCollected', target: 60},
-   { id: 'c', desc: 'Get Farmaxxing Cert', stat: 'certCollected', target: 1}
+   { id: 'c', desc: 'Get Farmaxxing Cert', stat: 'certCollected', target: 1},
+   { id: 'complete', desc: 'Buy Farm Back from Unicorp', stat: 'farmSaved', target: 1},
+
 
 
 

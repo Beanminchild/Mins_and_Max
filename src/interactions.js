@@ -268,7 +268,7 @@ export function createWorld() {
   return {
     box: { col: BOX_COL, row: BOX_ROW },
     dominion: { col: 38, row: 16 },
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0, certCollected: 0},
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0, certCollected: 0, farmSaved: 0},
     barnBought: false,
     axeUnlocked: false,
     minUnlocked: false,
