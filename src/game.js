@@ -181,7 +181,7 @@ function showStartMenu() {
 
   showModal({
     title: "Mins & Max Vs UniCorp",
-    bodyHtml: "<p>Agentic Farming Sim</p>",
+    bodyHtml: "",
     buttons
   });
 }
@@ -189,10 +189,10 @@ function showStartMenu() {
 function showStory(index) {
   const blurbs = [
   "Max: To save the family farm, I have to pay off Grandpa’s loans?",
-  "Emmie: Yep, or it becomes lux student apartments.",
+  "Emmie: Yep, or it becomes apartments.",
   "Max: I can't farm that fast!",
-  "Emmie: Use our new Min Tech! They're sub-agents that automate everything.",
-  "Max: Is it still farming if I do nothing?",
+  "Emmie: Use our new Min Tech! Theyre sub-agents that automate everything.",
+  "Max: Is it farming if I do nothing?",
   "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
   
 ];
@@ -287,11 +287,11 @@ function openShop() {
   const lumberHave = world.stats.lumberEver || 0;
   const barnLocked = world.barnBought || lumberHave < 50;
   shopButtons.push(
-    `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Barn — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
+    `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Unicorp Farm-maxxing Cert — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
   
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="min">Min — 35g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
   showModal({
     title: "Emmie",
     bodyHtml: `
@@ -331,6 +331,7 @@ function buyShopItem(item) {
  
   if (item === "barn") {
     world.barnBought = true;
+    world.stats.certCollected++;
   }
 
   world.wallet -= price;
@@ -347,8 +348,8 @@ function buyShopItem(item) {
     world.stats.minObtained++;
     world.minUnlocked = true;
   }
-
-  closeShop();
+   sfx("pick");
+  //closeShop(); // we dont want to close after one pruchase
 }
 
 
@@ -531,7 +532,7 @@ function loop(timestamp) {
     }
 
     // example: only start ticking after 3 tasks finished
-  const TASKS_BEFORE_TIMER_STARTS = 8;   
+  const TASKS_BEFORE_TIMER_STARTS = 10;   
 
   if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
   world.dayElapsedMs += deltaMs;

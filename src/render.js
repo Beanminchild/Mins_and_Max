@@ -429,10 +429,14 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       ctx.rotate(Math.PI / 4);
       ctx.fillRect(-10, -2, 20, 4);
     } else if (character.held === "fish") {
-      ctx.fillStyle = "#ffd54f";
-      ctx.beginPath();
-      ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // ctx.fillStyle = "#ffd54f";
+      // ctx.beginPath();
+      // ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
+      // ctx.fill();
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐠', p.x, p.y - 6);
     }
     ctx.restore();
   }
@@ -682,17 +686,10 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
       ctx.ellipse(p.x, p.y, rad, rad / 2, 0, 0, Math.PI * 2);
       ctx.stroke();
     } else if (f.phase === 'fish') {
-      ctx.fillStyle = '#ffd54f';
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y - 6, 7, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ff8f00';
-      ctx.beginPath();
-      ctx.moveTo(p.x + 6, p.y - 6);
-      ctx.lineTo(p.x + 11, p.y - 9);
-      ctx.lineTo(p.x + 11, p.y - 3);
-      ctx.closePath();
-      ctx.fill();
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐠', p.x, p.y - 6);
     }
   }
 

@@ -64,8 +64,15 @@ export const TASKS = [
   { id: 'axe',     desc: 'Use Axe to cut tree', stat: 'treesChopped', target: 1 },
   { id:'gotoshop', desc: 'Talk to Emmie @ Unicorp local HQ', stat: 'visitedShop', target: 1 },
   { id: 'firstcrops', desc: 'Deposit crops in box', stat: 'cropsCollected', target: 3},
-  { id: 'firstMin', desc: 'Buy your first Min!',  stat: 'minObtained', target: 1 },
-   { id: 'minCrops', desc: 'Deposit crops using min', stat: 'cropsCollected', target: 8},
+  { id: 'firstMin', desc: 'Give Crop to  Diamond?',  stat: 'minObtained', target: 1 },
+   { id: 'mC', desc: 'Deposit crops using min', stat: 'cropsCollected', target: 10},
+   { id: 'gpa', desc: 'Visit Gpaps Grave', stat: 'gVist', target: 1},   
+   { id: 'mC', desc: 'Deposit crops', stat: 'cropsCollected', target: 30},
+   { id: 'mF', desc: 'Catch fish using min', stat: 'fishCaught', target: 1},   
+   { id: 'mC2', desc: 'Deposit crops', stat: 'cropsCollected', target: 60},
+   { id: 'c', desc: 'Get Farmaxxing Cert', stat: 'certCollected', target: 1}
+
+
 
 ];
 

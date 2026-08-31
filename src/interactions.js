@@ -268,7 +268,7 @@ export function createWorld() {
   return {
     box: { col: BOX_COL, row: BOX_ROW },
     dominion: { col: 38, row: 16 },
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0},
+    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0, certCollected: 0},
     barnBought: false,
     axeUnlocked: false,
     minUnlocked: false,
@@ -348,14 +348,15 @@ export function tryInteractWithGravestone(character, world) {
   for (let gravestone of world.gravestones) {
     const distance = Math.hypot(character.col - gravestone.col, character.row - gravestone.row);
     if (distance <= 1.5) {
-      showGravestoneMessage(gravestone);
+      sGM(gravestone);
+      world.stats.gVist++;
       return true;
     }
   }
   return false;
 }
 
-function showGravestoneMessage(gravestone) {
+function sGM() {
   showModal({
     title: "Gravestone:",
     bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Seek thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
@@ -603,7 +604,8 @@ export function updateMins(character, mins, world) {
           else { world.lumberCollected += 1; world.stats.lumberEver = (world.stats.lumberEver || 0) + 1; }
         } else if (min.state === "carrying_fish" || min.carryingFish) {
           world.wallet += FISH_SALE_PRICE;
-          world.fishCollected += 1;
+          world.fishCaught += 1;
+          world.stats.fishCollected++;
           min.carryingFish = false;
         } else if (min.cropTL) {
           world.bonusCropsCollected++;
