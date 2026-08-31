@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mins & Max Vs UniCorp Private Equity</title>
+    <title>Mins & Max Vs UniCorp</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="shell">
     <div class="hud">
-      <h1 id="farm-name">UniCorp Farm</h1>
-        <p>WASD: Move • Click: Use/Throw • Space: Act • Mouse: Aim</p>
-       
-
+      <h1 id="farm-name"></h1>
+        <p>WASD: Move • Click: Use/Throw • Space: Act • Mouse: Aim</p>      
+     
       <div class="hud-right">
+         <div class="wallet-box"><span class='wallet-label'> Task </span><span id="task-list">...</span></div>
         <div class="wallet-box">
           <span class="wallet-label">Wallet</span>
           <span id="wallet-amount">0g</span>
@@ -26,31 +26,26 @@
             <div id="clock-hand" class="clock-hand"></div>
             <div class="clock-center"></div>
             <span id="days-left" class="days-left">15</span>
-          </div>
-
-          
-         
+          </div>         
         </div>
         </div>
       </div>
       <canvas id="game" width="960" height="640"></canvas>
-    </div>
-
-    
-    <div class="wallet-box"><span id="task-list" class="wallet-label">Loading tasks...</span></div>
+    </div>    
     <div class="inventory">
-      <button class="tool-slot" data-tool="empty-hands">✋ Hands</button>      
-      <button class="tool-slot" data-tool="hoe">🪓 Hoe</button>
-      <button class="tool-slot" data-tool="seeds">🌱 Seeds</button>
-      <button class="tool-slot" data-tool="watering-can">💧 Water</button>
-      <button class="tool-slot" data-tool="axe">Empty</button>
-      <button class="tool-slot" data-tool="min">Empty</button>
+      <button class="tool-slot" data-tool="empty-hands">✋ Hands (1)</button>      
+      <button class="tool-slot" data-tool="hoe">🪓 Hoe (2)</button>
+      <button class="tool-slot" data-tool="seeds">🌱 Seeds (3)</button>
+      <button class="tool-slot" data-tool="watering-can">💧 Water (4)</button>
+      <button class="tool-slot" data-tool="axe">x</button>
+      <button class="tool-slot" data-tool="min">x</button>
       
       
 
       <div class="crop-counter">
         🧺 Collected: <span id="crop-count">0</span>
       </div>   
+      
 
     </div>
    

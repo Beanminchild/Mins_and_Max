@@ -429,10 +429,14 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       ctx.rotate(Math.PI / 4);
       ctx.fillRect(-10, -2, 20, 4);
     } else if (character.held === "fish") {
-      ctx.fillStyle = "#ffd54f";
-      ctx.beginPath();
-      ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // ctx.fillStyle = "#ffd54f";
+      // ctx.beginPath();
+      // ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
+      // ctx.fill();
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐠', p.x, p.y - 6);
     }
     ctx.restore();
   }
@@ -440,15 +444,25 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 
+const waterMinCache = {};
+
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
-  const sprite = minSprites[min.state] || minSprites.loose;
-  ctx.drawImage(sprite, p.x - 16, p.y - 22, 32, 32);
+  let sprite = minSprites[min.state] || minSprites.loose;
   if (min.isWaterMin) {
-    ctx.fillStyle = "rgba(30, 144, 255, 0.6)";
-    ctx.fillRect(p.x - 16, p.y - 22, 32, 32);
+    waterMinCache[min.state] ||= (() => {
+      const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+      const g = s.getContext("2d");
+      g.drawImage(sprite, 0, 0);
+      g.globalCompositeOperation = "source-atop";
+      g.fillStyle = "rgba(30,144,255,0.55)";
+      g.fillRect(0, 0, 32, 32);
+      return s;
+    })();
+    sprite = waterMinCache[min.state];
   }
-} 
+  ctx.drawImage(sprite, p.x - 16, p.y - 22);
+}
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -672,17 +686,10 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
       ctx.ellipse(p.x, p.y, rad, rad / 2, 0, 0, Math.PI * 2);
       ctx.stroke();
     } else if (f.phase === 'fish') {
-      ctx.fillStyle = '#ffd54f';
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y - 6, 7, 4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ff8f00';
-      ctx.beginPath();
-      ctx.moveTo(p.x + 6, p.y - 6);
-      ctx.lineTo(p.x + 11, p.y - 9);
-      ctx.lineTo(p.x + 11, p.y - 3);
-      ctx.closePath();
-      ctx.fill();
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐠', p.x, p.y - 6);
     }
   }
 
@@ -716,6 +723,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
    
   drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);
   drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
+ 
 
   // Draw gravestones
   if (world.gravestones) {
@@ -723,10 +731,15 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
       drawGravestone(ctx, gravestone, camera, world.gravestoneSprite);
     }
   }
+  
+
+
+
 
   for (const min of mins) {
     if (min.state !== "delivered") {
-      drawMin(ctx, min, camera, world.minSprites);
+      
+        drawMin(ctx, min, camera, world.minSprites);
     }
   }
 

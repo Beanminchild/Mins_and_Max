@@ -1,22 +1,12 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
-  background:
-    radial-gradient(circle at top, #24331e 0%, #121712 56%, #0b0f0a 100%);
+  min-height: 100vh;
   color: #f2f2e8;
   font-family: system-ui, sans-serif;
-  width: 100%;
-  height: 100%;
-  --color1: rgb(108, 231, 221);
-  --color2: rgb(250, 255, 178);
-  background-color: var(--color1);
-  background-image: linear-gradient(45deg, var(--color2) 25%, transparent 25%, transparent 75%, var(--color2) 75%, var(--color2)), 
-                    linear-gradient(45deg, var(--color2) 25%, var(--color1) 25%, var(--color1) 75%, var(--color2) 75%, var(--color2));
-  background-size: 60px 60px;
-  background-position: 0 0, 30px 30px;
-}
 
+  background: conic-gradient(#6ce7dd 25%, #faffb2 0 50%, #6ce7dd 0 75%, #faffb2 0) 0 0/60px 60px;
+}
 body {
   display: grid;
   place-items: center;
@@ -89,6 +79,7 @@ canvas {
   cursor: pointer;
   font-weight: 800;
   transition: transform 0.1s;
+  position: relative;
 }
 
 .tool-slot.active {
@@ -130,7 +121,7 @@ canvas {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #fff;
-  text-shadow: 2px 2px 0 #3e2723; /* matches .hud h1 */
+  text-shadow: 2px 2px 0 #3e2723; 
 }
 
 .game-modal p {
@@ -155,19 +146,19 @@ canvas {
   color: #3e2723;
   font-weight: 800;
   font-size: 15px;
-  transition: transform 0.1s;
+  
 }
 
 .modal-btn:hover {
   transform: translateY(-2px);
 }
 
-/* Keep semantic colors but as wood-framed accents */
+
 .modal-btn--yes  { background: #a5d6a7; }
 .modal-btn--no   { background: #ef9a9a; }
 .modal-btn--close { background: #ce93d8; }
 
-.tool-slot { position: relative; }
+
 .item-count {
   position: absolute;
   bottom: 2px;
@@ -207,7 +198,7 @@ canvas {
   color: #8d6e63;
 }
 
-#wallet-amount {
+#wallet-amount, #task-list {
   font-weight: 900;
   color: #2e7d32;
   font-size: 1.1rem;
@@ -276,12 +267,12 @@ canvas {
   padding: 12px 14px;
   border: 3px solid #5d4037;        /* wood frame like .tool-slot */
   border-radius: 6px;
-  background: #a5d6a7;;
+  background: #a5d6a7;
   color: #3e2723;
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 0.1s;
+  
 }
 
 .shop-button:hover { transform: translateY(-2px); }
@@ -306,4 +297,9 @@ canvas {
   font-weight: 900;
   color: #469;
   text-align: center;
+}
+.shop-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
 }
