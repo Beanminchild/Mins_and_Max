@@ -58,26 +58,26 @@ export const SIGNPOSTS = [
   { 
     col: 23, 
     row: 12, 
-    title: "Old Wooden Sign", 
-    text: "Welcome to the Rosebud Village: In these parts we use <b>Number Keys<b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+    title: "Old Sign", 
+    text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
   },
   { 
     col: 36, 
     row: 4, 
     title: "Pond Notice", 
-    text: "Deep water! Great for filling cans or letting your Mins have a soak. Dont worry theyre IP68 water resistant, tho they hold onto a lot of water..." 
+    text: "Deep water! Great for filling cans or letting your Mins have a soak." 
   },
   { 
     col: 17, 
     row: 17, 
     title: "Unicorp Min Guide", 
-    text: " Min are powerful tech and can do a lot! We highly encourage experimentation in order to maximize productivity. Throw a min at something and watch, it might suprise u!", 
+    text: " Min are powerful tech and can do a lot! We highly encourage experimentation in order to maximize productivity.", 
   },
   {
     col: 3, 
     row: 25, 
-    title: "Fishing <b>MIN</b>-y Game (Copyright Unicorp all rights reserved)", 
-    text: "Throw min at <b>JUST</b> the right time when a fish appears! The timing is tricky but can be learned! Fish are sold instantly when depositied so if you ever need some quick cash use fish!" 
+    title: "Fish <b>MIN</b>-y Game ©", 
+    text: "Throw min at fish when it appears! The timing is tricky but u got it! Fish are sold instantly when depositied so if you ever need some quick cash, fish!" 
   }
 ];
 
