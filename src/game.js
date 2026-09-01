@@ -14,6 +14,7 @@ import {
   tryDepositToDominion,  
   tryInteractWithShop,
   tryInteractWithGravestone,
+  tryInteractWithSign,
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
@@ -293,9 +294,9 @@ function openShop() {
    // New buttons appear only if barn is bought
   if (world.barnBought) {
     shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="fence">Unicorn Min — 500g</button>`);
+    shopButtons.push(`<button class="shop-button" data-buy="unicorn_min">Unicorn Min — 500g</button>`);
   }
-  
+  shopButtons.push(`<button class="shop-button" data-buy="unicorn_min">Unicorn Min — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
   showModal({
@@ -307,7 +308,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay 100000g & ${TASKS.length} tasks left to do"</p>`,
+      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay & ${TASKS.length} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -327,7 +328,8 @@ function buyShopItem(item) {
     seeds: 5,
     min: 35,
     barn: 3000,
-    farm: 100000
+    farm: 100000,
+    unicorn_min: 5
    
   };
 
@@ -357,9 +359,21 @@ function buyShopItem(item) {
   }
   if (item === 'farm'){
    world.stats.farmSaved++;
+   elFarm.textContent = "Max's Farm";
 
 
   }
+  // ... inside buyShopItem ...
+  if (item === "unicorn_min") {
+   
+    // Spawn it
+    const m = spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
+    
+    world.stats.minObtained++;
+    sfx("pick");
+    return;
+  }
+// ...
    sfx("pick");
   //closeShop(); // we dont want to close after one pruchase
 }
@@ -397,7 +411,7 @@ function syncHUD() {
   elCrop.textContent = world.cropsCollected + world.bonusCropsCollected + world.lumberCollected;
   elDay.textContent = DAYS_LEFT;
 
-  elFarm.textContent = "Max's Farm";
+  
   elWallet.textContent = `${world.wallet}g`;
  
   updateClock();
@@ -548,6 +562,7 @@ function loop(timestamp) {
 
   if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
   world.dayElapsedMs += deltaMs;
+  elFarm.textContent = "Unicorp Farm";
     }
   world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
 
@@ -562,7 +577,7 @@ function loop(timestamp) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
-                    
+                    tryInteractWithSign(character.col, character.row)  ||                    
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world) ||
                     

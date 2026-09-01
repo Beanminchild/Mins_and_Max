@@ -51,6 +51,37 @@ export const SHOPKEEPER_COL = 18.5;
 export const SHOPKEEPER_ROW = 16.5;
 export const WATER_CAN_MAX = 9;
 
+export const SIGNPOST_INTERACTION_RADIUS = 1.5;
+
+export const SIGNPOSTS = [
+  { 
+    col: 23, 
+    row: 12, 
+    title: "Old Wooden Sign", 
+    text: "Welcome to the Rosebud Village: In these parts we <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!." 
+  },
+  { 
+    col: 36, 
+    row: 4, 
+    title: "Pond Notice", 
+    text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+  },
+  { 
+    col: 17, 
+    row: 17, 
+    title: "Unicorp Min Guide", 
+    text: " Min are powerful tech and can do a lot! We highly encourage experimentation in order to find novel  ways to maximize productivity. Throw a min at something and see what it does, it might suprise u!", 
+
+    col: 3, 
+    row: 25, 
+    title: "Fishing <b>MIN</b>-y Game (Copyright Unicorp all rights reserved)", 
+    text: "To fish, throw min at <b>JUST</b> the right time when a fish appears! The timing is tricky but can be learned! Fish are sold instantly when depositied so if you ever need some quick cash use fish!" 
+  }
+];
+
+
+
+
 export const TASKS = [
   { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
   { id: 'plant',   desc: 'Plant seeds',    stat: 'planted',   target: 3 },

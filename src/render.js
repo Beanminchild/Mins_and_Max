@@ -19,6 +19,7 @@ import {
 import {
   world
 } from "./game.js";
+import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {
@@ -183,13 +184,16 @@ export function drawBox(ctx, box, camera) {
 }
 
 export function drawDominion(ctx, dominion, camera) {
-  if (!dominionSprite) dominionSprite = createCachedSprite(g => {
-    g.translate(32, 32);
-    g.fillStyle = "#455a64"; g.beginPath(); g.moveTo(-25, 0); g.lineTo(0, 12); g.lineTo(25, 0); g.lineTo(0, -12); g.fill();
-  });
-  const p = isoToScreen(dominion.col, dominion.row, camera);
-  ctx.drawImage(dominionSprite, p.x - 32, p.y - 32);
+  if (!dominionSprite) dominionSprite = createCachedSprite(g => { /* ... */ });
+  
+  let { col, row } = dominion;
+  if (world.currentTaskIndex >= 8) {
+    const t = Date.now() / 3000;
+    col += Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
+    row += Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+  }
 
+  const p = isoToScreen(col, row, camera);
   const bob = Math.sin(Date.now() / 500) * 5;
   ctx.save();
   ctx.translate(p.x, p.y - 25 + bob);
@@ -445,10 +449,13 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 const waterMinCache = {};
+const unicornMinCache = {}; // Added cache for Unicorn Min
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
   let sprite = minSprites[min.state] || minSprites.loose;
+
+  // Handle Water Min (Blue tint)
   if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {
       const s = document.createElement("canvas"); s.width = 32; s.height = 32;
@@ -461,8 +468,23 @@ export function drawMin(ctx, min, camera, minSprites) {
     })();
     sprite = waterMinCache[min.state];
   }
+
+  // Handle Unicorn Min (Pink glow)
+  if (min.isUnicornMin) {
+    unicornMinCache[min.state] ||= (() => {
+      const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+      const g = s.getContext("2d");
+      g.shadowColor = "#ff00ff";
+      g.shadowBlur = 8;
+      g.drawImage(sprite, 0, 0);
+      return s;
+    })();
+    sprite = unicornMinCache[min.state];
+  }
+
   ctx.drawImage(sprite, p.x - 16, p.y - 22);
 }
+
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -475,6 +497,8 @@ export function drawCursor(ctx, cursor, camera, character) {
   const inRangeMin = dist - 3.75 <= TOOL_REACH_DISTANCE;
 
   ctx.save();
+
+
   ctx.translate(p.x, p.y - 6);
 
   ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
@@ -654,9 +678,11 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
     drawPlantOverlay(ctx, tile, c, r, camera);
+    
   }  
 
- 
+  drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
+
   for (const soul of world.souls) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
     const p = isoToScreen(soul.col, soul.row, camera);

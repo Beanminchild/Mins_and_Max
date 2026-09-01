@@ -30,7 +30,8 @@ import {
   FISH_CATCH_RADIUS,
   FISH_SALE_PRICE,
   POND_MIN_SOAK_MS,
-  
+  SIGNPOSTS, 
+  SIGNPOST_INTERACTION_RADIUS 
   
 } from "./constants.js";
 
@@ -62,7 +63,7 @@ function createGravestoneSprite() {
   g.font = "40px Arial";
   g.textAlign = "center";
   g.textBaseline = "middle";
-  g.fillText("⚰️", 16, 24);
+  g.fillText("🪦", 16, 24);
 
   return sprite;
 }
@@ -119,7 +120,7 @@ function createMinSprite(state) {
   g.fillStyle = isFollowing ? "#f7c873" : "#8c5b2b";
   
   if (state === "going_to_box" || state === "returning_to_dominion") {
-    g.fillStyle = "#2ee88b";
+    g.fillStyle = "#b8f3dc";
   }
 
   if (state === "tree_cutting") {
@@ -171,6 +172,16 @@ function createMinSprite(state) {
   return sprite;
   
 }
+
+export function getDominionPos(world) {
+  if (world.currentTaskIndex < 8) return world.dominion;
+  const t = Date.now() / 1200; // Slower time base for roaming
+  return { 
+    col: 5 + (Math.sin(t) * 15) + (Math.sin(t * 0.7) * 15), 
+    row: 5 + (Math.cos(t * 0.5) * 10) + (Math.cos(t * 1.2) * 5)
+  };
+}
+
 
 
 export function updateFish(world, deltaMs) {
@@ -240,7 +251,8 @@ export function createWorld() {
         stage: PLANT_STAGES.EMPTY,
         variant: TL ? "decay" : null,
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
-                 (TR && (col === 21 || col === cols - 1 || row === 0 || row === 14)),
+                 (TR && (col === 21 || col === cols - 1 || row === 0 || row === 14)||
+                 (TL && (col === 14 || col === cols - 1 || row === 0 || row === 14))),
         treeHealth: TREE_SWINGS_TO_FELL,
         
       };
@@ -304,7 +316,38 @@ export function createWorld() {
   };
 }
 
-// ... existing functions ...
+
+export function tryInteractWithSign(playerCol, playerRow) {
+  for (const sign of SIGNPOSTS) {
+    const dx = playerCol - sign.col;
+    const dy = playerRow - sign.row;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < SIGNPOST_INTERACTION_RADIUS) {
+      showModal({
+        title: sign.title,
+        bodyHtml: `<p>${sign.text}</p>`,
+        buttons: [{ label: "Close", className: "primary" }]
+      });
+      return true; // Interaction handled
+    }
+  }
+  return false;
+}
+
+/**
+ * Call this in your main draw loop
+ * ctx: CanvasRenderingContext2D
+ * worldToCanvas: helper function to convert col/row to px
+ */
+export function drawSignposts(ctx, worldToCanvas) {
+  ctx.font = "24px serif";
+  ctx.textAlign = "center";
+  for (const sign of SIGNPOSTS) {
+    const { x, y } = worldToCanvas(sign.col, sign.row);
+    ctx.fillText("🪧", x, y);
+  }
+}
 
 export function tryInteractWithShop(character, world) {
   if (!world.shopkeeper) return false;
@@ -398,6 +441,7 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
     row: row,
     state: initialState,
     atHome:true,
+    isUnicornMin: false,
     lineToken: Date.now(),
     followIndex: 0,
     target: null,
@@ -545,7 +589,7 @@ export function updateMins(character, mins, world) {
       }
     }
 
-    // --- Dominion Automation Logic ---
+// --- Dominion Automation Logic ---
     if (min.state === "thrown") {
       const dx = min.col - dominion.col;
       const dy = min.row - dominion.row;
@@ -553,6 +597,10 @@ export function updateMins(character, mins, world) {
         min.state = "going_to_box";
       }
     }
+
+
+
+    
 
     if (min.state === "going_to_box") {
       moveToward(min, box.col, box.row, 0.14);
@@ -569,11 +617,12 @@ export function updateMins(character, mins, world) {
     }
 
     if (min.state === "returning_to_dominion") {
-      moveToward(min, dominion.col, dominion.row, 0.14);
-      const dx = min.col - dominion.col;
-      const dy = min.row - dominion.row;
+      const target = getDominionPos(world); // Get current floating position
+      moveToward(min, target.col, target.row, 0.14);
+      const dx = min.col - target.col;
+      const dy = min.row - target.row;
       if (dx * dx + dy * dy < 0.12 * 0.12) {
-        spawnNewMin(mins, dominion.col, dominion.row, "following");
+        spawnNewMin(mins, target.col, target.row, "following");
         min.state = "following";
         min.lineToken = Date.now();
       }
@@ -626,6 +675,8 @@ export function updateMins(character, mins, world) {
         const tRow = target.row|0;
         const tile = world.tiles[tRow]?.[tCol];
 
+          
+
         const activeFish = world.fishEvents.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
         if (!min.isDelivering && activeFish) {
           world.fishEvents = world.fishEvents.filter(f=>f!==activeFish);
@@ -660,11 +711,14 @@ export function updateMins(character, mins, world) {
           return; 
         }
     }
-
-      }
-        
+    }     
         
      
+
+    
+
+    
+
       
     
   
@@ -716,9 +770,17 @@ export function tryDepositToBox(character, box, world) {
 export function tryDepositToDominion(character, dominion, world) {
   if (character.held !== "crop") return false;
 
-  if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
+  // Calculate the "current" position on the fly
+  let { col, row } = world.dominion;
+  if (world.currentTaskIndex >= 8) {
+    const t = Date.now() / 3000;
+    col += Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
+    row += Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+  }
+
+  if (Math.hypot(character.col - col, character.row - row) <= DOMINION_INTERACTION_RADIUS) {
     character.held = null;
-    spawnNewMin(world.mins, dominion.col, dominion.row, "loose");
+    spawnNewMin(world.mins, col, row, "loose");
     return true;
   }
   return false;
@@ -820,7 +882,7 @@ export function throwMin(character, mins, box, cursor = null) {
 
   if (!availableMin) return null; 
 
-
+ 
   availableMin.throwOrigin = { col: character.col, row: character.row };
   availableMin.throwDistance = 0;
   availableMin.landed = false;
@@ -1045,6 +1107,8 @@ export function updateWorld(world, deltaMs, character) {
       }
     }
   }
+
+
 
   updateFish(world, deltaMs);
 
