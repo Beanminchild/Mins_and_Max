@@ -14,6 +14,7 @@ import {
   tryDepositToDominion,  
   tryInteractWithShop,
   tryInteractWithGravestone,
+  tryInteractWithSign,
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
@@ -59,6 +60,7 @@ function saveGame() {
     axeUnlocked: world.axeUnlocked,
     minUnlocked: world.minUnlocked,
     barnBought: world.barnBought,
+    hasBigHoe: world.hasBigHoe,
     selectedTool: world.selectedTool,
     cropsCollected: world.cropsCollected,
     bonusCropsCollected: world.bonusCropsCollected,
@@ -73,7 +75,7 @@ function saveGame() {
     souls: world.souls,
     gravestones: world.gravestones,
     lumber: world.lumber,
-    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin })),
+    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin, isRainbowMin:m.isRainbowMins })),
     
     minInventory: world.minInventory || 0,
     allTasksDone: world.allTasksDone || false,
@@ -92,7 +94,7 @@ function loadGame() {
     dayNumber: d.dayNumber, seedInventory: d.seedInventory, waterCanFillAmount: d.waterCanFillAmount,
     axeUnlocked: d.axeUnlocked, minUnlocked: d.minUnlocked, barnBought: d.barnBought,
     selectedTool: d.selectedTool, cropsCollected: d.cropsCollected, bonusCropsCollected: d.bonusCropsCollected,
-    lumberCollected: d.lumberCollected, fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
+    lumberCollected: d.lumberCollected,hasBigHoe: d.hasBigHoe,fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
     souls: d.souls, gravestones: d.gravestones, lumber: d.lumber,minInventory: d.minInventory || 0,
     allTasksDone: d.allTasksDone || false,
   });
@@ -293,9 +295,10 @@ function openShop() {
    // New buttons appear only if barn is bought
   if (world.barnBought) {
     shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="fence">Unicorn Min — 500g</button>`);
+    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 500g</button>`);
   }
-  
+  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
   showModal({
@@ -307,7 +310,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay 100000g & ${TASKS.length} tasks left to do"</p>`,
+      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay & ${TASKS.length} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -327,7 +330,9 @@ function buyShopItem(item) {
     seeds: 5,
     min: 35,
     barn: 3000,
-    farm: 100000
+    farm: 100000,
+    rainbow_min: 5,
+    big_hoe: 5
    
   };
 
@@ -339,6 +344,7 @@ function buyShopItem(item) {
   if (item === "barn") {
     world.barnBought = true;
     world.stats.certCollected++;
+    
   }
 
   world.wallet -= price;
@@ -346,6 +352,7 @@ function buyShopItem(item) {
   if (item === "seeds") {
     world.selectedTool = "seeds";
     world.seedInventory = (world.seedInventory || 0) + 1;
+    sfx("pick")
   }
 
   if (item === "min") {
@@ -354,12 +361,32 @@ function buyShopItem(item) {
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
     world.stats.minObtained++;
     world.minUnlocked = true;
+    sfx("pick");
   }
   if (item === 'farm'){
    world.stats.farmSaved++;
+   elFarm.textContent = "Max's Farm";
+   sfx("success");
 
 
   }
+  if (item === "big_hoe") {
+    world.hasBigHoe = true;
+    world.wallet -= priceMap.big_hoe;
+    sfx("success");
+  }
+  // ... inside buyShopItem ...
+  // ... inside buyShopItem ...
+  if (item === "rainbow_min") {
+    const m = spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
+    m.isRainbowMin = true;
+    m.isWaterMin = true; // It has Water Min ability
+    world.stats.minObtained++;
+    sfx("success");
+    return;
+  }
+// ...
+// ...
    sfx("pick");
   //closeShop(); // we dont want to close after one pruchase
 }
@@ -373,6 +400,7 @@ function syncHUD() {
     slot.classList.toggle("active", toolName === world.selectedTool);
 
     if (toolName === "axe") slot.textContent = world.axeUnlocked ? "(5) 🪓 Axe" : "Empty";
+    if (toolName === "hoe") slot.textContent = world.hasBigHoe ? "(2) ⛏️ Big Hoe" : "(2) ⛏️ Hoe";
     else if (toolName === "min") slot.textContent = world.minUnlocked ? "(6) 🤖 Min" : "Empty";
 
     let txt = null;
@@ -397,7 +425,7 @@ function syncHUD() {
   elCrop.textContent = world.cropsCollected + world.bonusCropsCollected + world.lumberCollected;
   elDay.textContent = DAYS_LEFT;
 
-  elFarm.textContent = "Max's Farm";
+  
   elWallet.textContent = `${world.wallet}g`;
  
   updateClock();
@@ -548,6 +576,7 @@ function loop(timestamp) {
 
   if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
   world.dayElapsedMs += deltaMs;
+  elFarm.textContent = "Unicorp Farm";
     }
   world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
 
@@ -562,7 +591,7 @@ function loop(timestamp) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
-                    
+                    tryInteractWithSign(character.col, character.row)  ||                    
                     tryDepositToBox(character, world.box, world) ||
                     tryDepositToDominion(character, world.dominion, world) ||
                     

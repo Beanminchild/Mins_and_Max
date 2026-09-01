@@ -19,6 +19,7 @@ import {
 import {
   world
 } from "./game.js";
+import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {
@@ -445,10 +446,42 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 const waterMinCache = {};
+const unicornMinCache = {}; // Added cache for Unicorn Min
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
   let sprite = minSprites[min.state] || minSprites.loose;
+
+// ... existing code ...
+
+// ... existing code ...
+
+// Handle Rainbow Min
+if (min.isRainbowMin) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Create a rainbow gradient across the fill area
+  const time = Date.now() / 1000;
+  const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
+  grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
+  grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
+  grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
+  
+  ctx.fillStyle = grad;
+  ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
+  
+  ctx.restore();
+}
+
+// ... existing code ...
+
+// ... existing code ...
+
+  
+  // Handle Water Min (Blue tint)
   if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {
       const s = document.createElement("canvas"); s.width = 32; s.height = 32;
@@ -460,9 +493,11 @@ export function drawMin(ctx, min, camera, minSprites) {
       return s;
     })();
     sprite = waterMinCache[min.state];
-  }
+  }  
+
   ctx.drawImage(sprite, p.x - 16, p.y - 22);
 }
+
 
 export function drawCursor(ctx, cursor, camera, character) {
   if (!cursor) return;
@@ -475,6 +510,8 @@ export function drawCursor(ctx, cursor, camera, character) {
   const inRangeMin = dist - 3.75 <= TOOL_REACH_DISTANCE;
 
   ctx.save();
+
+
   ctx.translate(p.x, p.y - 6);
 
   ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
@@ -654,9 +691,11 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
     drawPlantOverlay(ctx, tile, c, r, camera);
+    
   }  
 
- 
+  drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
+
   for (const soul of world.souls) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
     const p = isoToScreen(soul.col, soul.row, camera);

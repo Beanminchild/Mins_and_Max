@@ -31,6 +31,7 @@ export const WATER_POND_ROW = 3;
 
 
 
+
 export const POND_MIN_SOAK_MS = 2 * 60 * 1000; // 2 minutes real time in pond
 
 
@@ -50,6 +51,38 @@ export const FISH_SALE_PRICE = 150;
 export const SHOPKEEPER_COL = 18.5; 
 export const SHOPKEEPER_ROW = 16.5;
 export const WATER_CAN_MAX = 9;
+
+export const SIGNPOST_INTERACTION_RADIUS = 1.5;
+
+export const SIGNPOSTS = [
+  { 
+    col: 23, 
+    row: 12, 
+    title: "Old Sign", 
+    text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+  },
+  { 
+    col: 36, 
+    row: 4, 
+    title: "Pond Notice", 
+    text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+  },
+  { 
+    col: 17, 
+    row: 17, 
+    title: "Unicorp Min Guide", 
+    text: " Min are powerful tech and can do a lot! We highly encourage experimentation in order to maximize productivity.", 
+  },
+  {
+    col: 3, 
+    row: 25, 
+    title: "Fish <b>MIN</b>-y Game ©", 
+    text: "Throw min at fish when it appears! The timing is tricky but u got it! Fish are sold instantly when depositied so if you ever need some quick cash, fish!" 
+  }
+];
+
+
+
 
 export const TASKS = [
   { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
