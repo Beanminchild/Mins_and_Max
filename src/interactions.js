@@ -616,6 +616,14 @@ export function updateMins(character, mins, world) {
         min.lineToken = Date.now();
       }
     }
+// Track reserved tiles to prevent overlap
+  const reservedTiles = new Set();
+  mins.forEach(m => {
+    if (m.state === "harvesting" && m.targetTile) {
+      reservedTiles.add(`${m.targetTile.col},${m.targetTile.row}`);
+    }
+  });
+
 
     // --- Standard Actions ---
     if (min.state === "thrown") {
@@ -663,8 +671,24 @@ export function updateMins(character, mins, world) {
         const tCol = target.col|0;
         const tRow = target.row|0;
         const tile = world.tiles[tRow]?.[tCol];
+        const tileKey = `${tCol},${tRow}`;
 
+           // --- NEW: Rainbow Min Planting Logic ---
+        if (!min.isDelivering && min.isRainbowMin && tile && tile.type === TILE_TYPES.DIRT && !tile.planted && world.seedInventory > 0 && !reservedTiles.has(tileKey)) {
           
+          tile.planted = true;
+          tile.watered = true;
+          tile.stage = PLANT_STAGES.SEED;
+          world.seedInventory -= 1;
+          min.isWaterMin = true; 
+          min.state = "harvesting";
+          min.targetTile = { col: tCol, row: tRow };
+          min.col = tCol + 0.5;
+          min.row = tRow + 0.5;
+          min.landed = true;
+          reservedTiles.add(tileKey);
+          return; 
+        }
 
         const activeFish = world.fishEvents.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
         if (!min.isDelivering && activeFish) {
@@ -675,12 +699,13 @@ export function updateMins(character, mins, world) {
           return;
         }
 
-        if (!min.isDelivering && tile && tile.planted) {
+        if (!min.isDelivering && tile && tile.planted && !reservedTiles.has(tileKey)) {
           if (min.isWaterMin && !tile.watered) tile.watered = true;
           min.state = "harvesting";
           min.targetTile = { col: tCol, row: tRow };
           min.col = tCol + 0.5;
           min.row = tRow + 0.5;
+          reservedTiles.add(tileKey); // Reserve immediately
           
         } else if (!min.isDelivering && tile && tile.hasTree) {
           min.state = "tree_cutting";
@@ -706,6 +731,7 @@ export function updateMins(character, mins, world) {
     
   
 
+     
     // --- UNIFIED HARVESTING & UNICORN LOGIC ---
         if (min.state === "harvesting") {
       const tile = world.tiles[min.targetTile.row][min.targetTile.col];

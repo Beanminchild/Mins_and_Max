@@ -75,7 +75,7 @@ function saveGame() {
     souls: world.souls,
     gravestones: world.gravestones,
     lumber: world.lumber,
-    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin })),
+    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin, isRainbowMin:m.isRainbowMins })),
     
     minInventory: world.minInventory || 0,
     allTasksDone: world.allTasksDone || false,
@@ -295,9 +295,9 @@ function openShop() {
    // New buttons appear only if barn is bought
   if (world.barnBought) {
     shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="unicorn_min">Unicorn Min — 500g</button>`);
+    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 500g</button>`);
   }
-  shopButtons.push(`<button class="shop-button" data-buy="unicorn_min">Unicorn Min — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
@@ -331,7 +331,7 @@ function buyShopItem(item) {
     min: 35,
     barn: 3000,
     farm: 100000,
-    unicorn_min: 5,
+    rainbow_min: 5,
     big_hoe: 5
    
   };
@@ -376,15 +376,16 @@ function buyShopItem(item) {
     sfx("success");
   }
   // ... inside buyShopItem ...
-  if (item === "unicorn_min") {
-   
-    // Spawn it
+  // ... inside buyShopItem ...
+  if (item === "rainbow_min") {
     const m = spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
-   
+    m.isRainbowMin = true;
+    m.isWaterMin = true; // It has Water Min ability
     world.stats.minObtained++;
-    sfx("pick");
+    sfx("success");
     return;
   }
+// ...
 // ...
    sfx("pick");
   //closeShop(); // we dont want to close after one pruchase
