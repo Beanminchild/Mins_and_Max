@@ -681,6 +681,7 @@ export function updateMins(character, mins, world) {
           min.targetTile = { col: tCol, row: tRow };
           min.col = tCol + 0.5;
           min.row = tRow + 0.5;
+          
         } else if (!min.isDelivering && tile && tile.hasTree) {
           min.state = "tree_cutting";
           min.cuttingTreeCol = tCol;
@@ -698,21 +699,15 @@ export function updateMins(character, mins, world) {
             settleMin(min);
           }
           return; 
-        }
+               }
     }
     }     
-        
-     
-
-    
-
-    
-
-      
+             
     
   
 
-    if (min.state === "harvesting") {
+    // --- UNIFIED HARVESTING & UNICORN LOGIC ---
+        if (min.state === "harvesting") {
       const tile = world.tiles[min.targetTile.row][min.targetTile.col];
       if (tile.stage === PLANT_STAGES.CROP) {
         tile.planted = false;
@@ -726,8 +721,12 @@ export function updateMins(character, mins, world) {
       }
     }
   });
-}
+}    
 
+
+
+
+  
 
 
 
@@ -934,21 +933,28 @@ export function useToolAtCursor(world, cursor, character) {
     if (!buriedSoul) return false;
   } 
 
+ 
   if (world.selectedTool === TOOL_TYPES.HOE) {
-    // Prevent hoe on tiles with trees
-    if (tile.variant === "decay" && world.soulsCollected < 3) return false;
-    if (tile.hasTree) return false;
-    sfx('chop');
+    // Determine if we hoe 1 tile or 5 (cross pattern)
+    const pattern = world.hasBigHoe ? [[0,0], [0,-1], [0,1], [-1,0], [1,0]] : [[0,0]];
+    let hoedSomething = false;
     
-    tile.type = TILE_TYPES.DIRT;
-    tile.planted = false;
-    tile.watered = false;
-    tile.growth = 0;
-    tile.stage = PLANT_STAGES.EMPTY;
-    if (buriedSoul) buriedSoul.revealed = true; // dig up!
-    world.stats.hoed++;
-    return true;
+    for (const [dx, dy] of pattern) {
+      const targetTile = world.tiles[row + dy]?.[col + dx];
+      if (targetTile && targetTile.type !== TILE_TYPES.STONE && !targetTile.hasTree) {
+        targetTile.type = TILE_TYPES.DIRT;
+        targetTile.planted = false;
+        targetTile.watered = false;
+        targetTile.growth = 0;
+        targetTile.stage = PLANT_STAGES.EMPTY;
+        world.stats.hoed++;
+        hoedSomething = true;
+      }
+    }
+    if (hoedSomething) sfx('chop');
+    return hoedSomething;
   }
+// ... existing code ...
 
   if (world.selectedTool === TOOL_TYPES.SEEDS) {
     if (tile.type === TILE_TYPES.DIRT && !tile.planted && world.seedInventory > 0) {
@@ -1062,8 +1068,10 @@ export function tryPickupLumber(character, world) {
   return false;
 }
 
+
+
 export function updateWorld(world, deltaMs, character) {
-  // 1. Handle Crop Growth (only scan if something is actually growing)
+  // 1. Handle Crop Growth
   let growing = false;
   for (let row = 0; row < rows && !growing; row++) {
     for (let col = 0; col < cols; col++) {
@@ -1089,6 +1097,15 @@ export function updateWorld(world, deltaMs, character) {
     }
   }
 
-  updateFish(world, deltaMs);
+  // 2. Update dominion position directly if task index >= 8
+  // This modifies the object so all interaction/render calls use the new position
+  if (world.stats.minObtained >= 1) {
+    const t = Date.now() / 3000;
+    world.dominion.col = 38 + Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
+    world.dominion.row = 16 + Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+  }
 
+  // 3. Handle fish
+  updateFish(world, deltaMs);
 }
+

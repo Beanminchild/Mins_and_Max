@@ -60,6 +60,7 @@ function saveGame() {
     axeUnlocked: world.axeUnlocked,
     minUnlocked: world.minUnlocked,
     barnBought: world.barnBought,
+    hasBigHoe: world.hasBigHoe,
     selectedTool: world.selectedTool,
     cropsCollected: world.cropsCollected,
     bonusCropsCollected: world.bonusCropsCollected,
@@ -93,7 +94,7 @@ function loadGame() {
     dayNumber: d.dayNumber, seedInventory: d.seedInventory, waterCanFillAmount: d.waterCanFillAmount,
     axeUnlocked: d.axeUnlocked, minUnlocked: d.minUnlocked, barnBought: d.barnBought,
     selectedTool: d.selectedTool, cropsCollected: d.cropsCollected, bonusCropsCollected: d.bonusCropsCollected,
-    lumberCollected: d.lumberCollected, fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
+    lumberCollected: d.lumberCollected,hasBigHoe: d.hasBigHoe,fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
     souls: d.souls, gravestones: d.gravestones, lumber: d.lumber,minInventory: d.minInventory || 0,
     allTasksDone: d.allTasksDone || false,
   });
@@ -297,6 +298,7 @@ function openShop() {
     shopButtons.push(`<button class="shop-button" data-buy="unicorn_min">Unicorn Min — 500g</button>`);
   }
   shopButtons.push(`<button class="shop-button" data-buy="unicorn_min">Unicorn Min — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
   showModal({
@@ -329,7 +331,8 @@ function buyShopItem(item) {
     min: 35,
     barn: 3000,
     farm: 100000,
-    unicorn_min: 5
+    unicorn_min: 5,
+    big_hoe: 5
    
   };
 
@@ -341,6 +344,7 @@ function buyShopItem(item) {
   if (item === "barn") {
     world.barnBought = true;
     world.stats.certCollected++;
+    
   }
 
   world.wallet -= price;
@@ -348,6 +352,7 @@ function buyShopItem(item) {
   if (item === "seeds") {
     world.selectedTool = "seeds";
     world.seedInventory = (world.seedInventory || 0) + 1;
+    sfx("pick")
   }
 
   if (item === "min") {
@@ -356,19 +361,26 @@ function buyShopItem(item) {
     spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
     world.stats.minObtained++;
     world.minUnlocked = true;
+    sfx("pick");
   }
   if (item === 'farm'){
    world.stats.farmSaved++;
    elFarm.textContent = "Max's Farm";
+   sfx("success");
 
 
+  }
+  if (item === "big_hoe") {
+    world.hasBigHoe = true;
+    world.wallet -= priceMap.big_hoe;
+    sfx("success");
   }
   // ... inside buyShopItem ...
   if (item === "unicorn_min") {
    
     // Spawn it
     const m = spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
-    
+   
     world.stats.minObtained++;
     sfx("pick");
     return;
@@ -387,6 +399,7 @@ function syncHUD() {
     slot.classList.toggle("active", toolName === world.selectedTool);
 
     if (toolName === "axe") slot.textContent = world.axeUnlocked ? "(5) 🪓 Axe" : "Empty";
+    if (toolName === "hoe") slot.textContent = world.hasBigHoe ? "(2) ⛏️ Big Hoe" : "(2) ⛏️ Hoe";
     else if (toolName === "min") slot.textContent = world.minUnlocked ? "(6) 🤖 Min" : "Empty";
 
     let txt = null;
