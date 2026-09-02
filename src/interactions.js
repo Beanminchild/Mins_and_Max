@@ -332,7 +332,7 @@ export function tryInteractWithGravestone(character, world) {
         bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
         buttons: [{ label: "Hm", className: "modal-btn--close" }],
       });
-      world.s[8]++;
+      world.s[12]++;
       return true;
     }
   }

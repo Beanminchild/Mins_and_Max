@@ -447,43 +447,31 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 const waterMinCache = {};
-const unicornMinCache = {}; // Added cache for Unicorn Min
+//const unicornMinCache = {}; // Added cache for Unicorn Min
+
+// ... existing code ...
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
   let sprite = minSprites[min.state] || minSprites.loose;
 
-// ... existing code ...
-
-// ... existing code ...
-
-// Handle Rainbow Min
-if (min.isRainbowMin) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
-  ctx.clip();
-
-  // Create a rainbow gradient across the fill area
-  const time = Date.now() / 1000;
-  const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
-  grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
-  grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
-  grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
-  
-  ctx.fillStyle = grad;
-  ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
-  
-  ctx.restore();
-}
-
-// ... existing code ...
-
-// ... existing code ...
-
-  
-  // Handle Water Min (Blue tint)
-  if (min.isWaterMin) {
+  // Handle Rainbow Min first
+  if (min.isRainbowMin) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
+    ctx.clip();
+    const time = Date.now() / 1000;
+    const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
+    grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
+    grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
+    grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
+    ctx.restore();
+  } 
+  // Only apply water tint if it's NOT a rainbow min
+  else if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {
       const s = document.createElement("canvas"); s.width = 32; s.height = 32;
       const g = s.getContext("2d");

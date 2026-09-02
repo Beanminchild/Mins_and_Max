@@ -435,7 +435,7 @@ function updateTaskHUD() {
       world.A = true;
       showModal({
         title: "Victory!",
-        bodyHtml: "<p>You got the farm back from Unicorp!</p>",
+        bodyHtml: "<p>You got the farm back!</p>",
         buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
       });
     }

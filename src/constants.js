@@ -55,29 +55,24 @@ export const WATER_CAN_MAX = 9;
 export const SIGNPOST_INTERACTION_RADIUS = 1.5;
 
 export const SIGNPOSTS = [
-  { 
-    col: 23, 
-    row: 12, 
-    title: "Old Sign", 
-    text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
-  },
+  // { 
+  //   col: 23, 
+  //   row: 12, 
+  //   title: "Old Sign", 
+  //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+  // },
   { 
     col: 36, 
     row: 4, 
     title: "Notice", 
     text: "Deep water! Great for filling cans or letting your Mins have a soak." 
   },
-  { 
-    col: 17, 
-    row: 17, 
-    title: "Unicorp Min Guide", 
-    text: " Min are powerful tech and can do a lot! We highly encourage experimentation in order to maximize productivity.", 
-  },
+  
   {
     col: 3, 
     row: 25, 
     title: "Fish <b>MIN</b>-y Game ©", 
-    text: "Throw min at fish when it appears! The timing is tricky but u got it! Fish are sold instantly when depositied so if you ever need some quick cash, fish!" 
+    text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
   }
 ];
 
@@ -97,6 +92,7 @@ export const TASKS = [
   { id: 'firstMin',   desc: 'Give Crop to Diamond?', stat: 6, target: 1 },
   { id: 'mC',         desc: 'Deposit crops using Min', stat: 9, target: 10 },
   { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 },
+  
   { id: 'mC',         desc: 'Deposit crops',       stat: 9, target: 30 },
   { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },
   { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 60 },
