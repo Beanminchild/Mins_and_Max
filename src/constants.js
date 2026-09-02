@@ -23,7 +23,7 @@ export const BOX_INTERACTION_RADIUS = 2.75;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = 1.5;
+export const DOMINION_INTERACTION_RADIUS = 1.0;
 
 export const WATER_POND_COL = 35;
 export const WATER_POND_ROW = 3;
@@ -64,7 +64,7 @@ export const SIGNPOSTS = [
   { 
     col: 36, 
     row: 4, 
-    title: "Pond Notice", 
+    title: "Notice", 
     text: "Deep water! Great for filling cans or letting your Mins have a soak." 
   },
   { 
@@ -87,15 +87,15 @@ export const SIGNPOSTS = [
 export const TASKS = [
   { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
   { id: 'plant',   desc: 'Plant seeds',    stat: 'planted',   target: 3 },
-  { id: 'fillwater', desc: 'Fill water can in Pond', stat: 'filledWater', target: 3 },
+  { id: 'fillwater', desc: 'Fill water', stat: 'filledWater', target: 3 },
   { id: 'water',   desc: 'Water seeds',    stat: 'watered',   target: 3 },
   { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
   { id: 'give',    desc: 'Give crop to Emmie', stat: 'given',  target: 1 },
   { id: 'axe',     desc: 'Use Axe to cut tree', stat: 'treesChopped', target: 1 },
-  { id:'gotoshop', desc: 'Talk to Emmie @ Unicorp local HQ', stat: 'visitedShop', target: 1 },
+  { id:'gotoshop', desc: 'Go to Unicorp HQ', stat: 'visitedShop', target: 1 },
   { id: 'firstcrops', desc: 'Deposit crops in box', stat: 'cropsCollected', target: 3},
   { id: 'firstMin', desc: 'Give Crop to  Diamond?',  stat: 'minObtained', target: 1 },
-   { id: 'mC', desc: 'Deposit crops using min', stat: 'cropsCollected', target: 10},
+   { id: 'mC', desc: 'Deposit crops using Min', stat: 'cropsCollected', target: 10},
    { id: 'gpa', desc: 'Visit Gpaps Grave', stat: 'gVist', target: 1},   
    { id: 'mC', desc: 'Deposit crops', stat: 'cropsCollected', target: 30},
    { id: 'mF', desc: 'Catch fish using min', stat: 'fishCaught', target: 1},   

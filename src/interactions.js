@@ -54,19 +54,7 @@ function createTreeSprite() {
 }
 
 
-function createGravestoneSprite() {
-  const sprite = document.createElement("canvas");
-  sprite.width = 32;
-  sprite.height = 48;
-  const g = sprite.getContext("2d");
-
-  g.font = "40px Arial";
-  g.textAlign = "center";
-  g.textBaseline = "middle";
-  g.fillText("⚰️", 16, 24);
-
-  return sprite;
-}
+ 
 
 // function createGravestoneSprite() {
 //   const sprite = document.createElement("canvas");
@@ -251,7 +239,7 @@ export function createWorld() {
 
   
   const treeSprite = createTreeSprite();
-  const gravestoneSprite = createGravestoneSprite();
+  
   const minSprites = {
     loose: createMinSprite("loose"),
     following: createMinSprite("following"),
@@ -286,7 +274,7 @@ export function createWorld() {
     soulsCollected: 0,
     lumber,
     treeSprite,
-    gravestoneSprite,
+    
     minSprites,
     selectedTool: TOOL_TYPES.HANDS,
     cropsCollected: 0,

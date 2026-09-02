@@ -158,11 +158,12 @@ function drawTree(ctx, col, row, camera, treeSprite) {
   ctx.drawImage(treeSprite, p.x - 32, p.y - 50, 64, 64);
 }
 
-function drawGravestone(ctx, gravestone, camera, gravestoneSprite) {
+// src/render.js
+function drawGravestone(ctx, gravestone, camera) {
   const p = isoToScreen(gravestone.col, gravestone.row, camera);
-  ctx.drawImage(gravestoneSprite, p.x - 16, p.y - 24, 32, 48);
+  
+  ctx.fillText("🪦", p.x, p.y - 12);
 }
-
 let boxSprite, dominionSprite;
 
 function createCachedSprite(drawFn) {
@@ -226,33 +227,33 @@ export function drawWaterPond(ctx, pond, camera) {
   ctx.fillStyle = "#1e88e5";
   ctx.fill();
 
-  // Moving "Squiggly" Ripple Effect
-  for (let i = 0; i < 3; i++) {
-    const shiftX = Math.sin(time + i) * 5;
-    const shiftY = Math.cos(time * 0.8 + i) * 3;
+  // // Moving "Squiggly" Ripple Effect
+  // for (let i = 0; i < 3; i++) {
+  //   const shiftX = Math.sin(time + i) * 5;
+  //   const shiftY = Math.cos(time * 0.8 + i) * 3;
     
-    ctx.beginPath();
-    ctx.moveTo(pTop.x + shiftX, pTop.y - TILE_H / 2 + shiftY);
-    ctx.lineTo(pRight.x + TILE_W / 2 - shiftX, pRight.y + shiftY);
-    ctx.lineTo(pBottom.x - shiftX, pBottom.y + TILE_H / 2 - shiftY);
-    ctx.lineTo(pLeft.x - TILE_W / 2 + shiftX, pLeft.y - shiftY);
-    ctx.closePath();
+  //   ctx.beginPath();
+  //   ctx.moveTo(pTop.x + shiftX, pTop.y - TILE_H / 2 + shiftY);
+  //   ctx.lineTo(pRight.x + TILE_W / 2 - shiftX, pRight.y + shiftY);
+  //   ctx.lineTo(pBottom.x - shiftX, pBottom.y + TILE_H / 2 - shiftY);
+  //   ctx.lineTo(pLeft.x - TILE_W / 2 + shiftX, pLeft.y - shiftY);
+  //   ctx.closePath();
     
-    ctx.fillStyle = i % 2 === 0 ? "rgba(100, 181, 246, 0.4)" : "rgba(13, 71, 161, 0.3)";
-    ctx.fill();
-  }
+  //   ctx.fillStyle = i % 2 === 0 ? "rgba(100, 181, 246, 0.4)" : "rgba(13, 71, 161, 0.3)";
+  //   ctx.fill();
+  // }
 
-  // White "Specular" Ripples
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-  ctx.lineWidth = 2;
-  for (let j = 0; j < 2; j++) {
-    const rx = pTop.x + Math.sin(time + j * 2) * 20;
-    const ry = pTop.y + 20 + j * 10;
-    ctx.beginPath();
-    ctx.moveTo(rx - 15, ry);
-    ctx.quadraticCurveTo(rx, ry + Math.sin(time * 2) * 5, rx + 15, ry);
-    ctx.stroke();
-  }
+  // // White "Specular" Ripples
+  // ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+  // ctx.lineWidth = 2;
+  // for (let j = 0; j < 2; j++) {
+  //   const rx = pTop.x + Math.sin(time + j * 2) * 20;
+  //   const ry = pTop.y + 20 + j * 10;
+  //   ctx.beginPath();
+  //   ctx.moveTo(rx - 15, ry);
+  //   ctx.quadraticCurveTo(rx, ry + Math.sin(time * 2) * 5, rx + 15, ry);
+  //   ctx.stroke();
+  // }
 
   ctx.restore();
 }
@@ -764,12 +765,12 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
  
 
-  // Draw gravestones
-  if (world.gravestones) {
-    for (const gravestone of world.gravestones) {
-      drawGravestone(ctx, gravestone, camera, world.gravestoneSprite);
-    }
-  }
+ 
+ // ... inside drawScene ...
+if (world.gravestones && world.gravestones.length > 0) {
+    drawGravestone(ctx, world.gravestones[0], camera);
+}
+
   
 
 

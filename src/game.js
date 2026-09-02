@@ -75,7 +75,7 @@ function saveGame() {
     souls: world.souls,
     gravestones: world.gravestones,
     lumber: world.lumber,
-    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin, isRainbowMin:m.isRainbowMins })),
+    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin, isRainbowMin:m.isRainbowMin })),
     
     minInventory: world.minInventory || 0,
     allTasksDone: world.allTasksDone || false,
@@ -190,8 +190,8 @@ function showStartMenu() {
 
 function showStory(index) {
   const blurbs = [
-  "Max: To save the family farm, I have to pay off Grandpa’s loans?",
-  "Emmie: Yep, or it becomes apartments.",
+  "Max: To save the farm, I have to pay off Grandpa’s loans?",
+  "Emmie: Yep.",
   "Max: I can't farm that fast!",
   "Emmie: Use our new Min Tech! Theyre sub-agents that automate everything.",
   "Max: Is it farming if I do nothing?",
@@ -297,7 +297,7 @@ function openShop() {
     shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
     shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 500g</button>`);
   }
-  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Rainbow Min — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
@@ -310,7 +310,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay & ${TASKS.length} tasks left to do"</p>`,
+      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay & ${17-world.currentTaskIndex} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -399,9 +399,9 @@ function syncHUD() {
     const toolName = slot.dataset.tool;
     slot.classList.toggle("active", toolName === world.selectedTool);
 
-    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "(5) 🪓 Axe" : "Empty";
-    if (toolName === "hoe") slot.textContent = world.hasBigHoe ? "(2) ⛏️ Big Hoe" : "(2) ⛏️ Hoe";
-    else if (toolName === "min") slot.textContent = world.minUnlocked ? "(6) 🤖 Min" : "Empty";
+    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
+    if (toolName === "hoe") slot.textContent = world.hasBigHoe ? "⛏️ Big Hoe" : "⛏️ Hoe";
+    else if (toolName === "min") slot.textContent = world.minUnlocked ? "🤖 Min" : "Empty";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
@@ -443,7 +443,7 @@ function updateTaskHUD() {
 
   const t = TASKS[world.currentTaskIndex];
   const prog = world.stats[t.stat] || 0;
-  el.innerHTML = `<strong>Task:</strong> ${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
+  el.innerHTML = `${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
 
   if (prog >= t.target) {
     world.currentTaskIndex++;
