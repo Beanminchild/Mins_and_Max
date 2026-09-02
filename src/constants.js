@@ -43,9 +43,9 @@ export const OTHER_BUILDING_ROW = 3;
 // src/constants.js (suggested additions)
 export const FISH_RIPPLE_SPAWN_MS = 9000;   // new ripple every ~4s
 export const FISH_RIPPLE_RAMP_MS = 4500;    // time ripple takes to speed up
-export const FISH_VISIBLE_MS = 400;       // fish "out" for 1.5s
+export const FISH_VISIBLE_MS = 533;       // fish "out" for 1.5s
 export const FISH_CATCH_RADIUS = .75;
-export const FISH_SALE_PRICE = 150;
+export const FISH_SALE_PRICE = 175;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 18.5; 
@@ -85,27 +85,23 @@ export const SIGNPOSTS = [
 
 
 export const TASKS = [
-  { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
-  { id: 'plant',   desc: 'Plant seeds',    stat: 'planted',   target: 3 },
-  { id: 'fillwater', desc: 'Fill water', stat: 'filledWater', target: 3 },
-  { id: 'water',   desc: 'Water seeds',    stat: 'watered',   target: 3 },
-  { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
-  { id: 'give',    desc: 'Give crop to Emmie', stat: 'given',  target: 1 },
-  { id: 'axe',     desc: 'Use Axe to cut tree', stat: 'treesChopped', target: 1 },
-  { id:'gotoshop', desc: 'Go to Unicorp HQ', stat: 'visitedShop', target: 1 },
-  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 'cropsCollected', target: 3},
-  { id: 'firstMin', desc: 'Give Crop to  Diamond?',  stat: 'minObtained', target: 1 },
-   { id: 'mC', desc: 'Deposit crops using Min', stat: 'cropsCollected', target: 10},
-   { id: 'gpa', desc: 'Visit Gpaps Grave', stat: 'gVist', target: 1},   
-   { id: 'mC', desc: 'Deposit crops', stat: 'cropsCollected', target: 30},
-   { id: 'mF', desc: 'Catch fish using min', stat: 'fishCaught', target: 1},   
-   { id: 'mC2', desc: 'Deposit crops', stat: 'cropsCollected', target: 60},
-   { id: 'c', desc: 'Get Farmaxxing Cert', stat: 'certCollected', target: 1},
-   { id: 'complete', desc: 'Buy Farm Back from Unicorp', stat: 'farmSaved', target: 1},
-
-
-
-
+  { id: 'hoe',        desc: 'Hoe tiles',            stat: 0, target: 3 },
+  { id: 'plant',      desc: 'Plant seeds',          stat: 1, target: 3 },
+  { id: 'fillwater',  desc: 'Fill water',          stat: 10, target: 3 },
+  { id: 'water',      desc: 'Water seeds',         stat: 2, target: 3 },
+  { id: 'harvest',    desc: 'Harvest one crop',    stat: 3, target: 1 },
+  { id: 'give',       desc: 'Give crop to Emmie',  stat: 4, target: 1 },
+  { id: 'axe',        desc: 'Use Axe to cut tree', stat: 5, target: 1 },
+  { id: 'gotoshop',   desc: 'Go to Unicorp HQ',    stat: 8, target: 1 },
+  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
+  { id: 'firstMin',   desc: 'Give Crop to Diamond?', stat: 6, target: 1 },
+  { id: 'mC',         desc: 'Deposit crops using Min', stat: 9, target: 10 },
+  { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 },
+  { id: 'mC',         desc: 'Deposit crops',       stat: 9, target: 30 },
+  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },
+  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 60 },
+  { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 12, target: 1 },
+  { id: 'complete',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 
 export const TOOL_TYPES = {

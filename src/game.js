@@ -42,10 +42,7 @@ const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-
       elTask = $("task-list"), elHand = $("clock-hand"), elDay = $("days-left");
 
 
-
 const SAVE_KEY = "minsMaxSave";
-
-
 
 // ---- Save / Load ----
 function saveGame() {
@@ -82,11 +79,11 @@ function saveGame() {
     
     K: { col: world.K.col, row: world.K.row }
   };
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  localStorage.setItem("minsMaxSave", JSON.stringify(data));
 }
 
 function loadGame() {
-  const raw = localStorage.getItem(SAVE_KEY);
+  const raw = localStorage.getItem("minsMaxSave");
   if (!raw) return false;
   const d = JSON.parse(raw);
   Object.assign(world, {
@@ -170,7 +167,7 @@ function showStartMenu() {
     label: "New Game",
     className: hasSave ? "modal-btn--no" : "modal-btn--yes",
     onClick: () => {
-      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem("minsMaxSave");
       closeModal();
     }
   });
@@ -346,7 +343,6 @@ function buyShopItem(item) {
   if (item === "barn") {
     world.r = true;
     world.s[12]++;
-    
   }
 
   world.w -= price;
@@ -354,43 +350,28 @@ function buyShopItem(item) {
   if (item === "seeds") {
     world.e = "seeds";
     world.I = (world.I || 0) + 1;
-    sfx("pick")
-  }
-
-  if (item === "min") {
+    sfx("pick");
+  } else if (item === "min") {
     world.e = "min";
     world.X = (world.X || 0) + 1;
     spawnNewMin(world.m, world.y.col, world.y.row, "following");
     world.s[6]++;
     world.v = true;
     sfx("pick");
-  }
-  if (item === 'farm'){
-   world.s[13]++;
-   elFarm.textContent = "Max's Farm";
-   sfx("success");
-
-
-  }
-  if (item === "big_hoe") {
-    world.h = true;
-    world.w -= priceMap.big_hoe;
+  } else if (item === "farm") {
+    world.s[13]++;
+    elFarm.textContent = "Max's Farm";
     sfx("success");
-  }
-  // ... inside buyShopItem ...
-  // ... inside buyShopItem ...
-  if (item === "rainbow_min") {
+  } else if (item === "big_hoe") {
+    world.h = true;
+    sfx("success");
+  } else if (item === "rainbow_min") {
     const m = spawnNewMin(world.m, world.y.col, world.y.row, "following");
     m.isRainbowMin = true;
-    m.isWaterMin = true; // It has Water Min ability
+    m.isWaterMin = true;
     world.s[6]++;
     sfx("success");
-    return;
   }
-// ...
-// ...
-   sfx("pick");
-  //closeShop(); // we dont want to close after one pruchase
 }
 
 
@@ -482,8 +463,10 @@ function handleToolAction() {
     if (!tryHarvestCrop(character, world)) {
       tryTakeFromMin(character, mins, world);
     }
+    syncHUD();
   } else {
     useToolAtCursor(world, cursor);
+    syncHUD();
   }
 }
 

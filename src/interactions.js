@@ -56,46 +56,6 @@ function createTreeSprite() {
 
  
 
-// function createGravestoneSprite() {
-//   const sprite = document.createElement("canvas");
-//   sprite.width = 32;
-//   sprite.height = 48;
-//   const g = sprite.getContext("2d");
-
-//   g.translate(16, 24);
-
-//   // Gravestone base
-//   g.fillStyle = "#505050";
-//   g.fillRect(-6, 0, 12, 4);
-
-//   // Gravestone slab
-//   g.fillStyle = "#707070";
-//   g.beginPath();
-//   g.moveTo(-8, -2);
-//   g.lineTo(8, -2);
-//   g.lineTo(6, -18);
-//   g.lineTo(-6, -18);
-//   g.closePath();
-//   g.fill();
-
-//   // Gravestone outline
-//   g.strokeStyle = "#505050";
-//   g.lineWidth = 1;
-//   g.stroke();
-
-//   // Creepy cross or marking
-//   g.strokeStyle = "#888888";
-//   g.lineWidth = 1.5;
-//   g.beginPath();
-//   g.moveTo(0, -16);
-//   g.lineTo(0, -6);
-//   g.moveTo(-3, -11);
-//   g.lineTo(3, -11);
-//   g.stroke();
-
-//   return sprite;
-// }
-
 function createMinSprite(state) {
   const sprite = document.createElement("canvas");
   sprite.width = 32;
@@ -367,20 +327,16 @@ export function tryInteractWithGravestone(character, world) {
   for (let gravestone of world.g) {
     const distance = Math.hypot(character.col - gravestone.col, character.row - gravestone.row);
     if (distance <= 1.5) {
-      sGM(gravestone);
+      showModal({
+        title: "Gravestone:",
+        bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
+        buttons: [{ label: "Hm", className: "modal-btn--close" }],
+      });
       world.s[8]++;
       return true;
     }
   }
   return false;
-}
-
-function sGM() {
-  showModal({
-    title: "Gravestone:",
-    bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
-    buttons: [{ label: "Hm", className: "modal-btn--close" }],
-  });
 }
 
 function moveToward(min, targetCol, targetRow, speed = 0.12) {
@@ -393,21 +349,6 @@ function moveToward(min, targetCol, targetRow, speed = 0.12) {
     min.col += (dx / distance) * step;
     min.row += (dy / distance) * step;
   }
-}
-
-function settleMin(min) {
-
-  
-  
-  min.state = "following";
-  min.target = null;
-  min.targetTile = null;
-  min.throwOrigin = null;
-  min.throwDistance = 0;
-  min.landed = true;
-  min.isDelivering = false;
-  min.lineToken = Date.now(); //min return to back of line to prevent fish grifting 
-  
 }
 
 export function spawnNewMin(mins, col, row, initialState = "loose") {
@@ -436,7 +377,7 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
 }
 
 export function updateMins(character, mins, world) {
-  const { box, dominion } = world;
+  const { z: box, y: dominion } = world;
 
   // === PERF: precompute tree-cutter counts ONCE (was O(n^2) filter per min) ===
   const cutterCounts = {};
@@ -707,7 +648,14 @@ export function updateMins(character, mins, world) {
             min.row = pond.row + 1;
             return;
           } else {
-            settleMin(min);
+            min.state = "following";
+            min.target = null;
+            min.targetTile = null;
+            min.throwOrigin = null;
+            min.throwDistance = 0;
+            min.landed = true;
+            min.isDelivering = false;
+            min.lineToken = Date.now();
           }
           return; 
                }
