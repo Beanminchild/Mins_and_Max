@@ -342,7 +342,7 @@ function buyShopItem(item) {
  
   if (item === "barn") {
     world.r = true;
-    world.s[12]++;
+    world.s[25]++;
   }
 
   world.w -= price;

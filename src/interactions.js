@@ -901,6 +901,10 @@ export function useToolAtCursor(world, cursor, character) {
     
     for (const [dx, dy] of pattern) {
       const targetTile = world.t[row + dy]?.[col + dx];
+      // ADD THIS: Check if a buried soul is at this specific target tile
+      // In src/interactions.js, inside the loop in useToolAtCursor:
+      const soul = world.q.find(s => !s.revealed && Math.hypot(s.col - (col + dx), s.row - (row + dy)) < 1.0);
+      if (soul) soul.revealed = true;
       if (targetTile && targetTile.type !== TILE_TYPES.STONE && !targetTile.hasTree) {
         targetTile.type = TILE_TYPES.DIRT;
         targetTile.planted = false;

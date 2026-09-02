@@ -61,12 +61,12 @@ export const SIGNPOSTS = [
   //   title: "Old Sign", 
   //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
   // },
-  { 
-    col: 36, 
-    row: 4, 
-    title: "Notice", 
-    text: "Deep water! Great for filling cans or letting your Mins have a soak." 
-  },
+  // { 
+  //   col: 36, 
+  //   row: 4, 
+  //   title: "Notice", 
+  //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+  // },
   
   {
     col: 3, 
@@ -96,7 +96,7 @@ export const TASKS = [
   { id: 'mC',         desc: 'Deposit crops',       stat: 9, target: 30 },
   { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },
   { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 60 },
-  { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 12, target: 1 },
+  { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
   { id: 'complete',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 
