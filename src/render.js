@@ -515,7 +515,7 @@ export function drawCursor(ctx, cursor, camera, character) {
 
   ctx.translate(p.x, p.y - 6);
 
-  ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
+  ctx.strokeStyle =  inRange || world.e === "min" && inRangeMin ? "#ffffff" : "#ff4444";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
@@ -676,7 +676,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (const [c, r] of tileOrder) {
-    const tile = world.tiles[r][c];
+    const tile = world.t[r][c];
     const p = isoToScreen(c, r, camera);
     const shade = (c + r) % 3;
 
@@ -687,7 +687,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
     if (tile.hasTree) {
-      drawTree(ctx, c, r, camera, world.treeSprite);
+      drawTree(ctx, c, r, camera, world.T);
       drawTreeHealth(ctx, tile, c, r, camera);
     }
 
@@ -697,7 +697,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
   drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
 
-  for (const soul of world.souls) {
+  for (const soul of world.q) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
     const p = isoToScreen(soul.col, soul.row, camera);
     ctx.save();
@@ -716,7 +716,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
   // Draw fish ripples / fish
-  for (const f of world.fishEvents) {
+  for (const f of world.F) {
     const p = isoToScreen(f.col + 0.5, f.row + 0.5, camera);
     if (f.phase === 'ripple') {
       const rad = (Date.now() / f.speed) % 22;
@@ -735,17 +735,17 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
 
   // Draw lumber items on ground
-  if (world.lumber) {
-    for (const lumberItem of world.lumber) {
+  if (world.o) {
+    for (const lumberItem of world.o) {
       drawLumber(ctx, lumberItem, camera);
     }
   }
 
   // Time cycle tint over world
-  const tint = getTimeTint(world.dayProgress || 0);
+  const tint = getTimeTint(world.p || 0);
   if (tint.a > 0) {
     ctx.save();
-    if (world.dayProgress > 0.6) {
+    if (world.p > 0.6) {
         ctx.globalCompositeOperation = 'multiply';
     }
     ctx.fillStyle = `rgba(${tint.r}, ${tint.g}, ${tint.b}, ${tint.a})`;
@@ -753,9 +753,9 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     ctx.restore();
   }
 
-  drawBox(ctx, world.box, camera);
-  drawDominion(ctx, world.dominion, camera);
-  drawWaterPond(ctx, world.pond, camera);
+  drawBox(ctx, world.z, camera);
+  drawDominion(ctx, world.y, camera);
+  drawWaterPond(ctx, world.j, camera);
 
 
   // Shopkeeper drawn with their bank
@@ -767,8 +767,8 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
  
  // ... inside drawScene ...
-if (world.gravestones && world.gravestones.length > 0) {
-    drawGravestone(ctx, world.gravestones[0], camera);
+if (world.g && world.g.length > 0) {
+    drawGravestone(ctx, world.g[0], camera);
 }
 
   
@@ -779,7 +779,7 @@ if (world.gravestones && world.gravestones.length > 0) {
   for (const min of mins) {
     if (min.state !== "delivered") {
       
-        drawMin(ctx, min, camera, world.minSprites);
+        drawMin(ctx, min, camera, world.M);
     }
   }
 

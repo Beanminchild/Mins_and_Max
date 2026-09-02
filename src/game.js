@@ -50,37 +50,37 @@ const SAVE_KEY = "minsMaxSave";
 // ---- Save / Load ----
 function saveGame() {
   const data = {
-    wallet: world.wallet,
-    stats: world.stats,
-    currentTaskIndex: world.currentTaskIndex,
-    dayNumber: world.dayNumber,
+    w: world.w,
+    s: world.s,
+    x: world.x,
+    n: world.n,
     daysLeft: DAYS_LEFT,
-    seedInventory: world.seedInventory,
-    waterCanFillAmount: world.waterCanFillAmount,
-    axeUnlocked: world.axeUnlocked,
-    minUnlocked: world.minUnlocked,
-    barnBought: world.barnBought,
-    hasBigHoe: world.hasBigHoe,
-    selectedTool: world.selectedTool,
-    cropsCollected: world.cropsCollected,
-    bonusCropsCollected: world.bonusCropsCollected,
-    lumberCollected: world.lumberCollected,
-    fishCollected: world.fishCollected,
-    soulsCollected: world.soulsCollected,
-    tiles: world.tiles.map(row => row.map(t => ({
+    I: world.I,
+    a: world.a,
+    u: world.u,
+    v: world.v,
+    r: world.r,
+    h: world.h,
+    e: world.e,
+    c: world.c,
+    b: world.b,
+    l: world.l,
+    f: world.f,
+    k: world.k,
+    t: world.t.map(row => row.map(t => ({
       type: t.type, planted: t.planted, watered: t.watered, growth: t.growth,
       growDuration: t.growDuration, stage: t.stage, variant: t.variant,
       hasTree: t.hasTree, treeHealth: t.treeHealth, lumber: t.lumber
     }))),
-    souls: world.souls,
-    gravestones: world.gravestones,
-    lumber: world.lumber,
-    mins: world.mins.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin, isRainbowMin:m.isRainbowMin })),
+    q: world.q,
+    g: world.g,
+    o: world.o,
+    m: world.m.map(m => ({ id:m.id, col:m.col, row:m.row, state:m.state, atHome:m.atHome, lineToken:m.lineToken, cropTL:m.cropTL, carryingFish:m.carryingFish, isWaterMin:m.isWaterMin, isRainbowMin:m.isRainbowMin })),
     
-    minInventory: world.minInventory || 0,
-    allTasksDone: world.allTasksDone || false,
+    X: world.X || 0,
+    A: world.A || false,
     
-    shopkeeper: { col: world.shopkeeper.col, row: world.shopkeeper.row }
+    K: { col: world.K.col, row: world.K.row }
   };
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
 }
@@ -90,18 +90,18 @@ function loadGame() {
   if (!raw) return false;
   const d = JSON.parse(raw);
   Object.assign(world, {
-    wallet: d.wallet, stats: d.stats, currentTaskIndex: d.currentTaskIndex,
-    dayNumber: d.dayNumber, seedInventory: d.seedInventory, waterCanFillAmount: d.waterCanFillAmount,
-    axeUnlocked: d.axeUnlocked, minUnlocked: d.minUnlocked, barnBought: d.barnBought,
-    selectedTool: d.selectedTool, cropsCollected: d.cropsCollected, bonusCropsCollected: d.bonusCropsCollected,
-    lumberCollected: d.lumberCollected,hasBigHoe: d.hasBigHoe,fishCollected: d.fishCollected, soulsCollected: d.soulsCollected,
-    souls: d.souls, gravestones: d.gravestones, lumber: d.lumber,minInventory: d.minInventory || 0,
-    allTasksDone: d.allTasksDone || false,
+    w: d.w, s: d.s, x: d.x,
+    n: d.n, I: d.I, a: d.a,
+    u: d.u, v: d.v, r: d.r,
+    e: d.e, c: d.c, b: d.b,
+    l: d.l, h: d.h, f: d.f, k: d.k,
+    q: d.q, g: d.g, o: d.o, X: d.X || 0,
+    A: d.A || false,
   });
   DAYS_LEFT = d.daysLeft;
-  d.tiles.forEach((row, r) => row.forEach((t, c) => Object.assign(world.tiles[r][c], t)));
-  world.mins.length = 0;
-  d.mins.forEach(m => world.mins.push({
+  d.t.forEach((row, r) => row.forEach((t, c) => Object.assign(world.t[r][c], t)));
+  world.m.length = 0;
+  d.m.forEach(m => world.m.push({
     ...m,
     target: null,
     targetTile: null,
@@ -113,8 +113,8 @@ function loadGame() {
     cuttingTreeCol: null,
     cuttingTreeRow: null
   }));
-  world.shopkeeper.col = d.shopkeeper.col;
-  world.shopkeeper.row = d.shopkeeper.row;
+  world.K.col = d.K.col;
+  world.K.row = d.K.row;
   return true;
 }
 
@@ -123,7 +123,7 @@ function showSleepPrompt() {
 
   const buttons = [];
 
-  if (world.currentTaskIndex >= 8) {
+  if (world.x >= 8) {
     buttons.push({
       label: "Yes (Sleep)",
       className: "modal-btn--yes",
@@ -232,20 +232,20 @@ const keys = setupInput(new Set(),
     const map = { Digit1:"empty-hands", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
     const tool = map[code];
     if (!tool) return;
-    if (tool === "axe" && !world.axeUnlocked) return;
-    if (tool === "min" && !world.minUnlocked) return;
-    world.selectedTool = tool;
+    if (tool === "axe" && !world.u) return;
+    if (tool === "min" && !world.v) return;
+    world.e = tool;
     syncHUD();
   },
-  () => { if (world.shopOpen) closeShop(); }
+  () => { if (world.S) closeShop(); }
 );
 const character = createCharacter();
 const spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
 const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
 export const world = createWorld();
-world.shopkeeper = shopkeeper;
-if (world.stats.given < 1) {
+world.K = shopkeeper;
+if (world.s[4] < 1) {
   shopkeeper.col = WATER_POND_COL+3;
   shopkeeper.row = WATER_POND_ROW+2;
 } else {
@@ -256,11 +256,11 @@ if (world.stats.given < 1) {
 
 
 
-if (!world.selectedTool) {
-  world.selectedTool = TOOL_TYPES.MIN;
+if (!world.e) {
+  world.e = TOOL_TYPES.MIN;
 }
 
-const { mins } = world;
+const { m: mins } = world;
 
 
 canvas.style.cursor = "none";
@@ -272,7 +272,7 @@ let lastPhase = '';
 function updateClock() {
   const hand = elHand;
 
-  const progress = Math.min(Math.max(world.dayProgress || 0, 0), 1);
+  const progress = Math.min(Math.max(world.p || 0, 0), 1);
   const songPhase = progress < 0.2 ? 'dawn' : progress < 0.6 ? 'day' : progress < 0.8 ? 'dusk' : 'night';
   if (songPhase !== lastPhase) { playSong(songPhase); lastPhase = songPhase; }
 
@@ -284,21 +284,23 @@ function updateClock() {
 
 
 function openShop() {
-  world.shopOpen = true;  
+  world.S = true;  
   const shopButtons = [];
-  const lumberHave = world.stats.lumberEver || 0;
-  const barnLocked = world.barnBought || lumberHave < 50;
+  const lumberHave = world.s[11] || 0;
+  const barnLocked = world.r || lumberHave < 50;
   shopButtons.push(
     `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Unicorp Farm-maxxing Cert — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
 
    // New buttons appear only if barn is bought
-  if (world.barnBought) {
+  if (world.r) {
     shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
     shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 500g</button>`);
+    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Rainbow Min — 5000g</button>`);
+    shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
   }
-  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Rainbow Min — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
+  
+  
   shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
   shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
   showModal({
@@ -310,7 +312,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"U got ${DAYS_LEFT} days left to pay & ${17-world.currentTaskIndex} tasks left to do"</p>`,
+      <p class="shop-dialogue">"${DAYS_LEFT} days left to pay & ${17-world.x} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -321,7 +323,7 @@ function openShop() {
 }
 
 function closeShop() {
-  world.shopOpen = false;
+  world.S = false;
   closeModal();
 }
 
@@ -337,51 +339,51 @@ function buyShopItem(item) {
   };
 
   const price = priceMap[item];
-  if (!price || world.wallet < price) return;
-  if (item === "barn" && (world.barnBought || (world.stats.lumberEver || 0) < 50)) return;
+  if (!price || world.w < price) return;
+  if (item === "barn" && (world.r || (world.s[11] || 0) < 50)) return;
 
  
   if (item === "barn") {
-    world.barnBought = true;
-    world.stats.certCollected++;
+    world.r = true;
+    world.s[12]++;
     
   }
 
-  world.wallet -= price;
+  world.w -= price;
 
   if (item === "seeds") {
-    world.selectedTool = "seeds";
-    world.seedInventory = (world.seedInventory || 0) + 1;
+    world.e = "seeds";
+    world.I = (world.I || 0) + 1;
     sfx("pick")
   }
 
   if (item === "min") {
-    world.selectedTool = "min";
-    world.minInventory = (world.minInventory || 0) + 1;
-    spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
-    world.stats.minObtained++;
-    world.minUnlocked = true;
+    world.e = "min";
+    world.X = (world.X || 0) + 1;
+    spawnNewMin(world.m, world.y.col, world.y.row, "following");
+    world.s[6]++;
+    world.v = true;
     sfx("pick");
   }
   if (item === 'farm'){
-   world.stats.farmSaved++;
+   world.s[13]++;
    elFarm.textContent = "Max's Farm";
    sfx("success");
 
 
   }
   if (item === "big_hoe") {
-    world.hasBigHoe = true;
-    world.wallet -= priceMap.big_hoe;
+    world.h = true;
+    world.w -= priceMap.big_hoe;
     sfx("success");
   }
   // ... inside buyShopItem ...
   // ... inside buyShopItem ...
   if (item === "rainbow_min") {
-    const m = spawnNewMin(world.mins, world.dominion.col, world.dominion.row, "following");
+    const m = spawnNewMin(world.m, world.y.col, world.y.row, "following");
     m.isRainbowMin = true;
     m.isWaterMin = true; // It has Water Min ability
-    world.stats.minObtained++;
+    world.s[6]++;
     sfx("success");
     return;
   }
@@ -397,16 +399,16 @@ function syncHUD() {
  
   document.querySelectorAll(".tool-slot").forEach((slot) => {
     const toolName = slot.dataset.tool;
-    slot.classList.toggle("active", toolName === world.selectedTool);
+    slot.classList.toggle("active", toolName === world.e);
 
-    if (toolName === "axe") slot.textContent = world.axeUnlocked ? "🪓 Axe" : "Empty";
-    if (toolName === "hoe") slot.textContent = world.hasBigHoe ? "⛏️ Big Hoe" : "⛏️ Hoe";
-    else if (toolName === "min") slot.textContent = world.minUnlocked ? "🤖 Min" : "Empty";
+    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "Empty";
+    if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "⛏️ Hoe";
+    else if (toolName === "min") slot.textContent = world.v ? "🤖 Min" : "Empty";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
-    if (toolName === "watering-can") txt = world.waterCanFillAmount;
-    if (toolName === "seeds") txt = world.seedInventory || 0;
+    if (toolName === "watering-can") txt = world.a;
+    if (toolName === "seeds") txt = world.I || 0;
 
     let b = slot.querySelector(".item-count");
     if (txt !== null) {
@@ -422,11 +424,11 @@ function syncHUD() {
     }
   });
 
-  elCrop.textContent = world.cropsCollected + world.bonusCropsCollected + world.lumberCollected;
+  elCrop.textContent = world.c + world.b + world.l;
   elDay.textContent = DAYS_LEFT;
 
   
-  elWallet.textContent = `${world.wallet}g`;
+  elWallet.textContent = `${world.w}g`;
  
   updateClock();
   updateTaskHUD();
@@ -436,20 +438,20 @@ function syncHUD() {
 function updateTaskHUD() {
   const el = elTask;
 
-  if (world.currentTaskIndex >= TASKS.length) {
+  if (world.x >= TASKS.length) {
     el.innerHTML = "<strong>WOO!</strong>";
     return;
   }
 
-  const t = TASKS[world.currentTaskIndex];
-  const prog = world.stats[t.stat] || 0;
+  const t = TASKS[world.x];
+  const prog = world.s[t.stat] || 0;
   el.innerHTML = `${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
 
   if (prog >= t.target) {
-    world.currentTaskIndex++;
+    world.x++;
     sfx("success");
-    if (world.currentTaskIndex >= TASKS.length && !world.allTasksDone) {
-      world.allTasksDone = true;
+    if (world.x >= TASKS.length && !world.A) {
+      world.A = true;
       showModal({
         title: "Victory!",
         bodyHtml: "<p>You got the farm back from Unicorp!</p>",
@@ -461,10 +463,10 @@ function updateTaskHUD() {
 
 
 function handleToolAction() {
-  if (world.dayEnded) return;
+  if (world.E) return;
 
-  if (world.selectedTool === "min") {
-    throwMin(character, mins, world.box, cursor);
+  if (world.e === "min") {
+    throwMin(character, mins, world.z, cursor);
     sfx("throw");
   } 
   
@@ -476,7 +478,7 @@ function handleToolAction() {
     return;
   }
   
-  if (world.selectedTool === "empty-hands") {
+  if (world.e === "empty-hands") {
     if (!tryHarvestCrop(character, world)) {
       tryTakeFromMin(character, mins, world);
     }
@@ -486,30 +488,30 @@ function handleToolAction() {
 }
 
 function endDay() {
-  if (world.dayEnded) return;
-  world.dayEnded = true; 
+  if (world.E) return;
+  world.E = true; 
 
-  const cropPayout = world.cropsCollected * 25 + world.bonusCropsCollected * 75;
-  const lumberPayout = world.lumberCollected * 5;
+  const cropPayout = world.c * 25 + world.b * 75;
+  const lumberPayout = world.l * 5;
   const totalPayout = cropPayout + lumberPayout;
-  world.wallet += totalPayout;
+  world.w += totalPayout;
   showModal({
     title: "Day Complete",
-    bodyHtml: `<p>You collected <strong>${world.cropsCollected + world.bonusCropsCollected + world.lumberCollected}</strong> items.</p>
+    bodyHtml: `<p>You collected <strong>${world.c + world.b + world.l}</strong> items.</p>
       <p>Payday: <strong>${totalPayout}g</strong> (Crops: ${cropPayout}g, Lumber: ${lumberPayout}g)</p>
-      <p>Wallet: <strong>${world.wallet}g</strong></p>`,
+      <p>Wallet: <strong>${world.w}g</strong></p>`,
     buttons: [{ label: "Start Next Day", className: "modal-btn--yes", onClick: startNextDay }]
   });
 }
 
 function startNextDay() {
-  world.dayElapsedMs = 0;
-  world.dayProgress = 0;
-  world.dayEnded = false;
-  world.cropsCollected = 0;
-  world.bonusCropsCollected = 0;
-  world.lumberCollected = 0;
-  world.dayNumber += 1;
+  world.d = 0;
+  world.p = 0;
+  world.E = false;
+  world.c = 0;
+  world.b = 0;
+  world.l = 0;
+  world.n += 1;
 
  
 
@@ -524,9 +526,9 @@ document.querySelectorAll(".tool-slot").forEach((slot) => {
   slot.addEventListener("click", (e) => {
     e.stopPropagation();
     const tool = slot.dataset.tool;
-    if (tool === "axe" && !world.axeUnlocked) return;
-    if (tool === "min" && !world.minUnlocked) return;
-    world.selectedTool = tool;
+    if (tool === "axe" && !world.u) return;
+    if (tool === "min" && !world.v) return;
+    world.e = tool;
     syncHUD();
   });
 });
@@ -562,7 +564,7 @@ function loop(timestamp) {
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 
-  if (!isModalOpen() && !world.dayEnded) {   
+  if (!isModalOpen() && !world.E) {   
 
     updateCharacterFromControls(character,keys,deltaMs, world);
 
@@ -574,13 +576,13 @@ function loop(timestamp) {
     // example: only start ticking after 3 tasks finished
   const TASKS_BEFORE_TIMER_STARTS = 10;   
 
-  if (world.currentTaskIndex >= TASKS_BEFORE_TIMER_STARTS) {
-  world.dayElapsedMs += deltaMs;
+  if (world.x >= TASKS_BEFORE_TIMER_STARTS) {
+  world.d += deltaMs;
   elFarm.textContent = "Unicorp Farm";
     }
-  world.dayProgress = Math.min(world.dayElapsedMs / world.dayLengthMs, 1);
+  world.p = Math.min(world.d / world.D, 1);
 
-  if (world.dayProgress >= 1) {
+  if (world.p >= 1) {
     DAYS_LEFT--;
     endDay();
 }
@@ -592,15 +594,15 @@ function loop(timestamp) {
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
                     tryInteractWithSign(character.col, character.row)  ||                    
-                    tryDepositToBox(character, world.box, world) ||
-                    tryDepositToDominion(character, world.dominion, world) ||
+                    tryDepositToBox(character, world.z, world) ||
+                    tryDepositToDominion(character, world.y, world) ||
                     
                     //tryInteractWithPond(character, world) ||
                     tryCollectSoul(character,world);
 
-      if (!interacted && !world.shopOpen) {
+      if (!interacted && !world.S) {
       interacted = tryInteractWithShop(character, world);
-      if (interacted && world.shopOpen) openShop(); // only open if shop is actually unlocked
+      if (interacted && world.S) openShop(); // only open if shop is actually unlocked
     }
 
     if (!interacted) {
