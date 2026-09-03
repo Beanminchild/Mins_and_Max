@@ -125,15 +125,15 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
   ctx.translate(p.x, p.y - 8);
 
   if (tile.stage === PLANT_STAGES.SEED) {
-    ctx.strokeStyle = "#2f6b2f";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#f7e700";
+    ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -6);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.SPROUT) {
-    ctx.strokeStyle = "#2f6b2f";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#f38100";
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(-4, -8);
@@ -141,7 +141,7 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
     ctx.lineTo(4, -8);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.CROP) {
-    ctx.fillStyle = "#4a8f3b";
+    ctx.fillStyle = "#ffff00";
     ctx.beginPath();
     ctx.arc(0, -8, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -419,7 +419,7 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
     ctx.save();
     ctx.translate(p.x, p.y - 50); 
     if (character.held === "crop") {
-      ctx.fillStyle = "#4a8f3b";
+      ctx.fillStyle = "#ce2b12";
       ctx.beginPath();
       ctx.arc(0, -8, 6, 0, Math.PI * 2);
       ctx.fill();
