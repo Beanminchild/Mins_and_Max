@@ -435,6 +435,23 @@ export function updateMins(character, mins, world) {
       }
     }
 
+    mins.forEach((min) => {
+    // --- PROXIMITY WATERING: Water seeds nearby ---
+    if (min.isWaterMin || min.isRainbowMin) {
+      const c = Math.floor(min.col);
+      const r = Math.floor(min.row);
+      // Check a 3x3 area around the Min
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const tile = world.t[r + dy]?.[c + dx];
+          if (tile && tile.planted && !tile.watered) {
+            tile.watered = true;
+          }
+        }
+      }
+    }})
+    
+
     if (min.state === "in_pond") {
       min.soakTimer -= 16; // matches existing tick used for cuttingTimer
       if (min.soakTimer <= 0) {
@@ -594,64 +611,92 @@ export function updateMins(character, mins, world) {
         return;
       }      
 
-            if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
+      if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
         const tCol = target.col|0;
         const tRow = target.row|0;
 
-        // --- MAGNETIC SEARCH ---
-        const searchRadius = 1.5;
-        let found = null;
+        // --- MAGNETIC SEARCH (Priority: 1. Grown, 2. Growing, 3. Dirt) ---
+        const searchRadius = 1;
+        let bestTarget = null; 
+
         for (let dy = -searchRadius; dy <= searchRadius; dy++) {
           for (let dx = -searchRadius; dx <= searchRadius; dx++) {
             const r = tRow + dy, c = tCol + dx;
             const tile = world.t[r]?.[c];
             if (!tile) continue;
-            // Priority: Tree > Crop
-            if (tile.hasTree) { found = { type: 'tree', col: c, row: r }; break; }
-            if (!found && tile.planted && !reservedTiles.has(`${c},${r}`)) {
-              found = { type: 'crop', col: c, row: r };
+            const tileKey = `${c},${r}`;
+            if (reservedTiles.has(tileKey)) continue;
+
+            // Priority 1: Fully Grown Crop
+            if (tile.stage === PLANT_STAGES.CROP) {
+              bestTarget = { type: 'crop', col: c, row: r, p: 1 };
+              break; // Found highest priority, stop looking in this row
+            }
+            // Priority 2: Growing Crop (Seed/Sprout)
+            if (tile.planted && (!bestTarget || bestTarget.p > 2)) {
+              bestTarget = { type: 'crop', col: c, row: r, p: 2 };
+            }
+            // Priority 3: Bare Dirt for Planting (Rainbow Min only)
+            if (min.isRainbowMin && tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0 && (!bestTarget || bestTarget.p > 3)) {
+              bestTarget = { type: 'plant', col: c, row: r, p: 3 };
             }
           }
-          if (found) break;
+          if (bestTarget?.p === 1) break; // Found grown crop, stop entire search
         }
 
-        // --- EXECUTE ACTION ---
-        if (found) {
-          if (found.type === 'tree') {
-            min.state = "tree_cutting";
-            min.cuttingTreeCol = found.col;
-            min.cuttingTreeRow = found.row;
-            min.cuttingTimer = 0;
-            return;
-          } else if (found.type === 'crop') {
-            if (min.isWaterMin && !world.t[found.row][found.col].watered) world.t[found.row][found.col].watered = true;
+        const foundMagnetic = bestTarget;
+    
+
+        // --- EXECUTE MAGNETIC ACTION ---
+        if (foundMagnetic) {
+          if (foundMagnetic.type === 'crop') {
+            if (min.isWaterMin && !world.t[foundMagnetic.row][foundMagnetic.col].watered) world.t[foundMagnetic.row][foundMagnetic.col].watered = true;
             min.state = "harvesting";
-            min.targetTile = { col: found.col, row: found.row };
-            min.col = found.col + 0.5;
-            min.row = found.row + 0.5;
-            reservedTiles.add(`${found.col},${found.row}`);
+            min.targetTile = { col: foundMagnetic.col, row: foundMagnetic.row };
+            min.col = foundMagnetic.col + 0.5;
+            min.row = foundMagnetic.row + 0.5;
+            reservedTiles.add(`${foundMagnetic.col},${foundMagnetic.row}`);
+            return;
+          } else if (foundMagnetic.type === 'plant') {
+            const tile = world.t[foundMagnetic.row][foundMagnetic.col];
+            tile.planted = true;
+            tile.watered = true;
+            tile.stage = PLANT_STAGES.SEED;
+            world.I -= 1;
+            min.isWaterMin = true; 
+            min.state = "harvesting";
+            min.targetTile = { col: foundMagnetic.col, row: foundMagnetic.row };
+            min.col = foundMagnetic.col + 0.5;
+            min.row = foundMagnetic.row + 0.5;
+            min.landed = true;
+            reservedTiles.add(`${foundMagnetic.col},${foundMagnetic.row}`);
             return;
           }
         }
 
-        // --- FALLBACK (Pond/Planting/Default) ---
+        // --- NON-MAGNETIC FALLBACK (Exact Tile Only) ---
         const tile = world.t[tRow]?.[tCol];
-        const tileKey = `${tCol},${tRow}`;
 
-        if (!min.isDelivering && min.isRainbowMin && tile && tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0 && !reservedTiles.has(tileKey)) {
-          tile.planted = true;
-          tile.watered = true;
-          tile.stage = PLANT_STAGES.SEED;
-          world.I -= 1;
-          min.isWaterMin = true; 
-          min.state = "harvesting";
-          min.targetTile = { col: tCol, row: tRow };
+        // Check for Tree
+        if (tile?.hasTree) {
+          min.state = "tree_cutting";
+          min.cuttingTreeCol = tCol;
+          min.cuttingTreeRow = tRow;
+          min.cuttingTimer = 0;
+          return;
+        }
+
+        // Check for Lumber (world.o items at this exact tile)
+        const lumberIndex = world.o.findIndex(l => (l.col|0) === tCol && (l.row|0) === tRow);
+        if (lumberIndex !== -1) {
+          world.o.splice(lumberIndex, 1);
+          min.state = "carrying_lumber";
           min.col = tCol + 0.5;
           min.row = tRow + 0.5;
-          min.landed = true;
-          reservedTiles.add(tileKey);
-          return; 
+          min.landed = false;
+          return;
         }
+
 
         const activeFish = world.F.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
         if (!min.isDelivering && activeFish) {
@@ -1016,7 +1061,7 @@ export function tryCollectSoul(character, world) {
       if (world.k === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! Gramps here. U farmed sigma! Purple soil crops = TRIPLE 💰. Unicorp can't stop ya. Chillis droppin', property MOON 📈</p>`,
+          bodyHtml: `<p>Max! its pap! You can now hoe purple soil! crops there sell for TRIPLE!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }

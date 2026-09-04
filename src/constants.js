@@ -8,7 +8,7 @@ export const moveStepMs = 60;
 
 
 
-export const MIN_INTERACTION_RADIUS = 2.0;
+export const MIN_INTERACTION_RADIUS = .5;
 
 
 export let   TOOL_REACH_DISTANCE = 3.5;
@@ -23,7 +23,7 @@ export const BOX_INTERACTION_RADIUS = 2.75;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = .70;
+export const DOMINION_INTERACTION_RADIUS = 1.20;
 
 export const WATER_POND_COL = 35;
 export const WATER_POND_ROW = 3;
@@ -80,14 +80,14 @@ export const SIGNPOSTS = [
 
 
 export const TASKS = [
-  { id: 'hoe',        desc: 'Hoe tiles',            stat: 0, target: 3 },
-  { id: 'plant',      desc: 'Plant seeds',          stat: 1, target: 3 },
-  { id: 'fillwater',  desc: 'Fill water',          stat: 10, target: 3 },
-  { id: 'water',      desc: 'Water seeds',         stat: 2, target: 3 },
-  { id: 'harvest',    desc: 'Harvest one crop',    stat: 3, target: 1 },
-  { id: 'give',       desc: 'Give crop to Emmie',  stat: 4, target: 1 },
-  { id: 'axe',        desc: 'Use Axe to cut tree', stat: 5, target: 1 },
-  { id: 'gotoshop',   desc: 'Go to Unicorp HQ',    stat: 8, target: 1 },
+  { id: 'hoe',        desc: 'Click tiles Using Hoe',            stat: 0, target: 3 },
+  { id: 'plant',      desc: 'Click Hoed tiles with Seeds to plant',          stat: 1, target: 3 },
+  { id: 'fillwater',  desc: 'Click Pond with water to fill',          stat: 10, target: 3 },
+  { id: 'water',      desc: 'Click seeds to Water',         stat: 2, target: 3 },
+  { id: 'harvest',    desc: '(Space) to pick up crop',    stat: 3, target: 1 },
+  { id: 'give',       desc: 'Give crop to Emmie (Space)',  stat: 4, target: 1 },
+  { id: 'axe',        desc: 'Axe Tree', stat: 5, target: 1 },
+  { id: 'gotoshop',   desc: 'Find and Talk to Emmie',    stat: 8, target: 1 },
   { id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
   { id: 'firstMin',   desc: 'Give Crop to Diamond?', stat: 6, target: 1 },
   { id: 'mC',         desc: 'Deposit crops using Min', stat: 9, target: 10 },
