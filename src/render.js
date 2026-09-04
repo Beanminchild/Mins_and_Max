@@ -125,15 +125,15 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
   ctx.translate(p.x, p.y - 8);
 
   if (tile.stage === PLANT_STAGES.SEED) {
-    ctx.strokeStyle = "#2f6b2f";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#f7e700";
+    ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -6);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.SPROUT) {
-    ctx.strokeStyle = "#2f6b2f";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#f38100";
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(-4, -8);
@@ -141,7 +141,7 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
     ctx.lineTo(4, -8);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.CROP) {
-    ctx.fillStyle = "#4a8f3b";
+    ctx.fillStyle = "#ffff00";
     ctx.beginPath();
     ctx.arc(0, -8, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -158,11 +158,12 @@ function drawTree(ctx, col, row, camera, treeSprite) {
   ctx.drawImage(treeSprite, p.x - 32, p.y - 50, 64, 64);
 }
 
-function drawGravestone(ctx, gravestone, camera, gravestoneSprite) {
+// src/render.js
+function drawGravestone(ctx, gravestone, camera) {
   const p = isoToScreen(gravestone.col, gravestone.row, camera);
-  ctx.drawImage(gravestoneSprite, p.x - 16, p.y - 24, 32, 48);
+  
+  ctx.fillText("🪦", p.x, p.y - 12);
 }
-
 let boxSprite, dominionSprite;
 
 function createCachedSprite(drawFn) {
@@ -226,33 +227,33 @@ export function drawWaterPond(ctx, pond, camera) {
   ctx.fillStyle = "#1e88e5";
   ctx.fill();
 
-  // Moving "Squiggly" Ripple Effect
-  for (let i = 0; i < 3; i++) {
-    const shiftX = Math.sin(time + i) * 5;
-    const shiftY = Math.cos(time * 0.8 + i) * 3;
+  // // Moving "Squiggly" Ripple Effect
+  // for (let i = 0; i < 3; i++) {
+  //   const shiftX = Math.sin(time + i) * 5;
+  //   const shiftY = Math.cos(time * 0.8 + i) * 3;
     
-    ctx.beginPath();
-    ctx.moveTo(pTop.x + shiftX, pTop.y - TILE_H / 2 + shiftY);
-    ctx.lineTo(pRight.x + TILE_W / 2 - shiftX, pRight.y + shiftY);
-    ctx.lineTo(pBottom.x - shiftX, pBottom.y + TILE_H / 2 - shiftY);
-    ctx.lineTo(pLeft.x - TILE_W / 2 + shiftX, pLeft.y - shiftY);
-    ctx.closePath();
+  //   ctx.beginPath();
+  //   ctx.moveTo(pTop.x + shiftX, pTop.y - TILE_H / 2 + shiftY);
+  //   ctx.lineTo(pRight.x + TILE_W / 2 - shiftX, pRight.y + shiftY);
+  //   ctx.lineTo(pBottom.x - shiftX, pBottom.y + TILE_H / 2 - shiftY);
+  //   ctx.lineTo(pLeft.x - TILE_W / 2 + shiftX, pLeft.y - shiftY);
+  //   ctx.closePath();
     
-    ctx.fillStyle = i % 2 === 0 ? "rgba(100, 181, 246, 0.4)" : "rgba(13, 71, 161, 0.3)";
-    ctx.fill();
-  }
+  //   ctx.fillStyle = i % 2 === 0 ? "rgba(100, 181, 246, 0.4)" : "rgba(13, 71, 161, 0.3)";
+  //   ctx.fill();
+  // }
 
-  // White "Specular" Ripples
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-  ctx.lineWidth = 2;
-  for (let j = 0; j < 2; j++) {
-    const rx = pTop.x + Math.sin(time + j * 2) * 20;
-    const ry = pTop.y + 20 + j * 10;
-    ctx.beginPath();
-    ctx.moveTo(rx - 15, ry);
-    ctx.quadraticCurveTo(rx, ry + Math.sin(time * 2) * 5, rx + 15, ry);
-    ctx.stroke();
-  }
+  // // White "Specular" Ripples
+  // ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+  // ctx.lineWidth = 2;
+  // for (let j = 0; j < 2; j++) {
+  //   const rx = pTop.x + Math.sin(time + j * 2) * 20;
+  //   const ry = pTop.y + 20 + j * 10;
+  //   ctx.beginPath();
+  //   ctx.moveTo(rx - 15, ry);
+  //   ctx.quadraticCurveTo(rx, ry + Math.sin(time * 2) * 5, rx + 15, ry);
+  //   ctx.stroke();
+  // }
 
   ctx.restore();
 }
@@ -418,7 +419,7 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
     ctx.save();
     ctx.translate(p.x, p.y - 50); 
     if (character.held === "crop") {
-      ctx.fillStyle = "#4a8f3b";
+      ctx.fillStyle = "#ce2b12";
       ctx.beginPath();
       ctx.arc(0, -8, 6, 0, Math.PI * 2);
       ctx.fill();
@@ -446,43 +447,31 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 const waterMinCache = {};
-const unicornMinCache = {}; // Added cache for Unicorn Min
+//const unicornMinCache = {}; // Added cache for Unicorn Min
+
+// ... existing code ...
 
 export function drawMin(ctx, min, camera, minSprites) {
   const p = isoToScreen(min.col, min.row, camera);
   let sprite = minSprites[min.state] || minSprites.loose;
 
-// ... existing code ...
-
-// ... existing code ...
-
-// Handle Rainbow Min
-if (min.isRainbowMin) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
-  ctx.clip();
-
-  // Create a rainbow gradient across the fill area
-  const time = Date.now() / 1000;
-  const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
-  grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
-  grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
-  grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
-  
-  ctx.fillStyle = grad;
-  ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
-  
-  ctx.restore();
-}
-
-// ... existing code ...
-
-// ... existing code ...
-
-  
-  // Handle Water Min (Blue tint)
-  if (min.isWaterMin) {
+  // Handle Rainbow Min first
+  if (min.isRainbowMin) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
+    ctx.clip();
+    const time = Date.now() / 1000;
+    const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
+    grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
+    grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
+    grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
+    ctx.restore();
+  } 
+  // Only apply water tint if it's NOT a rainbow min
+  else if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {
       const s = document.createElement("canvas"); s.width = 32; s.height = 32;
       const g = s.getContext("2d");
@@ -514,7 +503,7 @@ export function drawCursor(ctx, cursor, camera, character) {
 
   ctx.translate(p.x, p.y - 6);
 
-  ctx.strokeStyle =  inRange || world.selectedTool === "min" && inRangeMin ? "#ffffff" : "#ff4444";
+  ctx.strokeStyle =  inRange || world.e === "min" && inRangeMin ? "#ffffff" : "#ff4444";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
@@ -675,7 +664,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (const [c, r] of tileOrder) {
-    const tile = world.tiles[r][c];
+    const tile = world.t[r][c];
     const p = isoToScreen(c, r, camera);
     const shade = (c + r) % 3;
 
@@ -686,7 +675,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
     if (tile.hasTree) {
-      drawTree(ctx, c, r, camera, world.treeSprite);
+      drawTree(ctx, c, r, camera, world.T);
       drawTreeHealth(ctx, tile, c, r, camera);
     }
 
@@ -696,7 +685,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
   drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
 
-  for (const soul of world.souls) {
+  for (const soul of world.q) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
     const p = isoToScreen(soul.col, soul.row, camera);
     ctx.save();
@@ -715,7 +704,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     }
 
   // Draw fish ripples / fish
-  for (const f of world.fishEvents) {
+  for (const f of world.F) {
     const p = isoToScreen(f.col + 0.5, f.row + 0.5, camera);
     if (f.phase === 'ripple') {
       const rad = (Date.now() / f.speed) % 22;
@@ -734,17 +723,17 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
 
 
   // Draw lumber items on ground
-  if (world.lumber) {
-    for (const lumberItem of world.lumber) {
+  if (world.o) {
+    for (const lumberItem of world.o) {
       drawLumber(ctx, lumberItem, camera);
     }
   }
 
   // Time cycle tint over world
-  const tint = getTimeTint(world.dayProgress || 0);
+  const tint = getTimeTint(world.p || 0);
   if (tint.a > 0) {
     ctx.save();
-    if (world.dayProgress > 0.6) {
+    if (world.p > 0.6) {
         ctx.globalCompositeOperation = 'multiply';
     }
     ctx.fillStyle = `rgba(${tint.r}, ${tint.g}, ${tint.b}, ${tint.a})`;
@@ -752,9 +741,9 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     ctx.restore();
   }
 
-  drawBox(ctx, world.box, camera);
-  drawDominion(ctx, world.dominion, camera);
-  drawWaterPond(ctx, world.pond, camera);
+  drawBox(ctx, world.z, camera);
+  drawDominion(ctx, world.y, camera);
+  drawWaterPond(ctx, world.j, camera);
 
 
   // Shopkeeper drawn with their bank
@@ -764,12 +753,12 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
  
 
-  // Draw gravestones
-  if (world.gravestones) {
-    for (const gravestone of world.gravestones) {
-      drawGravestone(ctx, gravestone, camera, world.gravestoneSprite);
-    }
-  }
+ 
+ // ... inside drawScene ...
+if (world.g && world.g.length > 0) {
+    drawGravestone(ctx, world.g[0], camera);
+}
+
   
 
 
@@ -778,7 +767,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   for (const min of mins) {
     if (min.state !== "delivered") {
       
-        drawMin(ctx, min, camera, world.minSprites);
+        drawMin(ctx, min, camera, world.M);
     }
   }
 

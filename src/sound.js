@@ -1,6 +1,28 @@
-let a,m,id;
-const I=_=>{if(!a){a=new(window.AudioContext||window.webkitAudioContext)();m=a.createGain();m.gain.value=.35;m.connect(a.destination)}a.state=='suspended'&&a.resume()};
-function tn(f,t,d,ty='square',v=.2){const o=a.createOscillator(),g=a.createGain();o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(m);o.start(t);o.stop(t+d)}
-export function sfx(n){I();const t=a.currentTime;if(n=='chop'){tn(120,t,.1,'square',.3);tn(80,t+.06,.12,'square',.2)}else if(n=='water'){tn(500,t,.08,'sine',.2);tn(700,t+.06,.1,'sine',.15)}else if(n=='pick'){tn(600,t,.08,'triangle',.2);tn(900,t+.07,.1,'triangle',.15)}else if(n=='throw'){tn(300,t,.12,'sawtooth',.15)}else if(n=='sleep'){tn(200,t,.5,'sine',.2)}else if(n=='success'){tn(523.25,t,.15,'sine',.15);tn(659.25,t+.1,.15,'sine',.15);tn(783.99,t+.2,.25,'sine',.18);tn(1046.5,t+.32,.35,'triangle',.12)}}
-const ARP=[220,261.63,329.63,440,392,329.63,293.66,261.63],PAD=[110,130.81,164.81];
-export function playSong(phase){I();clearTimeout(id);const c={dawn:{sp:210,ty:'triangle',v:.09,p:.02,n:0},day:{sp:170,ty:'sine',v:.07,p:.02,n:0},dusk:{sp:200,ty:'triangle',v:.06,p:.025,n:0},night:{sp:240,ty:'sine',v:.05,p:.015,n:1}}[phase]||{sp:200,ty:'sine',v:.05,p:.02,n:0};let s=0;const tick=()=>{if(!a)return;const t=a.currentTime,f=ARP[s%8];tn(f,t,.18,c.ty,c.v);tn(f*2,t+.02,.1,c.ty,c.v*.4);if(s%4==0)PAD.forEach(p=>tn(p,t,1.2,'sine',c.p));if(c.n&&s%2==0)tn(200+Math.random()*50,t,.35,'square',.02);id=setTimeout(tick,c.sp);s++};tick()}
+let a, m, id;
+const I = _ => { if (!a) { a = new (window.AudioContext || window.webkitAudioContext)(); m = a.createGain(); m.gain.value = .35; m.connect(a.destination) } a.state == 'suspended' && a.resume() };
+
+const T = (f, t, d, ty, v) => {
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = ty; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(v, t + .05);
+  g.gain.exponentialRampToValueAtTime(1e-3, t + d);
+  o.connect(g); g.connect(m); o.start(t); o.stop(t + d);
+};
+
+export function sfx(n) {
+  I(); const t = a.currentTime;
+  const s = { chop:[100,70], water:[400,500], pick:[400,600], throw:[200], sleep:[150], success:[392,523,659,784] };
+  (s[n]||[220]).forEach((f,i) => T(f, t + i*.15, n=='success'? .5 : .3, n=='success'?'sine':i?'sine':'triangle', .15));
+}
+
+export function playSong(p) {
+  I(); clearTimeout(id);
+  const c = { dawn:[261,392,440,587], day:[392,523,659,784], night:[196,261,330,392] }[p] || [220,330,440,554];
+  let s = 0;
+  const tick = () => {
+    T(c[s%4], a.currentTime, 1.2, 'sine', .08);
+    T(c[++s%4]*2, a.currentTime+.2, .6, 'triangle', .04);
+    id = setTimeout(tick, 800);
+  }; tick();
+}

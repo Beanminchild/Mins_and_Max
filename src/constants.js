@@ -23,7 +23,7 @@ export const BOX_INTERACTION_RADIUS = 2.75;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = 1.5;
+export const DOMINION_INTERACTION_RADIUS = 1.0;
 
 export const WATER_POND_COL = 35;
 export const WATER_POND_ROW = 3;
@@ -43,9 +43,9 @@ export const OTHER_BUILDING_ROW = 3;
 // src/constants.js (suggested additions)
 export const FISH_RIPPLE_SPAWN_MS = 9000;   // new ripple every ~4s
 export const FISH_RIPPLE_RAMP_MS = 4500;    // time ripple takes to speed up
-export const FISH_VISIBLE_MS = 400;       // fish "out" for 1.5s
+export const FISH_VISIBLE_MS = 533;       // fish "out" for 1.5s
 export const FISH_CATCH_RADIUS = .75;
-export const FISH_SALE_PRICE = 150;
+export const FISH_SALE_PRICE = 175;
 
 // Relocate the shopkeeper to be inside/at the door of the shop
 export const SHOPKEEPER_COL = 18.5; 
@@ -55,29 +55,24 @@ export const WATER_CAN_MAX = 9;
 export const SIGNPOST_INTERACTION_RADIUS = 1.5;
 
 export const SIGNPOSTS = [
-  { 
-    col: 23, 
-    row: 12, 
-    title: "Old Sign", 
-    text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
-  },
-  { 
-    col: 36, 
-    row: 4, 
-    title: "Pond Notice", 
-    text: "Deep water! Great for filling cans or letting your Mins have a soak." 
-  },
-  { 
-    col: 17, 
-    row: 17, 
-    title: "Unicorp Min Guide", 
-    text: " Min are powerful tech and can do a lot! We highly encourage experimentation in order to maximize productivity.", 
-  },
+  // { 
+  //   col: 23, 
+  //   row: 12, 
+  //   title: "Old Sign", 
+  //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+  // },
+  // { 
+  //   col: 36, 
+  //   row: 4, 
+  //   title: "Notice", 
+  //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+  // },
+  
   {
     col: 3, 
     row: 25, 
     title: "Fish <b>MIN</b>-y Game ©", 
-    text: "Throw min at fish when it appears! The timing is tricky but u got it! Fish are sold instantly when depositied so if you ever need some quick cash, fish!" 
+    text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
   }
 ];
 
@@ -85,27 +80,24 @@ export const SIGNPOSTS = [
 
 
 export const TASKS = [
-  { id: 'hoe',     desc: 'Hoe tiles',      stat: 'hoed',      target: 3 },
-  { id: 'plant',   desc: 'Plant seeds',    stat: 'planted',   target: 3 },
-  { id: 'fillwater', desc: 'Fill water can in Pond', stat: 'filledWater', target: 3 },
-  { id: 'water',   desc: 'Water seeds',    stat: 'watered',   target: 3 },
-  { id: 'harvest', desc: 'Harvest one crop',    stat: 'harvested', target: 1 },
-  { id: 'give',    desc: 'Give crop to Emmie', stat: 'given',  target: 1 },
-  { id: 'axe',     desc: 'Use Axe to cut tree', stat: 'treesChopped', target: 1 },
-  { id:'gotoshop', desc: 'Talk to Emmie @ Unicorp local HQ', stat: 'visitedShop', target: 1 },
-  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 'cropsCollected', target: 3},
-  { id: 'firstMin', desc: 'Give Crop to  Diamond?',  stat: 'minObtained', target: 1 },
-   { id: 'mC', desc: 'Deposit crops using min', stat: 'cropsCollected', target: 10},
-   { id: 'gpa', desc: 'Visit Gpaps Grave', stat: 'gVist', target: 1},   
-   { id: 'mC', desc: 'Deposit crops', stat: 'cropsCollected', target: 30},
-   { id: 'mF', desc: 'Catch fish using min', stat: 'fishCaught', target: 1},   
-   { id: 'mC2', desc: 'Deposit crops', stat: 'cropsCollected', target: 60},
-   { id: 'c', desc: 'Get Farmaxxing Cert', stat: 'certCollected', target: 1},
-   { id: 'complete', desc: 'Buy Farm Back from Unicorp', stat: 'farmSaved', target: 1},
-
-
-
-
+  { id: 'hoe',        desc: 'Hoe tiles',            stat: 0, target: 3 },
+  { id: 'plant',      desc: 'Plant seeds',          stat: 1, target: 3 },
+  { id: 'fillwater',  desc: 'Fill water',          stat: 10, target: 3 },
+  { id: 'water',      desc: 'Water seeds',         stat: 2, target: 3 },
+  { id: 'harvest',    desc: 'Harvest one crop',    stat: 3, target: 1 },
+  { id: 'give',       desc: 'Give crop to Emmie',  stat: 4, target: 1 },
+  { id: 'axe',        desc: 'Use Axe to cut tree', stat: 5, target: 1 },
+  { id: 'gotoshop',   desc: 'Go to Unicorp HQ',    stat: 8, target: 1 },
+  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
+  { id: 'firstMin',   desc: 'Give Crop to Diamond?', stat: 6, target: 1 },
+  { id: 'mC',         desc: 'Deposit crops using Min', stat: 9, target: 10 },
+  { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 },
+  
+  { id: 'mC',         desc: 'Deposit crops',       stat: 9, target: 30 },
+  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },
+  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 60 },
+  { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
+  { id: 'complete',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 
 export const TOOL_TYPES = {

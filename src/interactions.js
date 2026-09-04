@@ -54,59 +54,7 @@ function createTreeSprite() {
 }
 
 
-function createGravestoneSprite() {
-  const sprite = document.createElement("canvas");
-  sprite.width = 32;
-  sprite.height = 48;
-  const g = sprite.getContext("2d");
-
-  g.font = "40px Arial";
-  g.textAlign = "center";
-  g.textBaseline = "middle";
-  g.fillText("⚰️", 16, 24);
-
-  return sprite;
-}
-
-// function createGravestoneSprite() {
-//   const sprite = document.createElement("canvas");
-//   sprite.width = 32;
-//   sprite.height = 48;
-//   const g = sprite.getContext("2d");
-
-//   g.translate(16, 24);
-
-//   // Gravestone base
-//   g.fillStyle = "#505050";
-//   g.fillRect(-6, 0, 12, 4);
-
-//   // Gravestone slab
-//   g.fillStyle = "#707070";
-//   g.beginPath();
-//   g.moveTo(-8, -2);
-//   g.lineTo(8, -2);
-//   g.lineTo(6, -18);
-//   g.lineTo(-6, -18);
-//   g.closePath();
-//   g.fill();
-
-//   // Gravestone outline
-//   g.strokeStyle = "#505050";
-//   g.lineWidth = 1;
-//   g.stroke();
-
-//   // Creepy cross or marking
-//   g.strokeStyle = "#888888";
-//   g.lineWidth = 1.5;
-//   g.beginPath();
-//   g.moveTo(0, -16);
-//   g.lineTo(0, -6);
-//   g.moveTo(-3, -11);
-//   g.lineTo(3, -11);
-//   g.stroke();
-
-//   return sprite;
-// }
+ 
 
 function createMinSprite(state) {
   const sprite = document.createElement("canvas");
@@ -176,26 +124,26 @@ function createMinSprite(state) {
 
 export function updateFish(world, deltaMs) {
   // spawn
-  world.fishSpawnTimer += deltaMs;
-  if (world.fishSpawnTimer >= FISH_RIPPLE_SPAWN_MS) {
-    world.fishSpawnTimer = 0;
+  world.Z += deltaMs;
+  if (world.Z >= FISH_RIPPLE_SPAWN_MS) {
+    world.Z = 0;
     const waterTiles = [];
     for (let r=0; r<rows; r++) for (let c=0; c<cols; c++)
-      if (world.tiles[r][c].type === TILE_TYPES.WATER) waterTiles.push({c,r});
+      if (world.t[r][c].type === TILE_TYPES.WATER) waterTiles.push({c,r});
     if (waterTiles.length) {
       const t = waterTiles[(Math.random()*waterTiles.length)|0];
-      world.fishEvents.push({ col:t.c, row:t.r, phase:'ripple', timer:0, speed:1 });
+      world.F.push({ col:t.c, row:t.r, phase:'ripple', timer:0, speed:1 });
     }
   }
   // advance
-  for (let i=world.fishEvents.length-1; i>=0; i--) {
-    const f = world.fishEvents[i];
+  for (let i=world.F.length-1; i>=0; i--) {
+    const f = world.F[i];
     f.timer += deltaMs;
     if (f.phase === 'ripple') {
       f.speed = 1 + (f.timer / FISH_RIPPLE_RAMP_MS) * 6; // accelerates
       if (f.timer >= FISH_RIPPLE_RAMP_MS) { f.phase='fish'; f.timer=0; }
     } else if (f.phase === 'fish' && f.timer >= FISH_VISIBLE_MS) {
-      world.fishEvents.splice(i,1); // fish gone
+      world.F.splice(i,1); // fish gone
     }
   }
 }
@@ -251,7 +199,7 @@ export function createWorld() {
 
   
   const treeSprite = createTreeSprite();
-  const gravestoneSprite = createGravestoneSprite();
+  
   const minSprites = {
     loose: createMinSprite("loose"),
     following: createMinSprite("following"),
@@ -268,41 +216,39 @@ export function createWorld() {
 
 
   return {
-    box: { col: BOX_COL, row: BOX_ROW },
-    dominion: { col: 38, row: 16 },
-    stats: { hoed: 0, planted: 0, watered: 0, harvested: 0, given: 0, treesChopped : 0, minObtained: 0, fishCaught: 0, visitedShop: 0, cropsCollected: 0 , filledWater: 0, lumberEver: 0, certCollected: 0, farmSaved: 0},
-    barnBought: false,
-    axeUnlocked: false,
-    minUnlocked: false,
-    currentTaskIndex: 0,    
-    pond: { col: WATER_POND_COL, row: WATER_POND_ROW },
-    shopOpen: false,
-    mins,    
-    bonusCropsCollected: 0,
-    
-    tiles,
-    gravestones,
-    souls,
-    soulsCollected: 0,
-    lumber,
-    treeSprite,
-    gravestoneSprite,
-    minSprites,
-    selectedTool: TOOL_TYPES.HANDS,
-    cropsCollected: 0,
-    lumberCollected: 0,
-    fishEvents: [],
-    fishSpawnTimer: 0,
-    fishCollected: 0,
-    waterCanFillAmount: 0,
-    seedsCollected: 0,
-    filledWater: 0,        
-    seedInventory: 9,    
-    dayLengthMs: 5 * 60 * 1000,
-    dayElapsedMs: 0,
-    dayProgress: 0,
-    dayNumber: 1,
-    wallet: 25    
+    z: { col: BOX_COL, row: BOX_ROW },
+    y: { col: 38, row: 16 },
+    s: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    r: false,
+    u: false,
+    v: false,
+    x: 0,    
+    j: { col: WATER_POND_COL, row: WATER_POND_ROW },
+    S: false,
+    m: mins,    
+    b: 0,
+    t: tiles,
+    g: gravestones,
+    q: souls,
+    k: 0,
+    o: lumber,
+    T: treeSprite,
+    M: minSprites,
+    e: TOOL_TYPES.HANDS,
+    c: 0,
+    l: 0,
+    F: [],
+    Z: 0,
+    f: 0,
+    a: 0,
+    C: 0,
+    i: 0,        
+    I: 9,    
+    D: 5 * 60 * 1000,
+    d: 0,
+    p: 0,
+    n: 1,
+    w: 25    
   };
 }
 
@@ -340,21 +286,21 @@ export function drawSignposts(ctx, worldToCanvas) {
 }
 
 export function tryInteractWithShop(character, world) {
-  if (!world.shopkeeper) return false;
+  if (!world.K) return false;
 
-  const distance = Math.hypot(character.col - world.shopkeeper.col, character.row - world.shopkeeper.row);
+  const distance = Math.hypot(character.col - world.K.col, character.row - world.K.row);
   if (distance > 1.6) return false;
 
   
 
   const giveIndex = TASKS.findIndex(t => t.id === 'give');
-if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
+if (world.x <= giveIndex && world.s[4] < 1) {
   if (character.held === 'crop') {
     character.held = null;
-    world.stats.given++;
-    world.axeUnlocked = true;
-    world.shopkeeper.col = SHOPKEEPER_COL;
-    world.shopkeeper.row = SHOPKEEPER_ROW;
+    world.s[4]++;
+    world.u = true;
+    world.K.col = SHOPKEEPER_COL;
+    world.K.row = SHOPKEEPER_ROW;
     showModal({
       title: "Emmie",
       bodyHtml: "<p>Max. Ur becommin more like ur grandfather, pity he croaked, coulda doubled da ROI. Axe's yours.</p>",
@@ -363,38 +309,34 @@ if (world.currentTaskIndex <= giveIndex && world.stats.given < 1) {
   } else {
     showModal({
       title: "Emmie",
-      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, hand it over. If it good, ur hired and will get family heirloom back, Onboarding bonus!</p>",
+      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, give 2 me. If good, ur hired and will get family heirloom back, Onboarding bonus!</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }
   return true;
 }
 
-  world.stats.visitedShop = 1;
-  world.shopOpen = true;
+  world.s[8] = 1;
+  world.S = true;
   return true;
 }
 
 export function tryInteractWithGravestone(character, world) {
-  if (!world.gravestones) return false;
+  if (!world.g) return false;
 
-  for (let gravestone of world.gravestones) {
+  for (let gravestone of world.g) {
     const distance = Math.hypot(character.col - gravestone.col, character.row - gravestone.row);
     if (distance <= 1.5) {
-      sGM(gravestone);
-      world.stats.gVist++;
+      showModal({
+        title: "Gravestone:",
+        bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
+        buttons: [{ label: "Hm", className: "modal-btn--close" }],
+      });
+      world.s[12]++;
       return true;
     }
   }
   return false;
-}
-
-function sGM() {
-  showModal({
-    title: "Gravestone:",
-    bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Seek thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
-    buttons: [{ label: "Close", className: "modal-btn--close" }],
-  });
 }
 
 function moveToward(min, targetCol, targetRow, speed = 0.12) {
@@ -407,21 +349,6 @@ function moveToward(min, targetCol, targetRow, speed = 0.12) {
     min.col += (dx / distance) * step;
     min.row += (dy / distance) * step;
   }
-}
-
-function settleMin(min) {
-
-  
-  
-  min.state = "following";
-  min.target = null;
-  min.targetTile = null;
-  min.throwOrigin = null;
-  min.throwDistance = 0;
-  min.landed = true;
-  min.isDelivering = false;
-  min.lineToken = Date.now(); //min return to back of line to prevent fish grifting 
-  
 }
 
 export function spawnNewMin(mins, col, row, initialState = "loose") {
@@ -450,7 +377,7 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
 }
 
 export function updateMins(character, mins, world) {
-  const { box, dominion } = world;
+  const { z: box, y: dominion } = world;
 
   // === PERF: precompute tree-cutter counts ONCE (was O(n^2) filter per min) ===
   const cutterCounts = {};
@@ -488,20 +415,20 @@ export function updateMins(character, mins, world) {
   });
 
   // --- Lumber Cleanup (performance fix) ---
-  if (world.lumber && world.lumber.length > MAX_LUMBER_ITEMS) {
-    world.lumber.splice(0, world.lumber.length - MAX_LUMBER_ITEMS);
+  if (world.o && world.o.length > MAX_LUMBER_ITEMS) {
+    world.o.splice(0, world.o.length - MAX_LUMBER_ITEMS);
   }
 
   mins.forEach((min) => {
     // --- Auto-pickup lumber when thrown min lands ---
-    if (min.landed && world.lumber && world.lumber.length > 0) {
-      for (let i = world.lumber.length - 1; i >= 0; i--) {
-        const lumberItem = world.lumber[i];
+    if (min.landed && world.o && world.o.length > 0) {
+      for (let i = world.o.length - 1; i >= 0; i--) {
+        const lumberItem = world.o[i];
         const distToLumber = Math.hypot(min.col - lumberItem.col, min.row - lumberItem.row);
         if (distToLumber < 0.75) {
           min.state = "carrying_lumber";
           min.carryingLumberForDelivery = false;
-          world.lumber.splice(i, 1);
+          world.o.splice(i, 1);
           min.landed = false;
           return;
         }
@@ -522,7 +449,7 @@ export function updateMins(character, mins, world) {
     if (min.state === "tree_cutting") {
       const tCol = min.cuttingTreeCol;
       const tRow = min.cuttingTreeRow;
-      const tile = world.tiles[tRow]?.[tCol];
+      const tile = world.t[tRow]?.[tCol];
 
       if (!tile || !tile.hasTree) {
         min.state = "loose";
@@ -546,14 +473,14 @@ export function updateMins(character, mins, world) {
         tile.hasTree = false;
         tile.lumber = true;
 
-        if (world.lumber.length < MAX_LUMBER_ITEMS) {
-          world.lumber.push({
+        if (world.o.length < MAX_LUMBER_ITEMS) {
+          world.o.push({
             col: tCol + 0.5,
             row: tRow + 0.5,
             id: Date.now() + Math.random()
           });
         }
-        world.stats.treesChopped++;
+        world.s[5]++;
         min.state = "carrying_lumber";
         const pushDist = 2;
         const angle = Math.atan2(min.row - (tRow + 0.5), min.col - (tCol + 0.5));
@@ -583,7 +510,7 @@ export function updateMins(character, mins, world) {
     if (min.state === "thrown") {
       const dx = min.col - dominion.col;
       const dy = min.row - dominion.row;
-      if (dx * dx + dy * dy < 1.5 * 1.5 && world.cropsCollected > 0 && world.selectedTool === "min") {
+      if (dx * dx + dy * dy < 1.5 * 1.5 && world.c > 0 && world.e === "min") {
         min.state = "going_to_box";
       }
     }
@@ -597,8 +524,8 @@ export function updateMins(character, mins, world) {
       const dx = min.col - box.col;
       const dy = min.row - box.row;
       if (dx * dx + dy * dy < 0.12 * 0.12) {
-        if (world.cropsCollected > 0) {
-          world.cropsCollected--;
+        if (world.c > 0) {
+          world.c--;
           min.state = "returning_to_dominion";
         } else {
           min.state = "loose";
@@ -628,7 +555,7 @@ export function updateMins(character, mins, world) {
     // --- Standard Actions ---
     if (min.state === "thrown") {
       const target = min.isDelivering 
-        ? { col: world.box.col, row: world.box.row }
+        ? { col: world.z.col, row: world.z.row }
         : (min.target || { col: character.col, row: character.row });
 
       moveToward(min, target.col, target.row, 0.14);
@@ -646,19 +573,19 @@ export function updateMins(character, mins, world) {
 
       if (min.isDelivering && reachedTarget) {
           if (min.carryingLumberForDelivery) {
-          if (min.carryingMilk) { world.wallet += MILK_SALE_PRICE; min.carryingMilk = false; }
-          else { world.lumberCollected += 1; world.stats.lumberEver = (world.stats.lumberEver || 0) + 1; }
+          if (min.carryingMilk) { world.w += MILK_SALE_PRICE; min.carryingMilk = false; }
+          else { world.l += 1; world.s[11] = (world.s[11] || 0) + 1; }
         } else if (min.state === "carrying_fish" || min.carryingFish) {
-          world.wallet += FISH_SALE_PRICE;
+          world.w += FISH_SALE_PRICE;
           world.fishCaught += 1;
-          world.stats.fishCollected++;
+          world.s[7]++;
           min.carryingFish = false;
         } else if (min.cropTL) {
-          world.bonusCropsCollected++;
-          world.stats.cropsCollected++;
+          world.b++;
+          world.s[9]++;
         } else {
-          world.cropsCollected++;
-          world.stats.cropsCollected++;
+          world.c++;
+          world.s[9]++;
         }
         min.cropTL = false;     
         min.state = "following";
@@ -670,16 +597,16 @@ export function updateMins(character, mins, world) {
       if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
         const tCol = target.col|0;
         const tRow = target.row|0;
-        const tile = world.tiles[tRow]?.[tCol];
+        const tile = world.t[tRow]?.[tCol];
         const tileKey = `${tCol},${tRow}`;
 
            // --- NEW: Rainbow Min Planting Logic ---
-        if (!min.isDelivering && min.isRainbowMin && tile && tile.type === TILE_TYPES.DIRT && !tile.planted && world.seedInventory > 0 && !reservedTiles.has(tileKey)) {
+        if (!min.isDelivering && min.isRainbowMin && tile && tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0 && !reservedTiles.has(tileKey)) {
           
           tile.planted = true;
           tile.watered = true;
           tile.stage = PLANT_STAGES.SEED;
-          world.seedInventory -= 1;
+          world.I -= 1;
           min.isWaterMin = true; 
           min.state = "harvesting";
           min.targetTile = { col: tCol, row: tRow };
@@ -690,9 +617,9 @@ export function updateMins(character, mins, world) {
           return; 
         }
 
-        const activeFish = world.fishEvents.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
+        const activeFish = world.F.find(f => f.phase==='fish' && f.col===tCol && f.row===tRow);
         if (!min.isDelivering && activeFish) {
-          world.fishEvents = world.fishEvents.filter(f=>f!==activeFish);
+          world.F = world.F.filter(f=>f!==activeFish);
           min.state = 'carrying_fish';
           min.carryingFish = true;
           min.landed = false;
@@ -713,7 +640,7 @@ export function updateMins(character, mins, world) {
           min.cuttingTreeRow = tRow;
           min.cuttingTimer = 0;
         } else if (!min.isDelivering) {
-          const pond = world.pond;
+          const pond = world.j;
           if (pond && tCol >= pond.col && tCol < pond.col + 2 && tRow >= pond.row && tRow < pond.row + 2) {
             min.state = "in_pond";
             min.soakTimer = POND_MIN_SOAK_MS;
@@ -721,7 +648,14 @@ export function updateMins(character, mins, world) {
             min.row = pond.row + 1;
             return;
           } else {
-            settleMin(min);
+            min.state = "following";
+            min.target = null;
+            min.targetTile = null;
+            min.throwOrigin = null;
+            min.throwDistance = 0;
+            min.landed = true;
+            min.isDelivering = false;
+            min.lineToken = Date.now();
           }
           return; 
                }
@@ -734,7 +668,7 @@ export function updateMins(character, mins, world) {
      
     // --- UNIFIED HARVESTING & UNICORN LOGIC ---
         if (min.state === "harvesting") {
-      const tile = world.tiles[min.targetTile.row][min.targetTile.col];
+      const tile = world.t[min.targetTile.row][min.targetTile.col];
       if (tile.stage === PLANT_STAGES.CROP) {
         tile.planted = false;
         tile.watered = false;
@@ -762,17 +696,17 @@ export function tryDepositToBox(character, box, world) {
 
   if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {    
     if (character.held === "fish") {      
-      world.wallet += FISH_SALE_PRICE;
-      world.fishCollected += 1;
+      world.w += FISH_SALE_PRICE;
+      world.f += 1;
         } else {
       if (character.held === "lumber") {
-        world.lumberCollected += 1;
-        world.stats.lumberEver = (world.stats.lumberEver || 0) + 1;
-        world.stats.lumberCollected++;
+        world.l += 1;
+        world.s[11] = (world.s[11] || 0) + 1;
+        world.s[11]++;
       } else if (character.held === "crop") {
-        world.stats.cropsCollected++;
-        if (character.cropTL) world.bonusCropsCollected++;
-        else world.cropsCollected++;
+        world.s[9]++;
+        if (character.cropTL) world.b++;
+        else world.c++;
       }
     }
     character.held = null; character.cropTL = false;
@@ -786,7 +720,7 @@ export function tryDepositToDominion(character, dominion, world) {
 
   if (Math.hypot(character.col - dominion.col, character.row - dominion.row) <= DOMINION_INTERACTION_RADIUS) {
     character.held = null;
-    spawnNewMin(world.mins, dominion.col, dominion.row, "loose");
+    spawnNewMin(world.m, dominion.col, dominion.row, "loose");
     return true;
   }
   return false;
@@ -794,11 +728,11 @@ export function tryDepositToDominion(character, dominion, world) {
 
 export function tryCatchFish(character, world) {
   if (character.held) return false;
-  for (const f of world.fishEvents) {
+  for (const f of world.F) {
     if (f.phase !== 'fish') continue;
     if (Math.hypot(character.col - (f.col + 0.5), character.row - (f.row + 0.5)) <= FISH_CATCH_RADIUS) {
       character.held = 'fish';
-      world.fishEvents = world.fishEvents.filter(x => x !== f);
+      world.F = world.F.filter(x => x !== f);
       return true;
     }
   }
@@ -811,7 +745,7 @@ export function tryHarvestCrop(character, world) {
 const c = character.col|0, r = character.row|0;
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
-      const tile = world.tiles[r + dy]?.[c + dx];
+      const tile = world.t[r + dy]?.[c + dx];
       if (tile && tile.stage === PLANT_STAGES.CROP) {
         tile.planted = false;
         tile.watered = false;
@@ -820,7 +754,7 @@ const c = character.col|0, r = character.row|0;
         tile.type = TILE_TYPES.DIRT;
         character.held = "crop";
         character.cropTL = isTopLeftQuadrant(c + dx, r + dy);
-        world.stats.harvested++;
+        world.s[3]++;
         sfx('pick');
         return true;
       }
@@ -838,7 +772,7 @@ export function tryTakeFromMin(character, mins, world) {
     if (Math.hypot(min.col - character.col, min.row - character.row) <= MIN_INTERACTION_RADIUS) {
       character.held = min.state === "carrying" ? "crop" : (min.state === "carrying_fish" ? "fish" : "lumber");
       character.cropTL = min.state === "carrying" ? !!min.cropTL : false;
-      if (character.held === "crop") world.stats.harvested++;
+      if (character.held === "crop") world.s[3]++;
       min.state = "following";
       return true;
     }
@@ -859,9 +793,9 @@ export function tryCollectMin(character, mins, world) {
       min.throwDistance = 0;
       min.throwOrigin = null;
       min.lineToken = Date.now(); // Ensure min goes to back of line
-      world.stats.minObtained++;
+      world.s[6]++;
       sfx('pick');
-      world.minUnlocked = true;
+      world.v = true;
       return min;
     }
   }
@@ -944,36 +878,40 @@ export function useToolAtCursor(world, cursor, character) {
   const col = clampTileValue(cursor.col, cols);
   const row = clampTileValue(cursor.row, rows);
   
-  const tile = world.tiles[row][col];
+  const tile = world.t[row][col];
   if (!tile) return false;
 
 
   // Define buried soul at this tile BEFORE using it
-  const buriedSoul = world.souls.find(s => !s.revealed && !s.collected && Math.floor(s.col) === col && Math.floor(s.row) === row);
+  const buriedSoul = world.q.find(s => !s.revealed && !s.collected && Math.floor(s.col) === col && Math.floor(s.row) === row);
   // Prevent interactions on stone tiles
   if (tile.type === TILE_TYPES.STONE) return false;
 
   // Prevent interactions on sand and water tiles
-  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER && world.selectedTool !== TOOL_TYPES.WATERING_CAN){
+  if (tile.type === TILE_TYPES.SAND || tile.type === TILE_TYPES.WATER && world.e !== TOOL_TYPES.WATERING_CAN){
 
     if (!buriedSoul) return false;
   } 
 
  
-  if (world.selectedTool === TOOL_TYPES.HOE) {
+  if (world.e === TOOL_TYPES.HOE) {
     // Determine if we hoe 1 tile or 5 (cross pattern)
-    const pattern = world.hasBigHoe ? [[0,0], [0,-1], [0,1], [-1,0], [1,0]] : [[0,0]];
+    const pattern = world.h ? [[0,0], [0,-1], [0,1], [-1,0], [1,0]] : [[0,0]];
     let hoedSomething = false;
     
     for (const [dx, dy] of pattern) {
-      const targetTile = world.tiles[row + dy]?.[col + dx];
+      const targetTile = world.t[row + dy]?.[col + dx];
+      // ADD THIS: Check if a buried soul is at this specific target tile
+      // In src/interactions.js, inside the loop in useToolAtCursor:
+      const soul = world.q.find(s => !s.revealed && Math.hypot(s.col - (col + dx), s.row - (row + dy)) < 1.0);
+      if (soul) soul.revealed = true;
       if (targetTile && targetTile.type !== TILE_TYPES.STONE && !targetTile.hasTree) {
         targetTile.type = TILE_TYPES.DIRT;
         targetTile.planted = false;
         targetTile.watered = false;
         targetTile.growth = 0;
         targetTile.stage = PLANT_STAGES.EMPTY;
-        world.stats.hoed++;
+        world.s[0]++;
         hoedSomething = true;
       }
     }
@@ -982,15 +920,15 @@ export function useToolAtCursor(world, cursor, character) {
   }
 // ... existing code ...
 
-  if (world.selectedTool === TOOL_TYPES.SEEDS) {
-    if (tile.type === TILE_TYPES.DIRT && !tile.planted && world.seedInventory > 0) {
+  if (world.e === TOOL_TYPES.SEEDS) {
+    if (tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0) {
       tile.planted = true;
       tile.watered = false;
       tile.growth = 0;
       tile.growDuration = GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN);
       tile.stage = PLANT_STAGES.SEED;
-      world.seedInventory -= 1;
-      world.stats.planted++;
+      world.I -= 1;
+      world.s[1]++;
       sfx('chop');
       return true;
       
@@ -998,21 +936,21 @@ export function useToolAtCursor(world, cursor, character) {
     return false;
   }
 
-  if (world.selectedTool === TOOL_TYPES.WATERING_CAN) {
+  if (world.e === TOOL_TYPES.WATERING_CAN) {
     // Refill can if clicking on the pond (assuming 3x3 pond)
     const isPondTile = col >= WATER_POND_COL && col < WATER_POND_COL + 3 &&
                        row >= WATER_POND_ROW && row < WATER_POND_ROW + 3;
-    if (isPondTile && world.waterCanFillAmount < WATER_CAN_MAX) {
-      world.waterCanFillAmount += 1;
-      world.stats.filledWater++;
+    if (isPondTile && world.a < WATER_CAN_MAX) {
+      world.a += 1;
+      world.s[10]++;
       sfx('water');
       return true;
     }
 
-    if (tile.planted && !tile.watered && world.waterCanFillAmount > 0) {
+    if (tile.planted && !tile.watered && world.a > 0) {
       tile.watered = true;
-      world.waterCanFillAmount -= 1;
-      world.stats.watered++;
+      world.a -= 1;
+      world.s[2]++;
       sfx('water');
       return true;
     }   
@@ -1020,7 +958,7 @@ export function useToolAtCursor(world, cursor, character) {
   }
   
 
-  if (world.selectedTool === TOOL_TYPES.AXE) {
+  if (world.e === TOOL_TYPES.AXE) {
     // Only can axe tiles with trees
     if (!tile.hasTree) return false;
 
@@ -1032,13 +970,13 @@ export function useToolAtCursor(world, cursor, character) {
     if (tile.treeHealth <= 0) {
       tile.hasTree = false;
       tile.lumber = true;
-      // Add lumber object to world.lumber array
-      world.lumber.push({
+      // Add lumber object to world.o array
+      world.o.push({
         col: col + 0.5,
         row: row + 0.5,
         id: Date.now() + Math.random()
       });
-      world.stats.treesChopped++;
+      world.s[5]++;
       return true;
     }
 
@@ -1049,13 +987,13 @@ export function useToolAtCursor(world, cursor, character) {
 }
 
 export function tryCollectSoul(character, world) {
-  for (const soul of world.souls) {
+  for (const soul of world.q) {
     if (soul.collected || !soul.revealed) continue; // must be dug up first
     if (Math.hypot(character.col - soul.col, character.row - soul.row) <= 1.5) {
       soul.collected = true;
-      world.soulsCollected++;
+      world.k++;
       sfx('pick');
-      if (world.soulsCollected === 3) {
+      if (world.k === 3) {
         showModal({
           title: "Souls Restored",
           bodyHtml: `<p>Max! Gramps here. U farmed sigma! Purple soil crops = TRIPLE 💰. Unicorp can't stop ya. Chillis droppin', property MOON 📈</p>`,
@@ -1081,11 +1019,11 @@ export function tryPickupLumber(character, world) {
       const checkRow = r + dy;
       
       // Check if there's lumber at this tile
-      for (let i = 0; i < world.lumber.length; i++) {
-        const lumberItem = world.lumber[i];
+      for (let i = 0; i < world.o.length; i++) {
+        const lumberItem = world.o[i];
          if (Math.floor(lumberItem.col) === checkCol && Math.floor(lumberItem.row) === checkRow) {
           character.held = "lumber";
-          world.lumber.splice(i, 1);
+          world.o.splice(i, 1);
           return true;
         }
       }
@@ -1101,14 +1039,14 @@ export function updateWorld(world, deltaMs, character) {
   let growing = false;
   for (let row = 0; row < rows && !growing; row++) {
     for (let col = 0; col < cols; col++) {
-      const t = world.tiles[row][col];
+      const t = world.t[row][col];
       if (t.planted && t.watered && t.stage !== PLANT_STAGES.CROP) { growing = true; break; }
     }
   }
   if (growing) {
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const tile = world.tiles[row][col];
+        const tile = world.t[row][col];
         if (!tile.planted || !tile.watered || tile.stage === PLANT_STAGES.CROP) continue;
         
         tile.growth += deltaMs;
@@ -1125,10 +1063,10 @@ export function updateWorld(world, deltaMs, character) {
 
   // 2. Update dominion position directly if task index >= 8
   // This modifies the object so all interaction/render calls use the new position
-  if (world.stats.minObtained >= 1) {
+  if (world.s[6] >= 1) {
     const t = Date.now() / 3000;
-    world.dominion.col = 38 + Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
-    world.dominion.row = 16 + Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+    world.y.col = 38 + Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
+    world.y.row = 16 + Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
   }
 
   // 3. Handle fish

@@ -59,7 +59,7 @@ export function updateCharacterFromControls(character, keys, deltaMs, world) { /
       const targetRow = Math.floor(nextRow);
       
       // Look up the tile at the target position
-      const tile = world.tiles[targetRow]?.[targetCol];
+      const tile = world.t[targetRow]?.[targetCol];
       
       // Check if tile is water or has a tree
       const isColliding = tile && (tile.type === TILE_TYPES.WATER || tile.hasTree);
