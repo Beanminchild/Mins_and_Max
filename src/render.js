@@ -125,14 +125,14 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
   ctx.translate(p.x, p.y - 8);
 
   if (tile.stage === PLANT_STAGES.SEED) {
-    ctx.strokeStyle = "#f7e700";
+    ctx.strokeStyle = "#46ce10";
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -6);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.SPROUT) {
-    ctx.strokeStyle = "#f38100";
+    ctx.strokeStyle = "#24be34";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -141,7 +141,7 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
     ctx.lineTo(4, -8);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.CROP) {
-    ctx.fillStyle = "#ffff00";
+    ctx.fillStyle = "#83ff60";
     ctx.beginPath();
     ctx.arc(0, -8, 6, 0, Math.PI * 2);
     ctx.fill();

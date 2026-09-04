@@ -8,7 +8,7 @@ export const moveStepMs = 60;
 
 
 
-export const MIN_INTERACTION_RADIUS = 1.2;
+export const MIN_INTERACTION_RADIUS = 2.0;
 
 
 export let   TOOL_REACH_DISTANCE = 3.5;
@@ -23,7 +23,7 @@ export const BOX_INTERACTION_RADIUS = 2.75;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = 1.0;
+export const DOMINION_INTERACTION_RADIUS = .70;
 
 export const WATER_POND_COL = 35;
 export const WATER_POND_ROW = 3;
@@ -32,7 +32,7 @@ export const WATER_POND_ROW = 3;
 
 
 
-export const POND_MIN_SOAK_MS = 2 * 60 * 1000; // 2 minutes real time in pond
+export const POND_MIN_SOAK_MS = 15000 // 15 seconds
 
 
 export const SHOP_BUILDING_COL = 18;

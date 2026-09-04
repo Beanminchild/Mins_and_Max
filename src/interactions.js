@@ -594,15 +594,51 @@ export function updateMins(character, mins, world) {
         return;
       }      
 
-      if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
+            if (reachedTarget || (!min.isDelivering && (min.throwDistance ?? 0) >= THROW_MAX_DISTANCE)) {
         const tCol = target.col|0;
         const tRow = target.row|0;
+
+        // --- MAGNETIC SEARCH ---
+        const searchRadius = 1.5;
+        let found = null;
+        for (let dy = -searchRadius; dy <= searchRadius; dy++) {
+          for (let dx = -searchRadius; dx <= searchRadius; dx++) {
+            const r = tRow + dy, c = tCol + dx;
+            const tile = world.t[r]?.[c];
+            if (!tile) continue;
+            // Priority: Tree > Crop
+            if (tile.hasTree) { found = { type: 'tree', col: c, row: r }; break; }
+            if (!found && tile.planted && !reservedTiles.has(`${c},${r}`)) {
+              found = { type: 'crop', col: c, row: r };
+            }
+          }
+          if (found) break;
+        }
+
+        // --- EXECUTE ACTION ---
+        if (found) {
+          if (found.type === 'tree') {
+            min.state = "tree_cutting";
+            min.cuttingTreeCol = found.col;
+            min.cuttingTreeRow = found.row;
+            min.cuttingTimer = 0;
+            return;
+          } else if (found.type === 'crop') {
+            if (min.isWaterMin && !world.t[found.row][found.col].watered) world.t[found.row][found.col].watered = true;
+            min.state = "harvesting";
+            min.targetTile = { col: found.col, row: found.row };
+            min.col = found.col + 0.5;
+            min.row = found.row + 0.5;
+            reservedTiles.add(`${found.col},${found.row}`);
+            return;
+          }
+        }
+
+        // --- FALLBACK (Pond/Planting/Default) ---
         const tile = world.t[tRow]?.[tCol];
         const tileKey = `${tCol},${tRow}`;
 
-           // --- NEW: Rainbow Min Planting Logic ---
         if (!min.isDelivering && min.isRainbowMin && tile && tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0 && !reservedTiles.has(tileKey)) {
-          
           tile.planted = true;
           tile.watered = true;
           tile.stage = PLANT_STAGES.SEED;
@@ -626,41 +662,25 @@ export function updateMins(character, mins, world) {
           return;
         }
 
-        if (!min.isDelivering && tile && tile.planted && !reservedTiles.has(tileKey)) {
-          if (min.isWaterMin && !tile.watered) tile.watered = true;
-          min.state = "harvesting";
-          min.targetTile = { col: tCol, row: tRow };
-          min.col = tCol + 0.5;
-          min.row = tRow + 0.5;
-          reservedTiles.add(tileKey); // Reserve immediately
-          
-        } else if (!min.isDelivering && tile && tile.hasTree) {
-          min.state = "tree_cutting";
-          min.cuttingTreeCol = tCol;
-          min.cuttingTreeRow = tRow;
-          min.cuttingTimer = 0;
-        } else if (!min.isDelivering) {
-          const pond = world.j;
-          if (pond && tCol >= pond.col && tCol < pond.col + 2 && tRow >= pond.row && tRow < pond.row + 2) {
-            min.state = "in_pond";
-            min.soakTimer = POND_MIN_SOAK_MS;
-            min.col = pond.col + 1;
-            min.row = pond.row + 1;
-            return;
-          } else {
-            min.state = "following";
-            min.target = null;
-            min.targetTile = null;
-            min.throwOrigin = null;
-            min.throwDistance = 0;
-            min.landed = true;
-            min.isDelivering = false;
-            min.lineToken = Date.now();
-          }
-          return; 
-               }
+        const pond = world.j;
+        if (pond && tCol >= pond.col && tCol < pond.col + 2 && tRow >= pond.row && tRow < pond.row + 2) {
+          min.state = "in_pond";
+          min.soakTimer = POND_MIN_SOAK_MS;
+          min.col = pond.col + 1;
+          min.row = pond.row + 1;
+          return;
+        } else {
+          min.state = "following";
+          min.target = null;
+          min.targetTile = null;
+          min.throwOrigin = null;
+          min.throwDistance = 0;
+          min.landed = true;
+          min.isDelivering = false;
+          min.lineToken = Date.now();
+        }
+      }
     }
-    }     
              
     
   
