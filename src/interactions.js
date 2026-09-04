@@ -950,8 +950,8 @@ function clampTileValue(value, max) {
 export function useToolAtCursor(world, cursor, character) {
   if (!cursor) return false;
   
-  const col = clampTileValue(cursor.col, cols);
-  const row = clampTileValue(cursor.row, rows);
+  let col = clampTileValue(cursor.col, cols);
+  let row = clampTileValue(cursor.row, rows);
   
   const tile = world.t[row][col];
   if (!tile) return false;
@@ -1033,12 +1033,13 @@ export function useToolAtCursor(world, cursor, character) {
       return true;
     }   
     return false;
-  }
-  
+  } 
+
 
   if (world.e === TOOL_TYPES.AXE) {
     // Only can axe tiles with trees
     if (!tile.hasTree) return false;
+    
 
     // Decrement tree health
     tile.treeHealth -= 1;

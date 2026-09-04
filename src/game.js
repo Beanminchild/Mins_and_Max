@@ -452,23 +452,55 @@ function handleToolAction() {
   if (world.e === "min") {
     throwMin(character, mins, world.z, cursor);
     sfx("throw");
-  } 
-  
-    // Calculate distance between character and cursor for all other tools
-  const dist = cursor ? Math.hypot(character.col - cursor.col, character.row - cursor.row) : Infinity;
-  
-  // If the cursor is too far away, stop the action
-  if (dist > TOOL_REACH_DISTANCE) {    
-    return;
   }
-  
+
+  let toolCursor = cursor;
+
+  if (world.e === TOOL_TYPES.AXE && cursor) {
+    const centerCol = Math.floor(cursor.col);
+    const centerRow = Math.floor(cursor.row);
+
+    let closestTree = null;
+    let closestDistance = Infinity;
+
+    for (let row = centerRow - 2; row <= centerRow + 2; row++) {
+      for (let col = centerCol - 2; col <= centerCol + 2; col++) {
+        if (!world.t[row]?.[col]?.hasTree) continue;
+
+        const distance = Math.hypot(
+          cursor.col - (col + 0.5),
+          cursor.row - (row + 0.5)
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestTree = {
+            col: col + 0.5,
+            row: row + 0.5
+          };
+        }
+      }
+    }
+
+    if (closestTree) toolCursor = closestTree;
+  }
+
+  const dist = toolCursor
+    ? Math.hypot(
+        character.col - toolCursor.col,
+        character.row - toolCursor.row
+      )
+    : Infinity;
+
+  if (dist > TOOL_REACH_DISTANCE) return;
+
   if (world.e === "empty-hands") {
     if (!tryHarvestCrop(character, world)) {
       tryTakeFromMin(character, mins, world);
     }
     syncHUD();
   } else {
-    useToolAtCursor(world, cursor);
+    useToolAtCursor(world, toolCursor);
     syncHUD();
   }
 }
