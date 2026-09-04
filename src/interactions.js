@@ -420,6 +420,16 @@ export function updateMins(character, mins, world) {
   }
 
   mins.forEach((min) => {
+
+    if (min.state === "loose" && ((min.col - character.col)**2 + (min.row - character.row)**2 < 1.5 || 
+        mins.some(o => o.state !== "loose" && o.state !== "in_pond" && (min.col - o.col)**2 + (min.row - o.row)**2 < 0.8))) {
+      min.state = "following";
+      min.lineToken = Date.now();
+      world.s[6]++;
+      world.v = true;
+      sfx("pick");
+    }
+
     // --- Auto-pickup lumber when thrown min lands ---
     if (min.landed && world.o && world.o.length > 0) {
       for (let i = world.o.length - 1; i >= 0; i--) {
@@ -966,6 +976,9 @@ export function useToolAtCursor(world, cursor, character) {
     
     for (const [dx, dy] of pattern) {
       const targetTile = world.t[row + dy]?.[col + dx];
+      // Block hoeing in the "decay" (purple) quadrant until 3 souls are collected
+      if (targetTile?.variant === "decay" && world.k < 3) continue;
+
       // ADD THIS: Check if a buried soul is at this specific target tile
       // In src/interactions.js, inside the loop in useToolAtCursor:
       const soul = world.q.find(s => !s.revealed && Math.hypot(s.col - (col + dx), s.row - (row + dy)) < 1.0);

@@ -278,28 +278,38 @@ function updateClock() {
 }
 
 
-
+export const prices = {
+  seeds: 5,
+  min: 45,
+  barn: 3000,
+  farm: 100000,
+  rainbow: 5000,
+  big_hoe: 5000
+};
 
 function openShop() {
   world.S = true;  
   const shopButtons = [];
   const lumberHave = world.s[11] || 0;
-  const barnLocked = world.r || lumberHave < 50;
+  
+  const barnLocked = world.r || lumberHave < 50 || world.w < prices.barn;
   shopButtons.push(
     `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Unicorp Farm-maxxing Cert — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
 
    // New buttons appear only if barn is bought
   if (world.r) {
-    shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 500g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Rainbow Min — 5000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
+    const farmDisabled = world.w < prices.farm;
+    shopButtons.push(`<button class="shop-button" data-buy="farm" ${farmDisabled ? "disabled" : ""}>Buy Farm Back — 100000g</button>`);
+    
+    const hoeDisabled = world.h || world.w < prices.hoe;
+    shopButtons.push(`<button class="shop-button" data-buy="big_hoe" ${hoeDisabled ? "disabled" : ""}>Big Hoe — 5000g</button>`);
   }
   
+  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min" ${world.w < prices.rainbow ? "disabled" : ""}>Rainbow Min — 5000g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="seeds" ${world.w < prices.seeds ? "disabled" : ""}>Seeds — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 45g</button>`);
   
-  shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
   showModal({
     title: "Emmie",
     bodyHtml: `
@@ -324,18 +334,9 @@ function closeShop() {
   closeModal();
 }
 
-function buyShopItem(item) {
-  const priceMap = {
-    seeds: 5,
-    min: 35,
-    barn: 3000,
-    farm: 100000,
-    rainbow_min: 5,
-    big_hoe: 5
-   
-  };
+function buyShopItem(item) {  
 
-  const price = priceMap[item];
+  const price = prices[item];
   if (!price || world.w < price) return;
   if (item === "barn" && (world.r || (world.s[11] || 0) < 50)) return;
 
@@ -372,6 +373,8 @@ function buyShopItem(item) {
     world.s[6]++;
     sfx("success");
   }
+  syncHUD();
+  openShop();
 }
 
 
