@@ -30,8 +30,8 @@ import {
   FISH_CATCH_RADIUS,
   FISH_SALE_PRICE,
   POND_MIN_SOAK_MS,
-  SIGNPOSTS, 
-  SIGNPOST_INTERACTION_RADIUS 
+  // SIGNPOSTS, 
+  // SIGNPOST_INTERACTION_RADIUS 
   
 } from "./constants.js";
 
@@ -258,37 +258,37 @@ export function createWorld() {
 }
 
 
-export function tryInteractWithSign(playerCol, playerRow) {
-  for (const sign of SIGNPOSTS) {
-    const dx = playerCol - sign.col;
-    const dy = playerRow - sign.row;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+// export function tryInteractWithSign(playerCol, playerRow) {
+//   for (const sign of SIGNPOSTS) {
+//     const dx = playerCol - sign.col;
+//     const dy = playerRow - sign.row;
+//     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist < SIGNPOST_INTERACTION_RADIUS) {
-      showModal({
-        title: sign.title,
-        bodyHtml: `<p>${sign.text}</p>`,
-        buttons: [{ label: "Close", className: "primary" }]
-      });
-      return true; // Interaction handled
-    }
-  }
-  return false;
-}
+//     if (dist < SIGNPOST_INTERACTION_RADIUS) {
+//       showModal({
+//         title: sign.title,
+//         bodyHtml: `<p>${sign.text}</p>`,
+//         buttons: [{ label: "Close", className: "primary" }]
+//       });
+//       return true; // Interaction handled
+//     }
+//   }
+//   return false;
+// }
 
 /**
  * Call this in your main draw loop
  * ctx: CanvasRenderingContext2D
  * worldToCanvas: helper function to convert col/row to px
  */
-export function drawSignposts(ctx, worldToCanvas) {
-  ctx.font = "24px serif";
-  ctx.textAlign = "center";
-  for (const sign of SIGNPOSTS) {
-    const { x, y } = worldToCanvas(sign.col, sign.row);
-    ctx.fillText("🪧", x, y);
-  }
-}
+// export function drawSignposts(ctx, worldToCanvas) {
+//   ctx.font = "24px serif";
+//   ctx.textAlign = "center";
+//   for (const sign of SIGNPOSTS) {
+//     const { x, y } = worldToCanvas(sign.col, sign.row);
+//     ctx.fillText("🪧", x, y);
+//   }
+// }
 
 export function tryInteractWithShop(character, world) {
   if (!world.K) return false;
@@ -308,13 +308,13 @@ if (world.x <= giveIndex && world.s[4] < 1) {
     world.K.row = SHOPKEEPER_ROW;
     showModal({
       title: "Emmie",
-      bodyHtml: "<p>Not bad Max, but youll never get the farm back at this rate. Come see me at Local HQ You need to learn how to use Min to automate as much as possible!</p>",
+      bodyHtml: "<p>Not bad Max, but youll never get the farm back at this rate. Use the tasks i gave you to learn how to use Min to automate as much as possible! Also heres your Axe!</p>",
       buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
     showModal({
       title: "Emmie",
-      bodyHtml: "<p>Prove you can farm by growing a crop and giving it to me. Do it Right and ill give you ur grandfather's axe.</p>",
+      bodyHtml: "<p>Before you use Min, Prove you can farm by growing a crop and giving it to me. Do it Right and ill give you ur grandfather's axe.</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }

@@ -52,7 +52,7 @@ export const SHOPKEEPER_COL = 18.5;
 export const SHOPKEEPER_ROW = 16.5;
 export const WATER_CAN_MAX = 9;
 
-export const SIGNPOST_INTERACTION_RADIUS = 1.5;
+// export const SIGNPOST_INTERACTION_RADIUS = 1.5;
 
 // export const SIGNPOSTS = [
 //   // { 

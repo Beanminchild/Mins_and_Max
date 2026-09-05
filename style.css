@@ -13,8 +13,8 @@ canvas {
 }
 
 /* --- HUD --- */
-.overlay-hud-top-left { position: absolute; top: 15px; left: 15px; pointer-events: none; }
-.overlay-hud-top-right { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; pointer-events: none; }
+.ol { position: absolute; top: 15px; left: 15px; pointer-events: none; }
+.or { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; pointer-events: none; }
 
 
 

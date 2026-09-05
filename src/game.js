@@ -14,7 +14,7 @@ import {
   tryDepositToDominion,  
   tryInteractWithShop,
   tryInteractWithGravestone,
-  tryInteractWithSign,
+  // tryInteractWithSign,
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
@@ -187,15 +187,13 @@ function showStartMenu() {
 
 function showStory(index) {
   const blurbs = [
-  "Max: I need to pay to get MY family farm back?",
-  "Emmie: Yep. Private Equity Unicorn Startup life baby! its the best!",
-  "Max: I can't farm that fast!",
-   "Emmie: You could try using our new Min Tech.. theyre lil sub agents that automate pretty much anything",
-  "Max: Is it still farming if Im not the one doing it?",
-  "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn idea!",
-  "Max: ...",
-  "Emmie: You got this Max! Plant > Water > Harvest > Automate! Thats the game!" 
-];
+    "Max: I have to pay to get my own farm back?",
+    "Emmie: That's unicorn startup life! You need to scale fast.",
+    "Max: I can't farm fast enough.",
+    "Emmie: Use our 'Mins', sub-agents that automate the grunt work.",
+    "Max: Is it still farming if I'm not the one doing it?",
+    "Emmie: You're 'orchestrating'! Plant, water, harvest, and automate!"
+  ];
 
   const buttons = [];
   
@@ -374,7 +372,7 @@ function buyShopItem(item) {
     sfx("pick");
   } else if (item === "farm") {
     world.s[13]++;
-    elFarm.textContent = "Max's Farm";
+    //elFarm.textContent = "Max's Farm";
     sfx("success");
   } else if (item === "big_hoe") {
     world.h = true;
@@ -610,7 +608,7 @@ function loop(timestamp) {
 
   if (world.x >= TASKS_BEFORE_TIMER_STARTS) {
   world.d += deltaMs;
-  elFarm.textContent = "Unicorp Farm";
+  //elFarm.textContent = "Unicorp Farm";
     }
   world.p = Math.min(world.d / world.D, 1);
 
@@ -625,7 +623,7 @@ function loop(timestamp) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
-                    tryInteractWithSign(character.col, character.row)  ||                    
+                    // tryInteractWithSign(character.col, character.row)  ||                    
                     tryDepositToBox(character, world.z, world) ||
                     tryDepositToDominion(character, world.y, world) ||
                     

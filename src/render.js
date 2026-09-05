@@ -19,7 +19,7 @@ import {
 import {
   world
 } from "./game.js";
-import { drawSignposts } from "./interactions.js";
+// import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {
@@ -704,7 +704,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     
   }  
 
-  drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
+  // drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
 
   for (const soul of world.q) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
