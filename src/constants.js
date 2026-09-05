@@ -54,27 +54,27 @@ export const WATER_CAN_MAX = 9;
 
 export const SIGNPOST_INTERACTION_RADIUS = 1.5;
 
-export const SIGNPOSTS = [
-  // { 
-  //   col: 23, 
-  //   row: 12, 
-  //   title: "Old Sign", 
-  //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
-  // },
-  // { 
-  //   col: 36, 
-  //   row: 4, 
-  //   title: "Notice", 
-  //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
-  // },
+// export const SIGNPOSTS = [
+//   // { 
+//   //   col: 23, 
+//   //   row: 12, 
+//   //   title: "Old Sign", 
+//   //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+//   // },
+//   // { 
+//   //   col: 36, 
+//   //   row: 4, 
+//   //   title: "Notice", 
+//   //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+//   // },
   
-  // {
-  //   col: 3, 
-  //   row: 25, 
-  //   title: "Fish <b>MIN</b>-y Game ©", 
-  //   text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
-  // }
-];
+//   // {
+//   //   col: 3, 
+//   //   row: 25, 
+//   //   title: "Fish <b>MIN</b>-y Game ©", 
+//   //   text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
+//   // }
+// ];
 
 
 
@@ -100,8 +100,8 @@ export const TASKS = [
   { id: 'mMin',   desc: 'Get more Min', stat: 6, target: 15 },
   { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
   { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 120 },
-  { id: 'b',        desc: 'Earn 50000g',       stat: 33, target: 50000 },
-  { id: 'b2',        desc: 'Earn 75000g',       stat: 33, target: 75000 },
+  { id: 'b',        desc: 'Earn 25000g',       stat: 33, target: 25000 },
+  { id: 'b2',        desc: 'Earn 50000g',       stat: 33, target: 50000 },
   { id: 'co',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 

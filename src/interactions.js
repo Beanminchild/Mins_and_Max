@@ -308,13 +308,13 @@ if (world.x <= giveIndex && world.s[4] < 1) {
     world.K.row = SHOPKEEPER_ROW;
     showModal({
       title: "Emmie",
-      bodyHtml: "<p>Max. Ur becommin more like ur grandfather, pity he croaked, coulda doubled da ROI. Axe's yours.</p>",
+      bodyHtml: "<p>Not bad Max, but youll never get the farm back at this rate. Come see me at Local HQ You need to learn how to use Min to automate as much as possible!</p>",
       buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
     });
   } else {
     showModal({
       title: "Emmie",
-      bodyHtml: "<p>Prove u'll hit KPIs: grow a crop, give 2 me. If good, ur hired and will get family heirloom back, Onboarding bonus!</p>",
+      bodyHtml: "<p>Prove you can farm by growing a crop and giving it to me. Do it Right and ill give you ur grandfather's axe.</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }

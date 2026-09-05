@@ -187,14 +187,14 @@ function showStartMenu() {
 
 function showStory(index) {
   const blurbs = [
-  "Max: I ",
-  "Emmie: Yep.",
-  // "Max: I can't farm that fast!",
-  // "Emmie: ....",
-  // "Max: Is it farming if I do nothing?",
-  // "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
-  // "Max: Got it, Plant, Water,  Harvest, Automate!"
-  
+  "Max: I need to pay to get MY family farm back?",
+  "Emmie: Yep. Private Equity Unicorn Startup life baby! its the best!",
+  "Max: I can't farm that fast!",
+   "Emmie: You could try using our new Min Tech.. theyre lil sub agents that automate pretty much anything",
+  "Max: Is it still farming if Im not the one doing it?",
+  "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn idea!",
+  "Max: ...",
+  "Emmie: You got this Max! Plant > Water > Harvest > Automate! Thats the game!" 
 ];
 
   const buttons = [];
@@ -283,9 +283,9 @@ export const prices = {
   seeds: 5,
   min: 499,
   barn: 3000,
-  farm: 100000,
-  rainbow: 5999,
-  big_hoe: 4999
+  farm: 74999,
+  rainbow: 3999,
+  big_hoe: 2999
 };
 
 function openShop() {
@@ -302,19 +302,19 @@ function openShop() {
     if (world.r) {
     shopButtons.push(
       `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
-        Buy Farm Back — 100000g
+        Buy Farm Back — 74999g
       </button>`
     );
   
     shopButtons.push(
       `<button class="shop-button" data-buy="big_hoe" ${(world.h || world.w < prices.big_hoe) ? "disabled" : ""}>
-        Big Hoe — 4999g
+        Big Hoe — 2999g
       </button>`
     );
   
     shopButtons.push(
       `<button class="shop-button" data-buy="rainbow_min" ${world.w < prices.rainbow ? "disabled" : ""}>
-        Rainbow Min — 5999g
+        Rainbow Min — 3999g
       </button>`
     );
   }
@@ -451,7 +451,7 @@ function updateTaskHUD() {
       world.A = true;
       showModal({
         title: "Victory!",
-        bodyHtml: "<p>Congratulations!</p>",
+        bodyHtml: "<p>You got the farm back from Unicorp!</p>",
         buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
       });
     }
