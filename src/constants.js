@@ -8,7 +8,7 @@ export const moveStepMs = 60;
 
 
 
-export const MIN_INTERACTION_RADIUS = 1.2;
+export const MIN_INTERACTION_RADIUS = .5;
 
 
 export let   TOOL_REACH_DISTANCE = 3.5;
@@ -23,7 +23,7 @@ export const BOX_INTERACTION_RADIUS = 2.75;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = 1.0;
+export const DOMINION_INTERACTION_RADIUS = 1.20;
 
 export const WATER_POND_COL = 35;
 export const WATER_POND_ROW = 3;
@@ -32,7 +32,7 @@ export const WATER_POND_ROW = 3;
 
 
 
-export const POND_MIN_SOAK_MS = 2 * 60 * 1000; // 2 minutes real time in pond
+export const POND_MIN_SOAK_MS = 15000 // 15 seconds
 
 
 export const SHOP_BUILDING_COL = 18;
@@ -52,52 +52,57 @@ export const SHOPKEEPER_COL = 18.5;
 export const SHOPKEEPER_ROW = 16.5;
 export const WATER_CAN_MAX = 9;
 
-export const SIGNPOST_INTERACTION_RADIUS = 1.5;
+// export const SIGNPOST_INTERACTION_RADIUS = 1.5;
 
-export const SIGNPOSTS = [
-  // { 
-  //   col: 23, 
-  //   row: 12, 
-  //   title: "Old Sign", 
-  //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
-  // },
-  // { 
-  //   col: 36, 
-  //   row: 4, 
-  //   title: "Notice", 
-  //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
-  // },
+// export const SIGNPOSTS = [
+//   // { 
+//   //   col: 23, 
+//   //   row: 12, 
+//   //   title: "Old Sign", 
+//   //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+//   // },
+//   // { 
+//   //   col: 36, 
+//   //   row: 4, 
+//   //   title: "Notice", 
+//   //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+//   // },
   
-  {
-    col: 3, 
-    row: 25, 
-    title: "Fish <b>MIN</b>-y Game ©", 
-    text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
-  }
-];
+//   // {
+//   //   col: 3, 
+//   //   row: 25, 
+//   //   title: "Fish <b>MIN</b>-y Game ©", 
+//   //   text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
+//   // }
+// ];
 
 
 
 
 export const TASKS = [
-  { id: 'hoe',        desc: 'Hoe tiles',            stat: 0, target: 3 },
-  { id: 'plant',      desc: 'Plant seeds',          stat: 1, target: 3 },
-  { id: 'fillwater',  desc: 'Fill water',          stat: 10, target: 3 },
-  { id: 'water',      desc: 'Water seeds',         stat: 2, target: 3 },
-  { id: 'harvest',    desc: 'Harvest one crop',    stat: 3, target: 1 },
-  { id: 'give',       desc: 'Give crop to Emmie',  stat: 4, target: 1 },
-  { id: 'axe',        desc: 'Use Axe to cut tree', stat: 5, target: 1 },
-  { id: 'gotoshop',   desc: 'Go to Unicorp HQ',    stat: 8, target: 1 },
-  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
-  { id: 'firstMin',   desc: 'Give Crop to Diamond?', stat: 6, target: 1 },
-  { id: 'mC',         desc: 'Deposit crops using Min', stat: 9, target: 10 },
-  { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 },
-  
-  { id: 'mC',         desc: 'Deposit crops',       stat: 9, target: 30 },
-  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },
-  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 60 },
+  { id: 'hoe',        desc: 'Click tiles Using Hoe', stat: 0, target: 3 },
+  { id: 'plant',      desc: 'Click Hoed tiles with Seeds to plant',stat: 1, target: 3 },
+  { id: 'fillwater',  desc: 'Click Pond with water to fill',          stat: 10, target: 3 },
+  { id: 'water',      desc: 'Click seeds to Water', stat: 2, target: 3 },
+  { id: 'harvest',    desc: '(Space) to pick up crop',    stat: 3, target: 1 },
+  { id: 'give',       desc: 'Give crop to Emmie (Space)',  stat: 4, target: 1 },
+  { id: 'axe',        desc: 'Axe Tree (Click)', stat: 5, target: 1 },
+  { id: 'gotoshop',   desc: 'Find and Talk to Emmie',    stat: 8, target: 1 },
+  //{ id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
+  { id: 'firstMin',   desc: 'Give Crop to Diamond? (Space)', stat: 6, target: 1 },
+  { id: 'mC',         desc: 'Throw Min at Crops to pick, Throw again to collect', stat: 9, target: 7 },
+  { id: 'mMin',   desc: 'Throw Min at Diamond make more min', stat: 6, target: 5 },
+  { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 }, 
+  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },  
+  { id: 'mC',         desc: 'Collect crops',       stat: 9, target: 30 },  
+  { id: 'wmi',   desc: 'Throw Min in Pond...?',    stat: 26, target: 1 },
+  { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 60 },
+  { id: 'mMin',   desc: 'Get more Min', stat: 6, target: 15 },
   { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
-  { id: 'complete',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
+  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 120 },
+  { id: 'b',        desc: 'Earn 25000g',       stat: 33, target: 25000 },
+  { id: 'b2',        desc: 'Earn 50000g',       stat: 33, target: 50000 },
+  { id: 'co',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 
 export const TOOL_TYPES = {
@@ -127,12 +132,12 @@ export const PLANT_STAGES = {
 export const GROWTH_DURATION_MIN = 7000;
 export const GROWTH_DURATION_MAX = 9000;
 
-export const TREE_SWINGS_TO_FELL = 22;
+export const TREE_SWINGS_TO_FELL = 15;
 
 // Tree cutting with cooperative mins
 export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
-export const TREE_CUT_TIME_2_MIN = 15000;  // 15 seconds for 2 mins
-export const TREE_CUT_TIME_3_MIN = 10000;  // 10 seconds for 3+ mins
+export const TREE_CUT_TIME_2_MIN = 7000;  // 15 seconds for 2 mins
+export const TREE_CUT_TIME_3_MIN = 2000;  // 10 seconds for 3+ mins
 
 // Lumber performance limits
 export const MAX_LUMBER_ITEMS = 200;

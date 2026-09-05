@@ -39,8 +39,8 @@ export function getDirectionIndex(dx, dy, currentDir) {
 }
 
 export function updateCharacterFromControls(character, keys, deltaMs, world) { // Add world here
-  const dx = (keys.has("ArrowRight") || keys.has("KeyD") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("KeyA") ? 1 : 0);
-  const dy = (keys.has("ArrowDown") || keys.has("KeyS") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("KeyW") ? 1 : 0);
+  const dx = (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
+  const dy = (keys.has("KeyS") ? 1 : 0) - (keys.has("KeyW") ? 1 : 0);
 
   
   if (dx !== 0 || dy !== 0) {

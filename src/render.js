@@ -19,7 +19,7 @@ import {
 import {
   world
 } from "./game.js";
-import { drawSignposts } from "./interactions.js";
+// import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {
@@ -125,14 +125,14 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
   ctx.translate(p.x, p.y - 8);
 
   if (tile.stage === PLANT_STAGES.SEED) {
-    ctx.strokeStyle = "#f7e700";
+    ctx.strokeStyle = "#46ce10";
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -6);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.SPROUT) {
-    ctx.strokeStyle = "#f38100";
+    ctx.strokeStyle = "#24be34";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -141,7 +141,7 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
     ctx.lineTo(4, -8);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.CROP) {
-    ctx.fillStyle = "#ffff00";
+    ctx.fillStyle = "#83ff60";
     ctx.beginPath();
     ctx.arc(0, -8, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -173,15 +173,26 @@ function createCachedSprite(drawFn) {
   return s;
 }
 
+// export function drawBox(ctx, box, camera) {
+//   if (!boxSprite) boxSprite = createCachedSprite(g => {
+//     g.translate(32, 32);
+//     g.fillStyle = "#4e342e"; g.beginPath(); g.moveTo(-20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(-20, 15); g.fill();
+//     g.fillStyle = "#3e2723"; g.beginPath(); g.moveTo(20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(20, 15); g.fill();
+//     g.fillStyle = "#5d4037"; g.beginPath(); g.moveTo(0, -10); g.lineTo(20, 0); g.lineTo(0, 10); g.lineTo(-20, 0); g.closePath(); g.fill();
+//   });
+//   const p = isoToScreen(box.col, box.row, camera);
+//   ctx.drawImage(boxSprite, p.x - 32, p.y - 32);
+// }
+
 export function drawBox(ctx, box, camera) {
-  if (!boxSprite) boxSprite = createCachedSprite(g => {
-    g.translate(32, 32);
-    g.fillStyle = "#4e342e"; g.beginPath(); g.moveTo(-20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(-20, 15); g.fill();
-    g.fillStyle = "#3e2723"; g.beginPath(); g.moveTo(20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(20, 15); g.fill();
-    g.fillStyle = "#5d4037"; g.beginPath(); g.moveTo(0, -10); g.lineTo(20, 0); g.lineTo(0, 10); g.lineTo(-20, 0); g.closePath(); g.fill();
-  });
   const p = isoToScreen(box.col, box.row, camera);
-  ctx.drawImage(boxSprite, p.x - 32, p.y - 32);
+
+  ctx.save();
+  ctx.font = "32px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("📦", p.x, p.y);
+  ctx.restore();
 }
 
 export function drawDominion(ctx, dominion, camera) {
@@ -419,7 +430,7 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
     ctx.save();
     ctx.translate(p.x, p.y - 50); 
     if (character.held === "crop") {
-      ctx.fillStyle = "#ce2b12";
+      ctx.fillStyle = "#83ff60";
       ctx.beginPath();
       ctx.arc(0, -8, 6, 0, Math.PI * 2);
       ctx.fill();
@@ -435,9 +446,9 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       // ctx.beginPath();
       // ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
       // ctx.fill();
-      ctx.font = '24px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      // ctx.font = '24px Arial';
+      // ctx.textAlign = 'center';
+      // ctx.textBaseline = 'middle';
       ctx.fillText('🐠', p.x, p.y - 6);
     }
     ctx.restore();
@@ -509,12 +520,22 @@ export function drawCursor(ctx, cursor, camera, character) {
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(-5, 0);
-  ctx.lineTo(5, 0);
-  ctx.moveTo(0, -5);
-  ctx.lineTo(0, 5);
-  ctx.stroke();
+    const cursorGlyphs = {
+    "empty-hands": "+",
+    hoe: "🪏",
+    seeds: "🌱",
+    "watering-can": "💧",
+    axe: "🪓",
+    min: "-"
+  };
+
+  const glyph = cursorGlyphs[world.e] || "?";
+
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.font = "bold 14px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(glyph, 0, 0);
 
   ctx.restore();
 }
@@ -683,7 +704,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     
   }  
 
-  drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
+  // drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
 
   for (const soul of world.q) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
