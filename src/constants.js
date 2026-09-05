@@ -68,36 +68,41 @@ export const SIGNPOSTS = [
   //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
   // },
   
-  {
-    col: 3, 
-    row: 25, 
-    title: "Fish <b>MIN</b>-y Game ©", 
-    text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
-  }
+  // {
+  //   col: 3, 
+  //   row: 25, 
+  //   title: "Fish <b>MIN</b>-y Game ©", 
+  //   text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
+  // }
 ];
 
 
 
 
 export const TASKS = [
-  { id: 'hoe',        desc: 'Click tiles Using Hoe',            stat: 0, target: 3 },
-  { id: 'plant',      desc: 'Click Hoed tiles with Seeds to plant',          stat: 1, target: 3 },
+  { id: 'hoe',        desc: 'Click tiles Using Hoe', stat: 0, target: 3 },
+  { id: 'plant',      desc: 'Click Hoed tiles with Seeds to plant',stat: 1, target: 3 },
   { id: 'fillwater',  desc: 'Click Pond with water to fill',          stat: 10, target: 3 },
-  { id: 'water',      desc: 'Click seeds to Water',         stat: 2, target: 3 },
+  { id: 'water',      desc: 'Click seeds to Water', stat: 2, target: 3 },
   { id: 'harvest',    desc: '(Space) to pick up crop',    stat: 3, target: 1 },
   { id: 'give',       desc: 'Give crop to Emmie (Space)',  stat: 4, target: 1 },
-  { id: 'axe',        desc: 'Axe Tree', stat: 5, target: 1 },
+  { id: 'axe',        desc: 'Axe Tree (Click)', stat: 5, target: 1 },
   { id: 'gotoshop',   desc: 'Find and Talk to Emmie',    stat: 8, target: 1 },
-  { id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
-  { id: 'firstMin',   desc: 'Give Crop to Diamond?', stat: 6, target: 1 },
-  { id: 'mC',         desc: 'Deposit crops using Min', stat: 9, target: 10 },
-  { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 },
-  
-  { id: 'mC',         desc: 'Deposit crops',       stat: 9, target: 30 },
-  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },
-  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 60 },
+  //{ id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
+  { id: 'firstMin',   desc: 'Give Crop to Diamond? (Space)', stat: 6, target: 1 },
+  { id: 'mC',         desc: 'Throw Min at Crops to pick, Throw again to collect', stat: 9, target: 7 },
+  { id: 'mMin',   desc: 'Throw Min at Diamond make more min', stat: 6, target: 5 },
+  { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 }, 
+  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },  
+  { id: 'mC',         desc: 'Collect crops',       stat: 9, target: 30 },  
+  { id: 'wmi',   desc: 'Throw Min in Pond...?',    stat: 26, target: 1 },
+  { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 60 },
+  { id: 'mMin',   desc: 'Get more Min', stat: 6, target: 15 },
   { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
-  { id: 'complete',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
+  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 120 },
+  { id: 'b',        desc: 'Earn 50000g',       stat: 33, target: 50000 },
+  { id: 'b2',        desc: 'Earn 75000g',       stat: 33, target: 75000 },
+  { id: 'co',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 
 export const TOOL_TYPES = {
@@ -127,12 +132,12 @@ export const PLANT_STAGES = {
 export const GROWTH_DURATION_MIN = 7000;
 export const GROWTH_DURATION_MAX = 9000;
 
-export const TREE_SWINGS_TO_FELL = 22;
+export const TREE_SWINGS_TO_FELL = 15;
 
 // Tree cutting with cooperative mins
 export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
-export const TREE_CUT_TIME_2_MIN = 15000;  // 15 seconds for 2 mins
-export const TREE_CUT_TIME_3_MIN = 10000;  // 10 seconds for 3+ mins
+export const TREE_CUT_TIME_2_MIN = 7000;  // 15 seconds for 2 mins
+export const TREE_CUT_TIME_3_MIN = 2000;  // 10 seconds for 3+ mins
 
 // Lumber performance limits
 export const MAX_LUMBER_ITEMS = 200;

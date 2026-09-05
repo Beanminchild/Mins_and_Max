@@ -218,7 +218,12 @@ export function createWorld() {
   return {
     z: { col: BOX_COL, row: BOX_ROW },
     y: { col: 38, row: 16 },
-    s: [0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        s: [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0
+    ],
     r: false,
     u: false,
     v: false,
@@ -329,7 +334,7 @@ export function tryInteractWithGravestone(character, world) {
     if (distance <= 1.5) {
       showModal({
         title: "Gravestone:",
-        bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>(Luxury condos + a Chillis! coming soon)</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
+        bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
         buttons: [{ label: "Hm", className: "modal-btn--close" }],
       });
       world.s[12]++;
@@ -467,6 +472,7 @@ export function updateMins(character, mins, world) {
       if (min.soakTimer <= 0) {
         min.state = "following";
         min.isWaterMin = true;
+        world.s[26]++;
         min.lineToken = Date.now();
       }
       return;
@@ -566,6 +572,7 @@ export function updateMins(character, mins, world) {
       const dy = min.row - dominion.row;
       if (dx * dx + dy * dy < 0.12 * 0.12) {
         spawnNewMin(mins, dominion.col, dominion.row, "following");
+        world.s[6]++;
         min.state = "following";
         min.lineToken = Date.now();
       }
@@ -604,6 +611,7 @@ export function updateMins(character, mins, world) {
           else { world.l += 1; world.s[11] = (world.s[11] || 0) + 1; }
         } else if (min.state === "carrying_fish" || min.carryingFish) {
           world.w += FISH_SALE_PRICE;
+          world.s[33] += FISH_SALE_PRICE;
           world.fishCaught += 1;
           world.s[7]++;
           min.carryingFish = false;
@@ -772,6 +780,7 @@ export function tryDepositToBox(character, box, world) {
   if (Math.hypot(character.col - box.col, character.row - box.row) <= BOX_INTERACTION_RADIUS) {    
     if (character.held === "fish") {      
       world.w += FISH_SALE_PRICE;
+      world.s[33] += FISH_SALE_PRICE;
       world.f += 1;
         } else {
       if (character.held === "lumber") {
@@ -1075,7 +1084,7 @@ export function tryCollectSoul(character, world) {
       if (world.k === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>Max! its pap! You can now hoe purple soil! crops there sell for TRIPLE!</p>`,
+          bodyHtml: `<p>You can now hoe purple soil! crops sell for TRIPLE!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }
@@ -1142,7 +1151,7 @@ export function updateWorld(world, deltaMs, character) {
 
   // 2. Update dominion position directly if task index >= 8
   // This modifies the object so all interaction/render calls use the new position
-  if (world.s[6] >= 1) {
+  if (world.s[6] >= 6) {
     const t = Date.now() / 3000;
     world.y.col = 38 + Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
     world.y.row = 16 + Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;

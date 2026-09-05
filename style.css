@@ -32,6 +32,28 @@ canvas {
 #wallet-amount, #task-list { font-weight: 900; color: #2e7d32; font-size: 1.1rem; }
 
 
+.shop-button {
+  width: 100%;
+  padding: 12px 14px;
+  border: 3px solid #5d4037;        /* wood frame like .tool-slot */
+  border-radius: 6px;
+  background: #a5d6a7;
+  color: #3e2723;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  
+}
+
+.shop-button:hover { transform: translateY(-2px); }
+
+
+.shop-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
 /* --- Clock --- */
 .clock-face {
   position: relative; width: 60px; height: 60px; border-radius: 50%;

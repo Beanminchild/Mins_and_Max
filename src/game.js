@@ -142,7 +142,7 @@ function showSleepPrompt() {
 
   showModal({
     title: "Go to bed?",
-    bodyHtml: "<p>This will end the day.</p>",
+    bodyHtml: "<p>Day will end</p>",
     buttons: buttons,
   });
 }
@@ -187,12 +187,13 @@ function showStartMenu() {
 
 function showStory(index) {
   const blurbs = [
-  "Max: To save the farm, I have to pay off Grandpa’s loans?",
+  "Max: I ",
   "Emmie: Yep.",
-  "Max: I can't farm that fast!",
-  "Emmie: Use our new Min Tech! Theyre sub-agents that automate everything.",
-  "Max: Is it farming if I do nothing?",
-  "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
+  // "Max: I can't farm that fast!",
+  // "Emmie: ....",
+  // "Max: Is it farming if I do nothing?",
+  // "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
+  // "Max: Got it, Plant, Water,  Harvest, Automate!"
   
 ];
 
@@ -280,11 +281,11 @@ function updateClock() {
 
 export const prices = {
   seeds: 5,
-  min: 45,
+  min: 499,
   barn: 3000,
   farm: 100000,
-  rainbow: 5000,
-  big_hoe: 5000
+  rainbow: 5999,
+  big_hoe: 4999
 };
 
 function openShop() {
@@ -298,17 +299,29 @@ function openShop() {
   );
 
    // New buttons appear only if barn is bought
-  if (world.r) {
-    const farmDisabled = world.w < prices.farm;
-    shopButtons.push(`<button class="shop-button" data-buy="farm" ${farmDisabled ? "disabled" : ""}>Buy Farm Back — 100000g</button>`);
-    
-    const hoeDisabled = world.h || world.w < prices.hoe;
-    shopButtons.push(`<button class="shop-button" data-buy="big_hoe" ${hoeDisabled ? "disabled" : ""}>Big Hoe — 5000g</button>`);
+    if (world.r) {
+    shopButtons.push(
+      `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
+        Buy Farm Back — 100000g
+      </button>`
+    );
+  
+    shopButtons.push(
+      `<button class="shop-button" data-buy="big_hoe" ${(world.h || world.w < prices.big_hoe) ? "disabled" : ""}>
+        Big Hoe — 4999g
+      </button>`
+    );
+  
+    shopButtons.push(
+      `<button class="shop-button" data-buy="rainbow_min" ${world.w < prices.rainbow ? "disabled" : ""}>
+        Rainbow Min — 5999g
+      </button>`
+    );
   }
   
-  shopButtons.push(`<button class="shop-button" data-buy="rainbow_min" ${world.w < prices.rainbow ? "disabled" : ""}>Rainbow Min — 5000g</button>`);
+  
   shopButtons.push(`<button class="shop-button" data-buy="seeds" ${world.w < prices.seeds ? "disabled" : ""}>Seeds — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 45g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 499g</button>`);
   
   showModal({
     title: "Emmie",
@@ -319,7 +332,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"${DAYS_LEFT} days left to pay & ${17-world.x} tasks left to do"</p>`,
+      <p class="shop-dialogue">"${DAYS_LEFT} days left to pay & ${22-world.x} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -386,8 +399,8 @@ function syncHUD() {
     slot.classList.toggle("active", toolName === world.e);
 
     if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "Empty";
-    if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "⛏️ Hoe";
-    else if (toolName === "min") slot.textContent = world.v ? "🤖 Min" : "Empty";
+    if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "🪏 Hoe";
+    else if (toolName === "min") slot.textContent = world.v ? "(-) Min: " : "Empty";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
@@ -438,7 +451,7 @@ function updateTaskHUD() {
       world.A = true;
       showModal({
         title: "Victory!",
-        bodyHtml: "<p>You got the farm back!</p>",
+        bodyHtml: "<p>Congratulations!</p>",
         buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
       });
     }
@@ -513,6 +526,7 @@ function endDay() {
   const lumberPayout = world.l * 5;
   const totalPayout = cropPayout + lumberPayout;
   world.w += totalPayout;
+  world.s[33] += totalPayout;
   showModal({
     title: "Day Complete",
     bodyHtml: `<p>You collected <strong>${world.c + world.b + world.l}</strong> items.</p>
