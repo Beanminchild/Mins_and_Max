@@ -14,7 +14,7 @@ import {
   tryDepositToDominion,  
   tryInteractWithShop,
   tryInteractWithGravestone,
-  // tryInteractWithSign,
+ // handleSignInteraction,
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
@@ -281,9 +281,9 @@ export const prices = {
   seeds: 5,
   min: 499,
   barn: 3000,
-  farm: 74999,
-  rainbow: 3999,
-  big_hoe: 2999
+  farm: 55000,
+  rainbow: 3500,
+  big_hoe: 3000
 };
 
 function openShop() {
@@ -300,19 +300,19 @@ function openShop() {
     if (world.r) {
     shopButtons.push(
       `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
-        Buy Farm Back — 74999g
+        Buy Farm Back — 55000g
       </button>`
     );
   
     shopButtons.push(
       `<button class="shop-button" data-buy="big_hoe" ${(world.h || world.w < prices.big_hoe) ? "disabled" : ""}>
-        Big Hoe — 2999g
+        Big Hoe — 3000g
       </button>`
     );
   
     shopButtons.push(
-      `<button class="shop-button" data-buy="rainbow_min" ${world.w < prices.rainbow ? "disabled" : ""}>
-        Rainbow Min — 3999g
+      `<button class="shop-button" data-buy="rainbow" ${world.w < prices.rainbow ? "disabled" : ""}>
+        Rainbow Min — 3500g
       </button>`
     );
   }
@@ -623,7 +623,7 @@ function loop(timestamp) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
-                    // tryInteractWithSign(character.col, character.row)  ||                    
+                   // handleSignInteraction(character, world) ||
                     tryDepositToBox(character, world.z, world) ||
                     tryDepositToDominion(character, world.y, world) ||
                     

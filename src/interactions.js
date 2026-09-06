@@ -7,8 +7,7 @@ import {
   TOOL_TYPES,
   TILE_TYPES,
   PLANT_STAGES,
-  GROWTH_DURATION_MIN,
-  GROWTH_DURATION_MAX, 
+   
   BOX_INTERACTION_RADIUS,  
   DOMINION_INTERACTION_RADIUS,
   WATER_CAN_MAX,
@@ -31,7 +30,7 @@ import {
   FISH_SALE_PRICE,
   POND_MIN_SOAK_MS,
   // SIGNPOSTS, 
-  // SIGNPOST_INTERACTION_RADIUS 
+  
   
 } from "./constants.js";
 
@@ -185,7 +184,8 @@ export function createWorld() {
         planted: false,
         watered: false,
         growth: 0,
-        growDuration: GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN),
+        // Hardcode the range directly or simplify the math
+        growDuration: 1150,
         stage: PLANT_STAGES.EMPTY,
         variant: TL ? "decay" : null,
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
@@ -258,34 +258,27 @@ export function createWorld() {
 }
 
 
-// export function tryInteractWithSign(playerCol, playerRow) {
-//   for (const sign of SIGNPOSTS) {
-//     const dx = playerCol - sign.col;
-//     const dy = playerRow - sign.row;
-//     const dist = Math.sqrt(dx * dx + dy * dy);
+// ... existing code ...
 
-//     if (dist < SIGNPOST_INTERACTION_RADIUS) {
+// export function handleSignInteraction(character, world) {
+//   for (const sign of SIGNPOSTS) {
+//     if (Math.hypot(character.col - sign.c, character.row - sign.r) < 1.5) {
 //       showModal({
 //         title: sign.title,
 //         bodyHtml: `<p>${sign.text}</p>`,
 //         buttons: [{ label: "Close", className: "primary" }]
 //       });
-//       return true; // Interaction handled
+//       return true;
 //     }
 //   }
 //   return false;
 // }
 
-/**
- * Call this in your main draw loop
- * ctx: CanvasRenderingContext2D
- * worldToCanvas: helper function to convert col/row to px
- */
-// export function drawSignposts(ctx, worldToCanvas) {
+// export function drawSigns(ctx, worldToCanvas) {
 //   ctx.font = "24px serif";
 //   ctx.textAlign = "center";
-//   for (const sign of SIGNPOSTS) {
-//     const { x, y } = worldToCanvas(sign.col, sign.row);
+//   for (const s of SIGNPOSTS) {
+//     const { x, y } = worldToCanvas(s.c, s.r);
 //     ctx.fillText("🪧", x, y);
 //   }
 // }
@@ -1012,7 +1005,7 @@ export function useToolAtCursor(world, cursor, character) {
       tile.planted = true;
       tile.watered = false;
       tile.growth = 0;
-      tile.growDuration = GROWTH_DURATION_MIN + Math.random() * (GROWTH_DURATION_MAX - GROWTH_DURATION_MIN);
+      tile.growDuration = 1150;
       tile.stage = PLANT_STAGES.SEED;
       world.I -= 1;
       world.s[1]++;
@@ -1124,33 +1117,22 @@ export function tryPickupLumber(character, world) {
 
 export function updateWorld(world, deltaMs, character) {
   // 1. Handle Crop Growth
-  let growing = false;
-  for (let row = 0; row < rows && !growing; row++) {
+   const mult = Math.pow(1.5, world.x / 4); 
+  for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const t = world.t[row][col];
-      if (t.planted && t.watered && t.stage !== PLANT_STAGES.CROP) { growing = true; break; }
-    }
-  }
-  if (growing) {
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const tile = world.t[row][col];
-        if (!tile.planted || !tile.watered || tile.stage === PLANT_STAGES.CROP) continue;
-        
-        tile.growth += deltaMs;
-        if (tile.growth >= tile.growDuration) {
-          tile.stage = PLANT_STAGES.CROP;
-        } else if (tile.growth >= tile.growDuration * 0.6) {
-          tile.stage = PLANT_STAGES.SPROUT;
-        } else {
-          tile.stage = PLANT_STAGES.SEED;
-        }
-      }
+      if (!t.planted || !t.watered || t.stage === PLANT_STAGES.CROP) continue;
+
+      t.growth += deltaMs;
+      const limit = t.growDuration * mult;
+      
+      t.stage = t.growth >= limit ? PLANT_STAGES.CROP 
+              : t.growth >= limit * 0.6 ? PLANT_STAGES.SPROUT 
+              : PLANT_STAGES.SEED;
     }
   }
 
-  // 2. Update dominion position directly if task index >= 8
-  // This modifies the object so all interaction/render calls use the new position
+  // 2. Update dominion position
   if (world.s[6] >= 6) {
     const t = Date.now() / 3000;
     world.y.col = 38 + Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
@@ -1160,4 +1142,3 @@ export function updateWorld(world, deltaMs, character) {
   // 3. Handle fish
   updateFish(world, deltaMs);
 }
-
