@@ -52,10 +52,29 @@ export const SHOPKEEPER_COL = 18.5;
 export const SHOPKEEPER_ROW = 16.5;
 export const WATER_CAN_MAX = 9;
 
-// export const SIGNPOSTS = [
-//   // { c: 3, r: 25, title: "Fish MIN-y Game ©", text: "Throw Min at fish when they appear. Fish are sold instantly!" }
-// ];
+// export const SIGNPOST_INTERACTION_RADIUS = 1.5;
 
+// export const SIGNPOSTS = [
+//   // { 
+//   //   col: 23, 
+//   //   row: 12, 
+//   //   title: "Old Sign", 
+//   //   text: "Rosebud Village: In these parts we use <b>Numbers</b> to select tools, <b>Click</b> to use selected tools and <b>[Space]</b> to interact with stuff were infront of! Its a big part of our culture!" 
+//   // },
+//   // { 
+//   //   col: 36, 
+//   //   row: 4, 
+//   //   title: "Notice", 
+//   //   text: "Deep water! Great for filling cans or letting your Mins have a soak." 
+//   // },
+  
+//   // {
+//   //   col: 3, 
+//   //   row: 25, 
+//   //   title: "Fish <b>MIN</b>-y Game ©", 
+//   //   text: "Throw Min at fish! The timing is tight but u got it! Fish sold instantly when depositied, if you need some quick cash, fish!" 
+//   // }
+// ];
 
 
 
@@ -71,17 +90,17 @@ export const TASKS = [
   { id: 'gotoshop',   desc: 'Find and Talk to Emmie',    stat: 8, target: 1 },
   //{ id: 'firstcrops', desc: 'Deposit crops in box', stat: 9, target: 3 },
   { id: 'firstMin',   desc: 'Give Crop to Diamond? (Space)', stat: 6, target: 1 },
-  { id: 'mC',         desc: 'Throw Min at Crops to pick, Throw again to collect', stat: 9, target: 7 },
+  { id: 'mC',         desc: 'Throw Min at Crops to pick, Throw again to collect', stat: 9, target: 5 },
   { id: 'mMin',   desc: 'Throw Min at Diamond make more min', stat: 6, target: 5 },
   { id: 'axe',        desc: 'Throw Min at Trees to cut', stat: 5, target: 5 },
   { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 }, 
-  { id: 'mF',         desc: 'Catch fish using min', stat: 7, target: 1 },  
-  { id: 'mC',         desc: 'Collect crops',       stat: 9, target: 25 },  
+  { id: 'mF',         desc: 'Catch fish using min (Fish give money Instantly)', stat: 7, target: 2 },  
+  { id: 'mC',         desc: 'Collect crops',       stat: 9, target: 30 },  
   { id: 'wmi',   desc: 'Throw Min in Pond...?',    stat: 26, target: 1 },
-  { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 50 },
+  { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 60 },
   { id: 'mMin',   desc: 'Get more Min', stat: 6, target: 15 },
   { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
-  { id: 'mC2',        desc: 'Deposit crops',       stat: 9, target: 120 },
+  { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 120 },
   { id: 'b',        desc: 'Earn 25000g',       stat: 33, target: 25000 },
   { id: 'b2',        desc: 'Earn 50000g',       stat: 33, target: 50000 },
   { id: 'co',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
@@ -111,15 +130,15 @@ export const PLANT_STAGES = {
   CROP: "crop"
 };
 
-// export const GROWTH_DURATION_MIN = 7000;
-// export const GROWTH_DURATION_MAX = 9000;
+export const GROWTH_DURATION_MIN = 7000;
+export const GROWTH_DURATION_MAX = 9000;
 
 export const TREE_SWINGS_TO_FELL = 15;
 
 // Tree cutting with cooperative mins
-export const TREE_CUT_TIME_1_MIN = 14000;  // 30 seconds for 1 min
-export const TREE_CUT_TIME_2_MIN = 7500;  // 15 seconds for 2 mins
-export const TREE_CUT_TIME_3_MIN = 2300;  // 10 seconds for 3+ mins
+export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
+export const TREE_CUT_TIME_2_MIN = 7000;  // 15 seconds for 2 mins
+export const TREE_CUT_TIME_3_MIN = 2000;  // 10 seconds for 3+ mins
 
 // Lumber performance limits
 export const MAX_LUMBER_ITEMS = 200;

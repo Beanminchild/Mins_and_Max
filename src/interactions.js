@@ -67,11 +67,11 @@ function createMinSprite(state) {
   g.fillStyle = isFollowing ? "#f7c873" : "#8c5b2b";
   
   if (state === "going_to_box" || state === "returning_to_dominion") {
-    g.fillStyle = "#b8f3dc";
+    g.fillStyle = "#25e39a";
   }
 
   if (state === "tree_cutting") {
-    g.fillStyle = "#5a6b3a"; // Darker color for working
+    g.fillStyle = "#25e39a"; // Darker color for working
   }
 
   g.beginPath();
@@ -185,7 +185,7 @@ export function createWorld() {
         watered: false,
         growth: 0,
         // Hardcode the range directly or simplify the math
-        growDuration: 1150,
+        growDuration: 3000,
         stage: PLANT_STAGES.EMPTY,
         variant: TL ? "decay" : null,
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
@@ -435,12 +435,27 @@ export function updateMins(character, mins, world) {
         const distToLumber = Math.hypot(min.col - lumberItem.col, min.row - lumberItem.row);
         if (distToLumber < 0.75) {
           min.state = "carrying_lumber";
+          sfx("pick");
           min.carryingLumberForDelivery = false;
           world.o.splice(i, 1);
           min.landed = false;
           return;
         }
       }
+    }
+
+    if (min.isRainbowMin) {
+      const c = Math.floor(min.col), r = Math.floor(min.row);
+      const tile = world.t[r]?.[c];
+      
+      // If it's dirt and we have seeds, plant it instantly
+      if (tile && tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0) {
+        tile.planted = true;
+        tile.watered = true;
+        tile.stage = PLANT_STAGES.SEED;
+        world.I--;
+      }
+      
     }
 
     mins.forEach((min) => {
@@ -508,6 +523,7 @@ export function updateMins(character, mins, world) {
         }
         world.s[5]++;
         min.state = "carrying_lumber";
+        
         const pushDist = 2;
         const angle = Math.atan2(min.row - (tRow + 0.5), min.col - (tCol + 0.5));
         min.col = (tCol + 0.5) + Math.cos(angle) * pushDist;
@@ -540,9 +556,6 @@ export function updateMins(character, mins, world) {
         min.state = "going_to_box";
       }
     }
-
-
-
     
 
     if (min.state === "going_to_box") {
@@ -694,6 +707,7 @@ export function updateMins(character, mins, world) {
           min.cuttingTreeCol = tCol;
           min.cuttingTreeRow = tRow;
           min.cuttingTimer = 0;
+          sfx('chop');
           return;
         }
 
@@ -752,20 +766,13 @@ export function updateMins(character, mins, world) {
         tile.stage = PLANT_STAGES.EMPTY;
         tile.type = TILE_TYPES.DIRT;
         min.state = "carrying";
+        sfx('pick');
         min.cropTL = isTopLeftQuadrant(min.targetTile.col, min.targetTile.row);
         min.targetTile = null;
       }
     }
   });
 }    
-
-
-
-
-  
-
-
-
 
 export function tryDepositToBox(character, box, world) {
   if (!character.held) return false;
@@ -883,8 +890,8 @@ export function tryCollectMin(character, mins, world) {
 export function throwMin(character, mins, box, cursor = null) {
   // Respect line order: carriers front, then followers sorted by lineToken (front = lowest)
   const lineMins = mins.filter((min) =>
-    min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish" ||
-    (min.state === "following" && min.atHome)
+    (min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish" || min.state === "following") 
+    && min.atHome
   );
   lineMins.sort((a, b) => {
     const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" || a.state === "carrying_fish" ? 1 : 0;
@@ -980,9 +987,7 @@ export function useToolAtCursor(world, cursor, character) {
       const targetTile = world.t[row + dy]?.[col + dx];
       // Block hoeing in the "decay" (purple) quadrant until 3 souls are collected
       if (targetTile?.variant === "decay" && world.k < 3) continue;
-
-      // ADD THIS: Check if a buried soul is at this specific target tile
-      // In src/interactions.js, inside the loop in useToolAtCursor:
+     
       const soul = world.q.find(s => !s.revealed && Math.hypot(s.col - (col + dx), s.row - (row + dy)) < 1.0);
       if (soul) soul.revealed = true;
       if (targetTile && targetTile.type !== TILE_TYPES.STONE && !targetTile.hasTree) {
@@ -998,14 +1003,13 @@ export function useToolAtCursor(world, cursor, character) {
     if (hoedSomething) sfx('chop');
     return hoedSomething;
   }
-// ... existing code ...
 
   if (world.e === TOOL_TYPES.SEEDS) {
     if (tile.type === TILE_TYPES.DIRT && !tile.planted && world.I > 0) {
       tile.planted = true;
       tile.watered = false;
       tile.growth = 0;
-      tile.growDuration = 1150;
+      tile.growDuration = 3000;
       tile.stage = PLANT_STAGES.SEED;
       world.I -= 1;
       world.s[1]++;
@@ -1077,7 +1081,7 @@ export function tryCollectSoul(character, world) {
       if (world.k === 3) {
         showModal({
           title: "Souls Restored",
-          bodyHtml: `<p>You can now hoe purple soil! crops sell for TRIPLE!</p>`,
+          bodyHtml: `<p>Crops in purple soil sell for TRIPLE!</p>`,
           buttons: [{ label: "Lit", className: "modal-btn--close" }]
         });
       }
@@ -1117,7 +1121,7 @@ export function tryPickupLumber(character, world) {
 
 export function updateWorld(world, deltaMs, character) {
   // 1. Handle Crop Growth
-   const mult = Math.pow(1.5, world.x / 4); 
+   const mult = Math.pow(1.5, world.x / 3); 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const t = world.t[row][col];

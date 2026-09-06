@@ -161,8 +161,12 @@ function drawTree(ctx, col, row, camera, treeSprite) {
 // src/render.js
 function drawGravestone(ctx, gravestone, camera) {
   const p = isoToScreen(gravestone.col, gravestone.row, camera);
-  
+  ctx.save();
+  ctx.font = "24px Arial";
+  ctx.textAlign = "center";
+  // ID 0 is grandpa's grave, others are signs
   ctx.fillText("🪦", p.x, p.y - 12);
+  ctx.restore();
 }
 let boxSprite, dominionSprite;
 
@@ -467,20 +471,30 @@ export function drawMin(ctx, min, camera, minSprites) {
   let sprite = minSprites[min.state] || minSprites.loose;
 
   // Handle Rainbow Min first
-  if (min.isRainbowMin) {
+   if (min.isRainbowMin) {
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
-    ctx.clip();
-    const time = Date.now() / 1000;
-    const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
-    grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
-    grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
-    grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
+    
+    // Create a static rainbow linear gradient
+    const grad = ctx.createLinearGradient(p.x - 8, p.y - 14, p.x + 8, p.y + 2);
+    grad.addColorStop(0, "#f00");
+    grad.addColorStop(0.2, "#ff0");
+    // grad.addColorStop(0.4, "#0f0");
+    grad.addColorStop(0.6, "#0ff");
+    // grad.addColorStop(0.8, "#00f");
+    grad.addColorStop(1, "#f0f");
+    // Draw the circular body
     ctx.fillStyle = grad;
-    ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
-    ctx.restore();
-  } 
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - 6, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw the face/mouth line
+    ctx.fillStyle = "#3a210f";
+    ctx.fillRect(p.x - 3, p.y - 7, 6, 2);
+
+    
+    return;
+  }
   // Only apply water tint if it's NOT a rainbow min
   else if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {

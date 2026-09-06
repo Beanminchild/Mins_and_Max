@@ -180,7 +180,7 @@ function showStartMenu() {
 
   showModal({
     title: "Mins & Max Vs UniCorp",
-    bodyHtml: "",
+    bodyHtml: "By Zach End : For JS13K 2026",
     buttons
   });
 }
@@ -279,10 +279,10 @@ function updateClock() {
 
 export const prices = {
   seeds: 5,
-  min: 499,
+  min: 200,
   barn: 3000,
   farm: 55000,
-  rainbow: 3500,
+  rainbow: 350,
   big_hoe: 3000
 };
 
@@ -312,14 +312,14 @@ function openShop() {
   
     shopButtons.push(
       `<button class="shop-button" data-buy="rainbow" ${world.w < prices.rainbow ? "disabled" : ""}>
-        Rainbow Min — 3500g
+        Rainbow Min — 350g
       </button>`
     );
   }
   
   
   shopButtons.push(`<button class="shop-button" data-buy="seeds" ${world.w < prices.seeds ? "disabled" : ""}>Seeds — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 499g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 200g</button>`);
   
   showModal({
     title: "Emmie",
@@ -377,7 +377,7 @@ function buyShopItem(item) {
   } else if (item === "big_hoe") {
     world.h = true;
     sfx("success");
-  } else if (item === "rainbow_min") {
+  } else if (item === "rainbow") {
     const m = spawnNewMin(world.m, world.y.col, world.y.row, "following");
     m.isRainbowMin = true;
     m.isWaterMin = true;
@@ -433,10 +433,10 @@ function syncHUD() {
 function updateTaskHUD() {
   const el = elTask;
 
-  if (world.x >= TASKS.length) {
-    el.innerHTML = "<strong>WOO!</strong>";
-    return;
-  }
+  // if (world.x >= TASKS.length) {
+  //   el.innerHTML = "<strong>WOO!</strong>";
+  //   return;
+  // }
 
   const t = TASKS[world.x];
   const prog = world.s[t.stat] || 0;
@@ -449,8 +449,8 @@ function updateTaskHUD() {
       world.A = true;
       showModal({
         title: "Victory!",
-        bodyHtml: "<p>You got the farm back from Unicorp!</p>",
-        buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
+        bodyHtml: "<p>You got the farm back!</p>",
+        buttons: [{ label: "Neat", className: "modal-btn--close" }]
       });
     }
   }
@@ -518,11 +518,25 @@ function handleToolAction() {
 
 function endDay() {
   if (world.E) return;
+
+  if (DAYS_LEFT <= 0 && (world.s[13] || 0) < 1) {
+      showModal({
+        title: "Times Up",
+        bodyHtml: "<p>Keep working for Free?</p>",
+        buttons: [{ label: "Crap", onClick: () => location.reload() }]
+      });
+      return;
+  }
+
   world.E = true; 
+  sfx('success');
+
+   // Calculate multiplier: +10% per task completed
+  const taskMultiplier = 1 + (world.x * 0.050); 
 
   const cropPayout = world.c * 25 + world.b * 75;
   const lumberPayout = world.l * 5;
-  const totalPayout = cropPayout + lumberPayout;
+  const totalPayout = Math.ceil((cropPayout + lumberPayout) * taskMultiplier);
   world.w += totalPayout;
   world.s[33] += totalPayout;
   showModal({
