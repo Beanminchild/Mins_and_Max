@@ -1134,7 +1134,7 @@ export function tryPickupLumber(character, world) {
 
 export function updateWorld(world, deltaMs, character) {
   // 1. Handle Crop Growth
-   const mult = Math.pow(1.5, world.x / 4); 
+   const mult = Math.pow(1.5, world.x / 3); 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const t = world.t[row][col];
@@ -1150,10 +1150,10 @@ export function updateWorld(world, deltaMs, character) {
   }
 
   // 2. Update dominion position
-  if (world.s[6] >= 6) {
+   if (world.s[6] >= 6) {
     const t = Date.now() / 3000;
     world.y.col = 38 + Math.sin(t) * 15 + Math.sin(t * 0.7) * 10;
-    world.y.row = 16 + Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;
+    world.y.row = 8 + Math.cos(t * 0.5) * 10 + Math.cos(t * 1.2) * 5;    
   }
 
   // 3. Handle fish

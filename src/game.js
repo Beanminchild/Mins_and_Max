@@ -224,7 +224,7 @@ const ctx = canvas.getContext("2d");
 
 const keys = setupInput(new Set(),
   (code) => {
-    const map = { Digit1:"empty-hands", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
+    const map = { Digit1:"min", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
     const tool = map[code];
     if (!tool) return;
     if (tool === "axe" && !world.u) return;
@@ -360,7 +360,7 @@ function buyShopItem(item) {
 
   if (item === "seeds") {
     world.e = "seeds";
-    world.I = (world.I || 0) + 1;
+    world.I = (world.I || 0) + 3;
     sfx("pick");
   } else if (item === "min") {
     world.e = "min";
@@ -395,9 +395,9 @@ function syncHUD() {
     const toolName = slot.dataset.tool;
     slot.classList.toggle("active", toolName === world.e);
 
-    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "X";
+    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "?";
     if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "🪏 Hoe";
-    else if (toolName === "min") slot.textContent = world.v ? "(-) Min: " : "X";
+    else if (toolName === "min") slot.textContent = world.v ? "(-) Min: " : "?: ";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
@@ -432,10 +432,10 @@ function syncHUD() {
 function updateTaskHUD() {
   const el = elTask;
 
-  // if (world.x >= TASKS.length) {
-  //   el.innerHTML = "<strong>WOO!</strong>";
-  //   return;
-  // }
+  if (world.x >= TASKS.length) {
+    el.innerHTML = "<strong>All Tasks Complete!</strong>";
+    return;
+  }
 
   const t = TASKS[world.x];
   const prog = world.s[t.stat] || 0;

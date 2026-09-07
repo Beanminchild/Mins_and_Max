@@ -12,7 +12,7 @@ canvas {
   border: 4px solid #5d4037; background: linear-gradient(180deg, #fff, #e8f7ff); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-/* --- HUD --- */
+
 .ol { position: absolute; top: 15px; left: 15px; pointer-events: none; }
 .or { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; pointer-events: none; }
 
@@ -20,7 +20,7 @@ canvas {
 
 .box {
   border-radius: 6px; background: #fbe9e7; border: 3px solid #5d4037;
-  display: grid; /* Increased gap for better label-to-text spacing */
+  display: grid; 
   text-align: center; box-shadow: 0 3px 0 #3e2723; pointer-events: auto;
 }
 
@@ -28,16 +28,13 @@ canvas {
 .wallet-box { min-width: 70px; padding: 6px 8px; }
 
 .wallet-label { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #8d6e63; }
-/* Removed the excessive gap from here */
+
 #wallet-amount, #task-list { font-weight: 900; color: #2e7d32; font-size: 1.1rem; }
-
-
-
 
 .shop-button {
   width: 100%;
   padding: 12px 14px;
-  border: 3px solid #5d4037;        /* wood frame like .tool-slot */
+  border: 3px solid #5d4037;      
   border-radius: 6px;
   background: #a5d6a7;
   color: #3e2723;
@@ -56,7 +53,7 @@ canvas {
   filter: grayscale(0.6);
 }
 
-/* --- Clock --- */
+
 .clock-face {
   position: relative; width: 60px; height: 60px; border-radius: 50%;
   background: #fbe9e7; border: 4px solid #5d4037; box-shadow: 0 3px 0 #3e2723; pointer-events: auto;
@@ -72,19 +69,19 @@ canvas {
 }
 .days-left {
   position: absolute;
-  top: 75%; /* Move it down from the center */
+  top: 75%; 
   left: 0;
   right: 0;
-  font-size: 14px; /* Larger */
+  font-size: 14px; 
   font-weight: 900;
-  color: #8c5ceb; /* White text */
-  text-shadow: 1px 1px 2px #e6f0f6; /* Dark shadow for readability */
+  color: #8c5ceb; 
+  text-shadow: 1px 1px 2px #e6f0f6; 
   text-align: center;
   z-index: 15;
  
 }
 
-/* --- Inventory & UI --- */
+
 .inventory {
   display: flex; align-items: center; gap: 12px; padding: 16px;
   background: #a1887f; border: 5px solid #5d4037; border-radius: 12px; box-shadow: 0 6px 0 #3e2723;
