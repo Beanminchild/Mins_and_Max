@@ -19,7 +19,6 @@ import {
 import {
   world
 } from "./game.js";
-// import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {

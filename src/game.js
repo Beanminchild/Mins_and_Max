@@ -13,8 +13,7 @@ import {
   tryDepositToBox,
   tryDepositToDominion,  
   tryInteractWithShop,
-  tryInteractWithGravestone,
- // handleSignInteraction,
+  tryInteractWithGravestone, 
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
@@ -180,7 +179,7 @@ function showStartMenu() {
 
   showModal({
     title: "Mins & Max Vs UniCorp",
-    bodyHtml: "By Zach End : For JS13K 2026",
+    bodyHtml: "By Zach End",
     buttons
   });
 }
@@ -192,7 +191,7 @@ function showStory(index) {
     "Max: I can't farm fast enough.",
     "Emmie: Use our 'Mins', sub-agents that automate the grunt work.",
     "Max: Is it still farming if I'm not the one doing it?",
-    "Emmie: You're 'orchestrating'! Plant, water, harvest, and automate!"
+    "Emmie: You're 'orchestrating'! Plant, Water, Harvest, Scale!"
   ];
 
   const buttons = [];
@@ -281,7 +280,7 @@ export const prices = {
   seeds: 5,
   min: 200,
   barn: 3000,
-  farm: 55000,
+  farm: 30000,
   rainbow: 350,
   big_hoe: 3000
 };
@@ -300,7 +299,7 @@ function openShop() {
     if (world.r) {
     shopButtons.push(
       `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
-        Buy Farm Back — 55000g
+        Buy Farm Back — 30000g
       </button>`
     );
   
@@ -396,9 +395,9 @@ function syncHUD() {
     const toolName = slot.dataset.tool;
     slot.classList.toggle("active", toolName === world.e);
 
-    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "Empty";
+    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "X";
     if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "🪏 Hoe";
-    else if (toolName === "min") slot.textContent = world.v ? "(-) Min: " : "Empty";
+    else if (toolName === "min") slot.textContent = world.v ? "(-) Min: " : "X";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
@@ -522,7 +521,7 @@ function endDay() {
   if (DAYS_LEFT <= 0 && (world.s[13] || 0) < 1) {
       showModal({
         title: "Times Up",
-        bodyHtml: "<p>Keep working for Free?</p>",
+        bodyHtml: "<p>Farm Lost</p>",
         buttons: [{ label: "Crap", onClick: () => location.reload() }]
       });
       return;
@@ -532,11 +531,11 @@ function endDay() {
   sfx('success');
 
    // Calculate multiplier: +10% per task completed
-  const taskMultiplier = 1 + (world.x * 0.050); 
+  const tM = 1 + (world.x * 0.075); 
 
   const cropPayout = world.c * 25 + world.b * 75;
   const lumberPayout = world.l * 5;
-  const totalPayout = Math.ceil((cropPayout + lumberPayout) * taskMultiplier);
+  const totalPayout = Math.ceil((cropPayout + lumberPayout) * tM);
   world.w += totalPayout;
   world.s[33] += totalPayout;
   showModal({
@@ -605,6 +604,11 @@ canvas.addEventListener("click", () => {
 });
 
 function loop(timestamp) {
+
+  //  if (!world || !world.t || !world.K) {
+  //    requestAnimationFrame(loop);
+  //    return;
+  // }
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 

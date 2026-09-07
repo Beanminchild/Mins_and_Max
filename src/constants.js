@@ -3,7 +3,7 @@ export const rows = 32;
 export const TILE_W = 64;
 export const TILE_H = 32;
 
-export const moveStepSize = 0.33;
+export const moveStepSize = 0.40;
 export const moveStepMs = 60;
 
 
@@ -11,7 +11,7 @@ export const moveStepMs = 60;
 export const MIN_INTERACTION_RADIUS = .5;
 
 
-export let   TOOL_REACH_DISTANCE = 3.5;
+export let TOOL_REACH_DISTANCE = 3.5;
 
 
 
@@ -19,20 +19,20 @@ export const THROW_MAX_DISTANCE = 8;
 
 export const BOX_COL = 18;
 export const BOX_ROW = 14;
-export const BOX_INTERACTION_RADIUS = 2.75;
+export const BOX_INTERACTION_RADIUS = 1.25;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = 1.20;
+export const DOMINION_INTERACTION_RADIUS = .7;
 
-export const WATER_POND_COL = 35;
+export const WATER_POND_COL = 33;
 export const WATER_POND_ROW = 3;
 
 
 
 
 
-export const POND_MIN_SOAK_MS = 15000 // 15 seconds
+export const POND_MIN_SOAK_MS = 12000 // 15 seconds
 
 
 export const SHOP_BUILDING_COL = 18;
@@ -94,15 +94,15 @@ export const TASKS = [
   { id: 'mMin',   desc: 'Throw Min at Diamond make more min', stat: 6, target: 5 },
   { id: 'axe',        desc: 'Throw Min at Trees to cut', stat: 5, target: 5 },
   { id: 'gpa',        desc: 'Visit Gpaps Grave',   stat: 12, target: 1 }, 
-  { id: 'mF',         desc: 'Catch fish using min (Fish give money Instantly)', stat: 7, target: 2 },  
+  { id: 'mF',         desc: 'Catch fish with min (Fish give money Instantly)', stat: 7, target: 2 },  
   { id: 'mC',         desc: 'Collect crops',       stat: 9, target: 30 },  
-  { id: 'wmi',   desc: 'Throw Min in Pond...?',    stat: 26, target: 1 },
+  { id: 'wmi',   desc: 'Throw Min in Pond?',    stat: 26, target: 1 },
   { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 60 },
   { id: 'mMin',   desc: 'Get more Min', stat: 6, target: 15 },
   { id: 'c',          desc: 'Get Farmaxxing Cert', stat: 25, target: 1 },
   { id: 'mC2',        desc: 'Collect crops',       stat: 9, target: 120 },
-  { id: 'b',        desc: 'Earn 25000g',       stat: 33, target: 25000 },
-  { id: 'b2',        desc: 'Earn 50000g',       stat: 33, target: 50000 },
+  { id: 'b',        desc: 'Earn 15000g',       stat: 33, target: 15000 },
+  { id: 'b2',        desc: 'Earn 25000g',       stat: 33, target: 25000 },
   { id: 'co',   desc: 'Buy Farm Back from Unicorp', stat: 13, target: 1 },
 ];
 
@@ -130,13 +130,10 @@ export const PLANT_STAGES = {
   CROP: "crop"
 };
 
-export const GROWTH_DURATION_MIN = 7000;
-export const GROWTH_DURATION_MAX = 9000;
-
 export const TREE_SWINGS_TO_FELL = 15;
 
 // Tree cutting with cooperative mins
-export const TREE_CUT_TIME_1_MIN = 30000;  // 30 seconds for 1 min
+export const TREE_CUT_TIME_1_MIN = 15000;  // 30 seconds for 1 min
 export const TREE_CUT_TIME_2_MIN = 7000;  // 15 seconds for 2 mins
 export const TREE_CUT_TIME_3_MIN = 2000;  // 10 seconds for 3+ mins
 

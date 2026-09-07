@@ -185,7 +185,7 @@ export function createWorld() {
         watered: false,
         growth: 0,
         // Hardcode the range directly or simplify the math
-        growDuration: 3000,
+        growDuration: 2000,
         stage: PLANT_STAGES.EMPTY,
         variant: TL ? "decay" : null,
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
@@ -216,6 +216,7 @@ export function createWorld() {
 
 
   return {
+   // K: { col: 36, row: 5 },
     z: { col: BOX_COL, row: BOX_ROW },
     y: { col: 38, row: 16 },
         s: [
@@ -307,7 +308,7 @@ if (world.x <= giveIndex && world.s[4] < 1) {
   } else {
     showModal({
       title: "Emmie",
-      bodyHtml: "<p>Before you use Min, Prove you can farm by growing a crop and giving it to me. Do it Right and ill give you ur grandfather's axe.</p>",
+      bodyHtml: "<p>Before you use Min, Prove you can farm by growing a crop and giving it to me. Do good and ill give you ur grandfather's axe.</p>",
       buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
     });
   }
@@ -757,20 +758,32 @@ export function updateMins(character, mins, world) {
 
      
     // --- UNIFIED HARVESTING & UNICORN LOGIC ---
-        if (min.state === "harvesting") {
-      const tile = world.t[min.targetTile.row][min.targetTile.col];
-      if (tile.stage === PLANT_STAGES.CROP) {
-        tile.planted = false;
-        tile.watered = false;
-        tile.growth = 0;
-        tile.stage = PLANT_STAGES.EMPTY;
-        tile.type = TILE_TYPES.DIRT;
-        min.state = "carrying";
-        sfx('pick');
-        min.cropTL = isTopLeftQuadrant(min.targetTile.col, min.targetTile.row);
-        min.targetTile = null;
-      }
-    }
+      if (min.state === "harvesting") {
+          if (!min.targetTile) {
+            min.state = "following";
+            min.target = null;
+            return;
+          }
+        
+          const tile = world.t[min.targetTile.row]?.[min.targetTile.col];
+        
+          if (!tile) {
+            min.state = "following";
+            min.targetTile = null;
+            return;
+          }        
+          if (tile.stage === PLANT_STAGES.CROP) {
+            tile.planted = false;
+            tile.watered = false;
+            tile.growth = 0;
+            tile.stage = PLANT_STAGES.EMPTY;
+            tile.type = TILE_TYPES.DIRT;
+            min.state = "carrying";
+            sfx("pick");
+            min.cropTL = isTopLeftQuadrant(min.targetTile.col, min.targetTile.row);
+            min.targetTile = null;
+          }
+        }
   });
 }    
 
@@ -1009,7 +1022,7 @@ export function useToolAtCursor(world, cursor, character) {
       tile.planted = true;
       tile.watered = false;
       tile.growth = 0;
-      tile.growDuration = 3000;
+      tile.growDuration = 2000;
       tile.stage = PLANT_STAGES.SEED;
       world.I -= 1;
       world.s[1]++;
@@ -1121,7 +1134,7 @@ export function tryPickupLumber(character, world) {
 
 export function updateWorld(world, deltaMs, character) {
   // 1. Handle Crop Growth
-   const mult = Math.pow(1.5, world.x / 3); 
+   const mult = Math.pow(1.5, world.x / 4); 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const t = world.t[row][col];

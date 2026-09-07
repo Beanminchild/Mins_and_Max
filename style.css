@@ -24,8 +24,8 @@ canvas {
   text-align: center; box-shadow: 0 3px 0 #3e2723; pointer-events: auto;
 }
 
-.task-box { min-width: 220px; padding: 10px 16px;display: grid; gap: 18px; padding-bottom: 10px;  }
-.wallet-box { min-width: 70px; padding: 6px 12px; }
+.task-box { min-width: 220px; padding: 10px 16px;display: grid; gap: 18px; padding-bottom: 15px;  }
+.wallet-box { min-width: 70px; padding: 6px 8px; }
 
 .wallet-label { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #8d6e63; }
 /* Removed the excessive gap from here */
