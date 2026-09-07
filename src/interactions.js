@@ -185,7 +185,7 @@ export function createWorld() {
         watered: false,
         growth: 0,
         // Hardcode the range directly or simplify the math
-        growDuration: 2000,
+        growDuration: 5000,
         stage: PLANT_STAGES.EMPTY,
         variant: TL ? "decay" : null,
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
@@ -1022,7 +1022,7 @@ export function useToolAtCursor(world, cursor, character) {
       tile.planted = true;
       tile.watered = false;
       tile.growth = 0;
-      tile.growDuration = 2000;
+      tile.growDuration = 5000;
       tile.stage = PLANT_STAGES.SEED;
       world.I -= 1;
       world.s[1]++;
