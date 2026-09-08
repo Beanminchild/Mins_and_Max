@@ -185,7 +185,7 @@ export function createWorld() {
         watered: false,
         growth: 0,
         // Hardcode the range directly or simplify the math
-        growDuration: 5000,
+        growDuration: 2000,
         stage: PLANT_STAGES.EMPTY,
         variant: TL ? "decay" : null,
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
@@ -376,6 +376,7 @@ export function spawnNewMin(mins, col, row, initialState = "loose") {
 }
 
 export function updateMins(character, mins, world) {
+   if (Math.random() < 0.20) return; 
   const { z: box, y: dominion } = world;
 
   // === PERF: precompute tree-cutter counts ONCE (was O(n^2) filter per min) ===
@@ -403,7 +404,7 @@ export function updateMins(character, mins, world) {
     const targetCol = character.col - vector.dx * offsetAmount;
     const targetRow = character.row - vector.dy * offsetAmount;
 
-    moveToward(min, targetCol, targetRow, 0.12);
+    moveToward(min, targetCol, targetRow, 0.15);
 
     // === PERF: squared distance instead of Math.hypot ===
     const dxHome = min.col - targetCol;
@@ -1022,7 +1023,7 @@ export function useToolAtCursor(world, cursor, character) {
       tile.planted = true;
       tile.watered = false;
       tile.growth = 0;
-      tile.growDuration = 5000;
+      tile.growDuration = 2000;
       tile.stage = PLANT_STAGES.SEED;
       world.I -= 1;
       world.s[1]++;
@@ -1134,7 +1135,7 @@ export function tryPickupLumber(character, world) {
 
 export function updateWorld(world, deltaMs, character) {
   // 1. Handle Crop Growth
-   const mult = Math.pow(1.5, world.x / 3); 
+   const mult = Math.pow(1.187, world.x);  
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const t = world.t[row][col];

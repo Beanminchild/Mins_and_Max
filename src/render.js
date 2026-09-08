@@ -7,11 +7,7 @@ import {
   DIRECTION_STYLES,
   PLACEHOLDER_LOOK,
   TILE_TYPES,
-  PLANT_STAGES,
-  SHOP_BUILDING_COL,
-  SHOP_BUILDING_ROW,
-  OTHER_BUILDING_COL,
-  OTHER_BUILDING_ROW,
+  PLANT_STAGES,  
   TREE_SWINGS_TO_FELL,
   TOOL_REACH_DISTANCE
 } from "./constants.js";
@@ -159,7 +155,7 @@ function drawTree(ctx, col, row, camera, treeSprite) {
 
 // src/render.js
 function drawGravestone(ctx, gravestone, camera) {
-  const p = isoToScreen(gravestone.col, gravestone.row, camera);
+  const p = isoToScreen(gravestone.col, gravestone.row, camera);  
   ctx.save();
   ctx.font = "24px Arial";
   ctx.textAlign = "center";
@@ -271,7 +267,6 @@ export function drawWaterPond(ctx, pond, camera) {
 
   ctx.restore();
 }
-
 function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, options = {}) {
   const { showPigtails = true, isUnicorn = false } = options;
   const sprite = document.createElement("canvas");
@@ -460,8 +455,8 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 
-const waterMinCache = {};
-//const unicornMinCache = {}; // Added cache for Unicorn Min
+export const waterMinCache = {};
+export const rainbowMinCache = {}; // Added cache for Unicorn Min
 
 // ... existing code ...
 
@@ -471,27 +466,23 @@ export function drawMin(ctx, min, camera, minSprites) {
 
   // Handle Rainbow Min first
    if (min.isRainbowMin) {
-    ctx.save();
-    
-    // Create a static rainbow linear gradient
-    const grad = ctx.createLinearGradient(p.x - 8, p.y - 14, p.x + 8, p.y + 2);
-    grad.addColorStop(0, "#f00");
-    grad.addColorStop(0.2, "#ff0");
-    // grad.addColorStop(0.4, "#0f0");
-    grad.addColorStop(0.6, "#0ff");
-    // grad.addColorStop(0.8, "#00f");
-    grad.addColorStop(1, "#f0f");
-    // Draw the circular body
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y - 6, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw the face/mouth line
-    ctx.fillStyle = "#3a210f";
-    ctx.fillRect(p.x - 3, p.y - 7, 6, 2);
-
-    
+     const cacheKey = "rainbow"; 
+    rainbowMinCache[cacheKey] ||= (() => {
+      const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+      const g = s.getContext("2d");
+       const grad = g.createLinearGradient(8, 8, 24, 24);
+       grad.addColorStop(0.0, "#fc3a3a"); // Red
+      grad.addColorStop(0.2, "#ff7f00"); // Orange
+      grad.addColorStop(0.4, "#3aff99"); // Yellow
+      grad.addColorStop(0.6, "#00aaff"); // Green
+      
+      grad.addColorStop(1.0, "#ff15ef"); // Purple/Violet
+      g.fillStyle = grad;
+      g.beginPath(); g.arc(16, 16, 8, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#3a210f"; g.fillRect(13, 15, 6, 2);
+      return s;
+    })();
+    ctx.drawImage(rainbowMinCache[cacheKey], p.x - 16, p.y - 22);
     return;
   }
   // Only apply water tint if it's NOT a rainbow min
@@ -580,6 +571,7 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   const isInside = dist < 1.0;
 
   ctx.save();
+  ctx.globalAlpha = 1;
   if (isInside) ctx.globalAlpha = 0.4; // Transparency effect
 
   ctx.translate(p.x, p.y);
@@ -783,8 +775,8 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   // Shopkeeper drawn with their bank
   drawCharacter(ctx, shopkeeper, shopkeeperSpriteBank, camera);
    
-  drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);
-  drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
+  drawBuilding(ctx, 18, 16, camera, true, character);
+  drawBuilding(ctx, 42, 3, camera, false, character);
  
 
  
@@ -808,3 +800,10 @@ if (world.g && world.g.length > 0) {
   drawCursor(ctx, cursor, camera, character);
   drawCharacter(ctx, character, spriteBank, camera);
 }
+
+
+// export function clearCaches() {
+//   for (let k in waterMinCache) delete waterMinCache[k];
+//   for (let k in rainbowMinCache) delete rainbowMinCache[k]; 
+//   // If you add other caches, clear them here too
+// }

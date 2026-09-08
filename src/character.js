@@ -4,16 +4,15 @@ import { cols,
   moveStepSize, 
   moveStepMs,
   TILE_TYPES,
-  OTHER_BUILDING_ROW, 
-  OTHER_BUILDING_COL  
+  
 } from "./constants.js";
 
 
 
 export function createCharacter() {
   return {
-    col: OTHER_BUILDING_COL + 1.75,
-    row: OTHER_BUILDING_ROW + 2.75  ,
+    col: 42 + 1.75,
+    row: 3  + 2.75  ,
     dir: 0,
     walkFrame: 0,
     stepCounter: 0,

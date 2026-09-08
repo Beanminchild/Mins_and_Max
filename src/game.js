@@ -1,6 +1,6 @@
 import { setupInput } from "./input.js";
 import { createCharacter, updateCharacterFromControls, updateCamera } from "./character.js";
-import { createSpriteBank, drawScene } from "./render.js";
+import { createSpriteBank, drawScene} from "./render.js";
 import {
   createWorld,
   throwMin,
@@ -20,7 +20,7 @@ import {
   tryCollectSoul,
   
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW } from "./constants.js";
 
 import { 
   showModal, 
@@ -280,7 +280,7 @@ export const prices = {
   seeds: 5,
   min: 200,
   barn: 3000,
-  farm: 30000,
+  farm: 35000,
   rainbow: 350,
   big_hoe: 3000
 };
@@ -299,7 +299,7 @@ function openShop() {
     if (world.r) {
     shopButtons.push(
       `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
-        Buy Farm Back — 30000g
+        Buy Farm Back — 35000g
       </button>`
     );
   
@@ -430,30 +430,16 @@ function syncHUD() {
 
 
 function updateTaskHUD() {
-  const el = elTask;
-
-  if (world.x >= TASKS.length) {
-    el.innerHTML = "<strong>All Tasks Complete!</strong>";
-    return;
-  }
-
+  if (DAYS_LEFT < 1 && !world.s[13]) return elTask.innerHTML = "<strong>You Lost the Farm</strong>";
   const t = TASKS[world.x];
-  const prog = world.s[t.stat] || 0;
-  el.innerHTML = `${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
-
-  if (prog >= t.target) {
-    world.x++;
-    sfx("success");
-    if (world.x >= TASKS.length && !world.A) {
-      world.A = true;
-      showModal({
-        title: "Victory!",
-        bodyHtml: "<p>You got the farm back!</p>",
-        buttons: [{ label: "Neat", className: "modal-btn--close" }]
-      });
-    }
-  }
+  if (!t) return elTask.innerHTML = "<strong>You Saved the Farm!</strong>";
+  const p = world.s[t.stat] || 0;
+  elTask.innerHTML = `<strong>${t.desc} (${Math.min(p, t.target)}/${t.target})</strong>`;
+  if (p >= t.target) { world.x++; sfx("success"); }
 }
+
+
+
 
 
 function handleToolAction() {
@@ -517,16 +503,6 @@ function handleToolAction() {
 
 function endDay() {
   if (world.E) return;
-
-  if (DAYS_LEFT <= 0 && (world.s[13] || 0) < 1) {
-      showModal({
-        title: "Times Up",
-        bodyHtml: "<p>Farm Lost</p>",
-        buttons: [{ label: "Crap", onClick: () => location.reload() }]
-      });
-      return;
-  }
-
   world.E = true; 
   sfx('success');
 
@@ -558,8 +534,8 @@ function startNextDay() {
 
  
 
-  character.col = OTHER_BUILDING_COL + 1.75;
-  character.row = OTHER_BUILDING_ROW + 1.75;
+  character.col = 42 + 1.75;
+  character.row = 3 + 1.75;
   character.dir = 2;  
   saveGame();
   syncHUD();
@@ -603,12 +579,20 @@ canvas.addEventListener("click", () => {
   handleToolAction();
 });
 
+
+// let lastGarbageRun = 0;
+// const  CLEANUP_INTERVAL = 10000;
 function loop(timestamp) {
 
-  //  if (!world || !world.t || !world.K) {
-  //    requestAnimationFrame(loop);
-  //    return;
+
+  // // Frequency-based cleanup
+  // if (timestamp - lastGarbageRun > CLEANUP_INTERVAL) {
+  //   lastGarbageRun= timestamp;
+    
+  //   clearCaches();  
+
   // }
+
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 
@@ -616,7 +600,7 @@ function loop(timestamp) {
 
     updateCharacterFromControls(character,keys,deltaMs, world);
 
-    const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
+    const distToHome = Math.hypot(character.col - (42 + 0.5), character.row - (3 + 0.5));
     if (distToHome < 0.6) {
       showSleepPrompt();
     }

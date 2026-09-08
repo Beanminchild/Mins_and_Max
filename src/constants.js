@@ -3,7 +3,7 @@ export const rows = 32;
 export const TILE_W = 64;
 export const TILE_H = 32;
 
-export const moveStepSize = 0.40;
+export const moveStepSize = 0.35;
 export const moveStepMs = 60;
 
 
@@ -23,7 +23,7 @@ export const BOX_INTERACTION_RADIUS = 1.25;
 
 export const DOMINION_COL = 38;
 export const DOMINION_ROW = 16;
-export const DOMINION_INTERACTION_RADIUS = .7;
+export const DOMINION_INTERACTION_RADIUS = 1;
 
 export const WATER_POND_COL = 33;
 export const WATER_POND_ROW = 3;
@@ -32,13 +32,13 @@ export const WATER_POND_ROW = 3;
 
 
 
-export const POND_MIN_SOAK_MS = 12000 // 15 seconds
+export const POND_MIN_SOAK_MS = 12000;
 
 
-export const SHOP_BUILDING_COL = 18;
-export const SHOP_BUILDING_ROW = 16;
-export const OTHER_BUILDING_COL = 42;
-export const OTHER_BUILDING_ROW = 3;
+// export const SHOP_BUILDING_COL = 18;
+// export const SHOP_BUILDING_ROW = 16;
+// export const OTHER_BUILDING_COL = 42;
+// export const OTHER_BUILDING_ROW = 3;
 
 // src/constants.js (suggested additions)
 export const FISH_RIPPLE_SPAWN_MS = 9000;   // new ripple every ~4s
