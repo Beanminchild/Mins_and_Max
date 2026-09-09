@@ -1,4 +1,6 @@
 // Reusable modal system — one backdrop + one modal element reused by all callers.
+import { sfx } from "./sound.js";
+
 let backdropEl = null;
 let modalEl = null;
 let isOpen = false;
@@ -15,11 +17,7 @@ export function showModal({ title, bodyHtml, buttons = [], variant = "" }) {
     modalEl.className = "game-modal";
     backdropEl.appendChild(modalEl);
     document.body.appendChild(backdropEl);
-
-    // Outside-click closes (replaces per-modal listeners)
-    backdropEl.addEventListener("click", (e) => {
-      if (e.target === backdropEl) closeModal();
-    });
+    
   }
 
   modalEl.className = "game-modal" + (variant ? ` ${variant}` : "");
@@ -31,6 +29,7 @@ export function showModal({ title, bodyHtml, buttons = [], variant = "" }) {
     btn.textContent = b.label;
     btn.className = "modal-btn " + (b.className || "");
     btn.onclick = () => {
+      sfx('pick');
       closeModal();
       if (b.onClick) b.onClick();
       

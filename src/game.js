@@ -1,6 +1,6 @@
 import { setupInput } from "./input.js";
 import { createCharacter, updateCharacterFromControls, updateCamera } from "./character.js";
-import { createSpriteBank, drawScene } from "./render.js";
+import { createSpriteBank, drawScene} from "./render.js";
 import {
   createWorld,
   throwMin,
@@ -13,15 +13,14 @@ import {
   tryDepositToBox,
   tryDepositToDominion,  
   tryInteractWithShop,
-  tryInteractWithGravestone,
-  tryInteractWithSign,
+  tryInteractWithGravestone, 
   spawnNewMin, 
   tryPickupLumber,
   tryTakeFromMin,
   tryCollectSoul,
   
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW } from "./constants.js";
 
 import { 
   showModal, 
@@ -142,7 +141,7 @@ function showSleepPrompt() {
 
   showModal({
     title: "Go to bed?",
-    bodyHtml: "<p>This will end the day.</p>",
+    bodyHtml: "<p>Day will end</p>",
     buttons: buttons,
   });
 }
@@ -180,21 +179,20 @@ function showStartMenu() {
 
   showModal({
     title: "Mins & Max Vs UniCorp",
-    bodyHtml: "",
+    bodyHtml: "By Zach End",
     buttons
   });
 }
 
 function showStory(index) {
   const blurbs = [
-  "Max: To save the farm, I have to pay off Grandpa’s loans?",
-  "Emmie: Yep.",
-  "Max: I can't farm that fast!",
-  "Emmie: Use our new Min Tech! Theyre sub-agents that automate everything.",
-  "Max: Is it farming if I do nothing?",
-  "Emmie: You're orchestrating! It's Agentic Farming! 10x productivity! This is our next unicorn!",
-  
-];
+    "Max: I have to pay to get my own farm back?",
+    "Emmie: That's unicorn startup life! You need to scale fast.",
+    "Max: I can't farm fast enough.",
+    "Emmie: Use our 'Mins', sub-agents that automate the grunt work.",
+    "Max: Is it still farming if I'm not the one doing it?",
+    "Emmie: You're 'orchestrating'! Plant, Water, Harvest, Scale!"
+  ];
 
   const buttons = [];
   
@@ -226,7 +224,7 @@ const ctx = canvas.getContext("2d");
 
 const keys = setupInput(new Set(),
   (code) => {
-    const map = { Digit1:"empty-hands", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
+    const map = { Digit1:"min", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
     const tool = map[code];
     if (!tool) return;
     if (tool === "axe" && !world.u) return;
@@ -278,28 +276,50 @@ function updateClock() {
 }
 
 
-
+export const prices = {
+  seeds: 5,
+  min: 200,
+  barn: 3000,
+  farm: 35000,
+  rainbow: 350,
+  big_hoe: 3000
+};
 
 function openShop() {
   world.S = true;  
   const shopButtons = [];
   const lumberHave = world.s[11] || 0;
-  const barnLocked = world.r || lumberHave < 50;
+  
+  const barnLocked = world.r || lumberHave < 50 || world.w < prices.barn;
   shopButtons.push(
     `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Unicorp Farm-maxxing Cert — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
   );
 
    // New buttons appear only if barn is bought
-  if (world.r) {
-    shopButtons.push(`<button class="shop-button" data-buy="farm">Buy Farm Back — 100000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Unicorn Min — 500g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="rainbow_min">Rainbow Min — 5000g</button>`);
-    shopButtons.push(`<button class="shop-button" data-buy="big_hoe">Big Hoe — 5000g</button>`);
+    if (world.r) {
+    shopButtons.push(
+      `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
+        Buy Farm Back — 35000g
+      </button>`
+    );
+  
+    shopButtons.push(
+      `<button class="shop-button" data-buy="big_hoe" ${(world.h || world.w < prices.big_hoe) ? "disabled" : ""}>
+        Big Hoe — 3000g
+      </button>`
+    );
+  
+    shopButtons.push(
+      `<button class="shop-button" data-buy="rainbow" ${world.w < prices.rainbow ? "disabled" : ""}>
+        Rainbow Min — 350g
+      </button>`
+    );
   }
   
   
-  shopButtons.push(`<button class="shop-button" data-buy="seeds">Seeds — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="min">Min — 45g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="seeds" ${world.w < prices.seeds ? "disabled" : ""}>Seeds — 5g</button>`);
+  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 200g</button>`);
+  
   showModal({
     title: "Emmie",
     bodyHtml: `
@@ -309,7 +329,7 @@ function openShop() {
       <div class="shop-options">
         ${shopButtons.join("")}
       </div>
-      <p class="shop-dialogue">"${DAYS_LEFT} days left to pay & ${17-world.x} tasks left to do"</p>`,
+      <p class="shop-dialogue">"${DAYS_LEFT} days left to pay & ${22-world.x} tasks left to do"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -324,18 +344,9 @@ function closeShop() {
   closeModal();
 }
 
-function buyShopItem(item) {
-  const priceMap = {
-    seeds: 5,
-    min: 35,
-    barn: 3000,
-    farm: 100000,
-    rainbow_min: 5,
-    big_hoe: 5
-   
-  };
+function buyShopItem(item) {  
 
-  const price = priceMap[item];
+  const price = prices[item];
   if (!price || world.w < price) return;
   if (item === "barn" && (world.r || (world.s[11] || 0) < 50)) return;
 
@@ -349,7 +360,7 @@ function buyShopItem(item) {
 
   if (item === "seeds") {
     world.e = "seeds";
-    world.I = (world.I || 0) + 1;
+    world.I = (world.I || 0) + 3;
     sfx("pick");
   } else if (item === "min") {
     world.e = "min";
@@ -360,18 +371,20 @@ function buyShopItem(item) {
     sfx("pick");
   } else if (item === "farm") {
     world.s[13]++;
-    elFarm.textContent = "Max's Farm";
+    //elFarm.textContent = "Max's Farm";
     sfx("success");
   } else if (item === "big_hoe") {
     world.h = true;
     sfx("success");
-  } else if (item === "rainbow_min") {
+  } else if (item === "rainbow") {
     const m = spawnNewMin(world.m, world.y.col, world.y.row, "following");
     m.isRainbowMin = true;
     m.isWaterMin = true;
     world.s[6]++;
     sfx("success");
   }
+  syncHUD();
+  openShop();
 }
 
 
@@ -382,9 +395,9 @@ function syncHUD() {
     const toolName = slot.dataset.tool;
     slot.classList.toggle("active", toolName === world.e);
 
-    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "Empty";
-    if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "⛏️ Hoe";
-    else if (toolName === "min") slot.textContent = world.v ? "🤖 Min" : "Empty";
+    if (toolName === "axe") slot.textContent = world.u ? "🪓 Axe" : "?";
+    if (toolName === "hoe") slot.textContent = world.h ? "⛏️ Big Hoe" : "🪏 Hoe";
+    else if (toolName === "min") slot.textContent = world.v ? "(-) Min: " : "?: ";
 
     let txt = null;
     if (toolName === "min") txt = followingMins;
@@ -417,30 +430,16 @@ function syncHUD() {
 
 
 function updateTaskHUD() {
-  const el = elTask;
-
-  if (world.x >= TASKS.length) {
-    el.innerHTML = "<strong>WOO!</strong>";
-    return;
-  }
-
+  if (DAYS_LEFT < 1 && !world.s[13]) return elTask.innerHTML = "<strong>You Lost the Farm</strong>";
   const t = TASKS[world.x];
-  const prog = world.s[t.stat] || 0;
-  el.innerHTML = `${t.desc} (${Math.min(prog, t.target)}/${t.target})`;
-
-  if (prog >= t.target) {
-    world.x++;
-    sfx("success");
-    if (world.x >= TASKS.length && !world.A) {
-      world.A = true;
-      showModal({
-        title: "Victory!",
-        bodyHtml: "<p>You got the farm back!</p>",
-        buttons: [{ label: "Thats pretty neat", className: "modal-btn--close" }]
-      });
-    }
-  }
+  if (!t) return elTask.innerHTML = "<strong>You Saved the Farm!</strong>";
+  const p = world.s[t.stat] || 0;
+  elTask.innerHTML = `<strong>${t.desc} (${Math.min(p, t.target)}/${t.target})</strong>`;
+  if (p >= t.target) { world.x++; sfx("success"); }
 }
+
+
+
 
 
 function handleToolAction() {
@@ -449,23 +448,55 @@ function handleToolAction() {
   if (world.e === "min") {
     throwMin(character, mins, world.z, cursor);
     sfx("throw");
-  } 
-  
-    // Calculate distance between character and cursor for all other tools
-  const dist = cursor ? Math.hypot(character.col - cursor.col, character.row - cursor.row) : Infinity;
-  
-  // If the cursor is too far away, stop the action
-  if (dist > TOOL_REACH_DISTANCE) {    
-    return;
   }
-  
+
+  let toolCursor = cursor;
+
+  if (world.e === TOOL_TYPES.AXE && cursor) {
+    const centerCol = Math.floor(cursor.col);
+    const centerRow = Math.floor(cursor.row);
+
+    let closestTree = null;
+    let closestDistance = Infinity;
+
+    for (let row = centerRow - 2; row <= centerRow + 2; row++) {
+      for (let col = centerCol - 2; col <= centerCol + 2; col++) {
+        if (!world.t[row]?.[col]?.hasTree) continue;
+
+        const distance = Math.hypot(
+          cursor.col - (col + 0.5),
+          cursor.row - (row + 0.5)
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestTree = {
+            col: col + 0.5,
+            row: row + 0.5
+          };
+        }
+      }
+    }
+
+    if (closestTree) toolCursor = closestTree;
+  }
+
+  const dist = toolCursor
+    ? Math.hypot(
+        character.col - toolCursor.col,
+        character.row - toolCursor.row
+      )
+    : Infinity;
+
+  if (dist > TOOL_REACH_DISTANCE) return;
+
   if (world.e === "empty-hands") {
     if (!tryHarvestCrop(character, world)) {
       tryTakeFromMin(character, mins, world);
     }
     syncHUD();
   } else {
-    useToolAtCursor(world, cursor);
+    useToolAtCursor(world, toolCursor);
     syncHUD();
   }
 }
@@ -473,11 +504,16 @@ function handleToolAction() {
 function endDay() {
   if (world.E) return;
   world.E = true; 
+  sfx('success');
+
+   // Calculate multiplier: +10% per task completed
+  const tM = 1 + (world.x * 0.075); 
 
   const cropPayout = world.c * 25 + world.b * 75;
   const lumberPayout = world.l * 5;
-  const totalPayout = cropPayout + lumberPayout;
+  const totalPayout = Math.ceil((cropPayout + lumberPayout) * tM);
   world.w += totalPayout;
+  world.s[33] += totalPayout;
   showModal({
     title: "Day Complete",
     bodyHtml: `<p>You collected <strong>${world.c + world.b + world.l}</strong> items.</p>
@@ -498,8 +534,8 @@ function startNextDay() {
 
  
 
-  character.col = OTHER_BUILDING_COL + 1.75;
-  character.row = OTHER_BUILDING_ROW + 1.75;
+  character.col = 42 + 1.75;
+  character.row = 3 + 1.75;
   character.dir = 2;  
   saveGame();
   syncHUD();
@@ -543,7 +579,20 @@ canvas.addEventListener("click", () => {
   handleToolAction();
 });
 
+
+// let lastGarbageRun = 0;
+// const  CLEANUP_INTERVAL = 10000;
 function loop(timestamp) {
+
+
+  // // Frequency-based cleanup
+  // if (timestamp - lastGarbageRun > CLEANUP_INTERVAL) {
+  //   lastGarbageRun= timestamp;
+    
+  //   clearCaches();  
+
+  // }
+
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 
@@ -551,7 +600,7 @@ function loop(timestamp) {
 
     updateCharacterFromControls(character,keys,deltaMs, world);
 
-    const distToHome = Math.hypot(character.col - (OTHER_BUILDING_COL + 0.5), character.row - (OTHER_BUILDING_ROW + 0.5));
+    const distToHome = Math.hypot(character.col - (42 + 0.5), character.row - (3 + 0.5));
     if (distToHome < 0.6) {
       showSleepPrompt();
     }
@@ -561,7 +610,7 @@ function loop(timestamp) {
 
   if (world.x >= TASKS_BEFORE_TIMER_STARTS) {
   world.d += deltaMs;
-  elFarm.textContent = "Unicorp Farm";
+  //elFarm.textContent = "Unicorp Farm";
     }
   world.p = Math.min(world.d / world.D, 1);
 
@@ -576,7 +625,7 @@ function loop(timestamp) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
                     tryPickupLumber(character, world) ||
-                    tryInteractWithSign(character.col, character.row)  ||                    
+                   // handleSignInteraction(character, world) ||
                     tryDepositToBox(character, world.z, world) ||
                     tryDepositToDominion(character, world.y, world) ||
                     

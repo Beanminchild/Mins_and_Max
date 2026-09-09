@@ -7,11 +7,7 @@ import {
   DIRECTION_STYLES,
   PLACEHOLDER_LOOK,
   TILE_TYPES,
-  PLANT_STAGES,
-  SHOP_BUILDING_COL,
-  SHOP_BUILDING_ROW,
-  OTHER_BUILDING_COL,
-  OTHER_BUILDING_ROW,
+  PLANT_STAGES,  
   TREE_SWINGS_TO_FELL,
   TOOL_REACH_DISTANCE
 } from "./constants.js";
@@ -19,7 +15,6 @@ import {
 import {
   world
 } from "./game.js";
-import { drawSignposts } from "./interactions.js";
 
 
 export function isoToScreen(col, row, camera) {
@@ -125,14 +120,14 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
   ctx.translate(p.x, p.y - 8);
 
   if (tile.stage === PLANT_STAGES.SEED) {
-    ctx.strokeStyle = "#f7e700";
+    ctx.strokeStyle = "#46ce10";
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(0, -6);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.SPROUT) {
-    ctx.strokeStyle = "#f38100";
+    ctx.strokeStyle = "#24be34";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -141,7 +136,7 @@ function drawPlantOverlay(ctx, tile, col, row, camera) {
     ctx.lineTo(4, -8);
     ctx.stroke();
   } else if (tile.stage === PLANT_STAGES.CROP) {
-    ctx.fillStyle = "#ffff00";
+    ctx.fillStyle = "#83ff60";
     ctx.beginPath();
     ctx.arc(0, -8, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -160,9 +155,13 @@ function drawTree(ctx, col, row, camera, treeSprite) {
 
 // src/render.js
 function drawGravestone(ctx, gravestone, camera) {
-  const p = isoToScreen(gravestone.col, gravestone.row, camera);
-  
+  const p = isoToScreen(gravestone.col, gravestone.row, camera);  
+  ctx.save();
+  ctx.font = "24px Arial";
+  ctx.textAlign = "center";
+  // ID 0 is grandpa's grave, others are signs
   ctx.fillText("🪦", p.x, p.y - 12);
+  ctx.restore();
 }
 let boxSprite, dominionSprite;
 
@@ -173,15 +172,26 @@ function createCachedSprite(drawFn) {
   return s;
 }
 
+// export function drawBox(ctx, box, camera) {
+//   if (!boxSprite) boxSprite = createCachedSprite(g => {
+//     g.translate(32, 32);
+//     g.fillStyle = "#4e342e"; g.beginPath(); g.moveTo(-20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(-20, 15); g.fill();
+//     g.fillStyle = "#3e2723"; g.beginPath(); g.moveTo(20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(20, 15); g.fill();
+//     g.fillStyle = "#5d4037"; g.beginPath(); g.moveTo(0, -10); g.lineTo(20, 0); g.lineTo(0, 10); g.lineTo(-20, 0); g.closePath(); g.fill();
+//   });
+//   const p = isoToScreen(box.col, box.row, camera);
+//   ctx.drawImage(boxSprite, p.x - 32, p.y - 32);
+// }
+
 export function drawBox(ctx, box, camera) {
-  if (!boxSprite) boxSprite = createCachedSprite(g => {
-    g.translate(32, 32);
-    g.fillStyle = "#4e342e"; g.beginPath(); g.moveTo(-20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(-20, 15); g.fill();
-    g.fillStyle = "#3e2723"; g.beginPath(); g.moveTo(20, 0); g.lineTo(0, 10); g.lineTo(0, 25); g.lineTo(20, 15); g.fill();
-    g.fillStyle = "#5d4037"; g.beginPath(); g.moveTo(0, -10); g.lineTo(20, 0); g.lineTo(0, 10); g.lineTo(-20, 0); g.closePath(); g.fill();
-  });
   const p = isoToScreen(box.col, box.row, camera);
-  ctx.drawImage(boxSprite, p.x - 32, p.y - 32);
+
+  ctx.save();
+  ctx.font = "32px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("📦", p.x, p.y);
+  ctx.restore();
 }
 
 export function drawDominion(ctx, dominion, camera) {
@@ -257,7 +267,6 @@ export function drawWaterPond(ctx, pond, camera) {
 
   ctx.restore();
 }
-
 function buildSpriteFrame(directionIndex, frameIndex, look = PLACEHOLDER_LOOK, options = {}) {
   const { showPigtails = true, isUnicorn = false } = options;
   const sprite = document.createElement("canvas");
@@ -419,7 +428,7 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
     ctx.save();
     ctx.translate(p.x, p.y - 50); 
     if (character.held === "crop") {
-      ctx.fillStyle = "#ce2b12";
+      ctx.fillStyle = "#83ff60";
       ctx.beginPath();
       ctx.arc(0, -8, 6, 0, Math.PI * 2);
       ctx.fill();
@@ -435,9 +444,9 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
       // ctx.beginPath();
       // ctx.ellipse(0, -6, 7, 4, 0, 0, Math.PI * 2);
       // ctx.fill();
-      ctx.font = '24px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      // ctx.font = '24px Arial';
+      // ctx.textAlign = 'center';
+      // ctx.textBaseline = 'middle';
       ctx.fillText('🐠', p.x, p.y - 6);
     }
     ctx.restore();
@@ -446,8 +455,8 @@ export function drawCharacter(ctx, character, spriteBank, camera) {
 
 
 
-const waterMinCache = {};
-//const unicornMinCache = {}; // Added cache for Unicorn Min
+export const waterMinCache = {};
+export const rainbowMinCache = {}; // Added cache for Unicorn Min
 
 // ... existing code ...
 
@@ -456,20 +465,26 @@ export function drawMin(ctx, min, camera, minSprites) {
   let sprite = minSprites[min.state] || minSprites.loose;
 
   // Handle Rainbow Min first
-  if (min.isRainbowMin) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(p.x, p.y - 6, 9, 0, Math.PI * 2);
-    ctx.clip();
-    const time = Date.now() / 1000;
-    const grad = ctx.createLinearGradient(p.x - 20, p.y - 26, p.x + 20, p.y + 14);
-    grad.addColorStop(0, `hsla(${(time * 50) % 360}, 100%, 50%, 0.8)`);
-    grad.addColorStop(0.5, `hsla(${(time * 50 + 120) % 360}, 100%, 50%, 0.8)`);
-    grad.addColorStop(1, `hsla(${(time * 50 + 240) % 360}, 100%, 50%, 0.8)`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(p.x - 20, p.y - 26, 40, 40); 
-    ctx.restore();
-  } 
+   if (min.isRainbowMin) {
+     const cacheKey = "rainbow"; 
+    rainbowMinCache[cacheKey] ||= (() => {
+      const s = document.createElement("canvas"); s.width = 32; s.height = 32;
+      const g = s.getContext("2d");
+       const grad = g.createLinearGradient(8, 8, 24, 24);
+       grad.addColorStop(0.0, "#fc3a3a"); // Red
+      grad.addColorStop(0.2, "#ff7f00"); // Orange
+      grad.addColorStop(0.4, "#3aff99"); // Yellow
+      grad.addColorStop(0.6, "#00aaff"); // Green
+      
+      grad.addColorStop(1.0, "#ff15ef"); // Purple/Violet
+      g.fillStyle = grad;
+      g.beginPath(); g.arc(16, 16, 8, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#3a210f"; g.fillRect(13, 15, 6, 2);
+      return s;
+    })();
+    ctx.drawImage(rainbowMinCache[cacheKey], p.x - 16, p.y - 22);
+    return;
+  }
   // Only apply water tint if it's NOT a rainbow min
   else if (min.isWaterMin) {
     waterMinCache[min.state] ||= (() => {
@@ -509,12 +524,22 @@ export function drawCursor(ctx, cursor, camera, character) {
   ctx.arc(0, 0, 7, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(-5, 0);
-  ctx.lineTo(5, 0);
-  ctx.moveTo(0, -5);
-  ctx.lineTo(0, 5);
-  ctx.stroke();
+    const cursorGlyphs = {
+    "empty-hands": "+",
+    hoe: "🪏",
+    seeds: "🌱",
+    "watering-can": "💧",
+    axe: "🪓",
+    min: "-"
+  };
+
+  const glyph = cursorGlyphs[world.e] || "?";
+
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.font = "bold 14px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(glyph, 0, 0);
 
   ctx.restore();
 }
@@ -546,6 +571,7 @@ export function drawBuilding(ctx, col, row, camera, isShop, character) {
   const isInside = dist < 1.0;
 
   ctx.save();
+  ctx.globalAlpha = 1;
   if (isInside) ctx.globalAlpha = 0.4; // Transparency effect
 
   ctx.translate(p.x, p.y);
@@ -683,7 +709,7 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
     
   }  
 
-  drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
+  // drawSignposts(ctx, (col, row) => isoToScreen(col, row, camera));
 
   for (const soul of world.q) {
     if (soul.collected || !soul.revealed) continue; // hidden until hoed
@@ -749,8 +775,8 @@ export function drawScene(ctx, canvas, character, spriteBank, camera, mins, curs
   // Shopkeeper drawn with their bank
   drawCharacter(ctx, shopkeeper, shopkeeperSpriteBank, camera);
    
-  drawBuilding(ctx, SHOP_BUILDING_COL, SHOP_BUILDING_ROW, camera, true, character);
-  drawBuilding(ctx, OTHER_BUILDING_COL, OTHER_BUILDING_ROW, camera, false, character);
+  drawBuilding(ctx, 18, 16, camera, true, character);
+  drawBuilding(ctx, 42, 3, camera, false, character);
  
 
  
@@ -774,3 +800,10 @@ if (world.g && world.g.length > 0) {
   drawCursor(ctx, cursor, camera, character);
   drawCharacter(ctx, character, spriteBank, camera);
 }
+
+
+// export function clearCaches() {
+//   for (let k in waterMinCache) delete waterMinCache[k];
+//   for (let k in rainbowMinCache) delete rainbowMinCache[k]; 
+//   // If you add other caches, clear them here too
+// }
