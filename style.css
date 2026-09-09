@@ -14,8 +14,14 @@ canvas {
 
 
 .ol { position: absolute; top: 15px; left: 15px; pointer-events: none; }
-.or { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; pointer-events: none; }
+.or { 
+  position: absolute; top: 15px; right: 15px; 
+  display: flex; align-items: center; gap: 15px; pointer-events: none; 
+}
 
+.or-wallet-group { 
+  display: flex; flex-direction: column; gap: 10px; pointer-events: auto; 
+}
 
 
 .box {
@@ -24,10 +30,10 @@ canvas {
   text-align: center; box-shadow: 0 3px 0 #3e2723; pointer-events: auto;
 }
 
-.task-box { min-width: 220px; padding: 10px 16px;display: grid; gap: 18px; padding-bottom: 15px;  }
-.wallet-box { min-width: 70px; padding: 6px 8px; }
+.task-box { min-width: 220px; padding: 10px 16px;display: grid; gap: 8px; padding-right: 8px; }
+.wallet-box { min-width: 100px; padding: 10px 16px;  }
 
-.wallet-label { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #8d6e63; }
+.wallet-label { font-size: 0.75rem; font-weight: 900; padding-bottom: 15px;text-transform: uppercase; color: #8d6e63; }
 
 #wallet-amount, #task-list { font-weight: 900; color: #2e7d32; font-size: 1.1rem; }
 
