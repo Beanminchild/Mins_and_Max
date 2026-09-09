@@ -186,12 +186,12 @@ function showStartMenu() {
 
 function showStory(index) {
   const blurbs = [
-    "Max: I have to pay to get my own farm back?",
+    "Max: I have to buy my own farm back?",
     "Emmie: That's unicorn startup life! You need to scale fast.",
     "Max: I can't farm fast enough.",
     "Emmie: Use our 'Mins', sub-agents that automate the grunt work.",
-    "Max: Is it still farming if I'm not the one doing it?",
-    "Emmie: You're 'orchestrating'! Plant, Water, Harvest, Scale!"
+    "Max: Is it still farming if I'm not doing it?",
+    "Emmie: Its Agentic Farming!"
   ];
 
   const buttons = [];

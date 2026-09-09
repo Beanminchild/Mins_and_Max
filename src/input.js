@@ -5,7 +5,7 @@ export function setupInput(keys = new Set(), onToolSelect, onEscape) {
       event.preventDefault();
       keys.add(key);
     }
-    if (key === "Escape") onEscape && onEscape();
+    //if (key === "Escape") onEscape && onEscape();
     if (key.startsWith("Digit")) onToolSelect && onToolSelect(key);
   });
 

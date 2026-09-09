@@ -1,6 +1,6 @@
 import {    
   MIN_INTERACTION_RADIUS,  
-  DIRECTION_VECTORS,  
+ 
   THROW_MAX_DISTANCE,
   cols,
   rows,
@@ -17,12 +17,7 @@ import {
   WATER_POND_ROW,  
   SHOPKEEPER_COL,
   SHOPKEEPER_ROW,
-  TASKS,  
-  TREE_SWINGS_TO_FELL,
-  TREE_CUT_TIME_1_MIN,
-  TREE_CUT_TIME_2_MIN,
-  TREE_CUT_TIME_3_MIN,
-  MAX_LUMBER_ITEMS,
+  TASKS, 
   FISH_RIPPLE_SPAWN_MS,
   FISH_RIPPLE_RAMP_MS,
   FISH_VISIBLE_MS,
@@ -191,7 +186,7 @@ export function createWorld() {
         hasTree: (BR && col % 2 === 0 && row % 2 === 0) ||
                  (TR && (col === 21 || col === cols - 1 || row === 0 || row === 14)||
                  (TL && (col === 14 || col === cols - 1 || row === 0 || row === 14))),
-        treeHealth: TREE_SWINGS_TO_FELL,
+        treeHealth: 15,
         
       };
     })
@@ -389,20 +384,25 @@ export function updateMins(character, mins, world) {
   }
 
   // 1. Sort followers so that those carrying crops/lumber are at the front of the line
-  const followers = mins.filter((min) => min.state === "following" || min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish");
+  const isCarrying = m => m.state.startsWith("carrying");
+
+  const followers = mins.filter((min) => min.state === "following" || isCarrying(min));
   followers.sort((a, b) => {
-    const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" || a.state === "carrying_fish" ? 1 : 0;
-    const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" || b.state === "carrying_fish" ? 1 : 0;
-    if (aCarrying !== bCarrying) return bCarrying - aCarrying; // carriers front
-    return (a.lineToken || 0) - (b.lineToken || 0); // older tokens front, new ones back
+    const aC = isCarrying(a) ? 1 : 0;
+    const bC = isCarrying(b) ? 1 : 0;
+    if (aC !== bC) return bC - aC;
+    return (a.lineToken || 0) - (b.lineToken || 0);
   });
 
+  const vx = [1, .7, 0, -.7, -1, -.7, 0, .7][character.dir] || 0;
+  const vy = [0, .7, 1, .7, 0, -.7, -1, -.7][character.dir] || 0;
+
   followers.forEach((min, index) => {
-    const vector = DIRECTION_VECTORS[character.dir] || { dx: 0, dy: 0 };
+    
     const offsetAmount = 0.7 + index * 0.25;
 
-    const targetCol = character.col - vector.dx * offsetAmount;
-    const targetRow = character.row - vector.dy * offsetAmount;
+    const targetCol = character.col - vx * offsetAmount;
+    const targetRow = character.row - vy * offsetAmount;
 
     moveToward(min, targetCol, targetRow, 0.15);
 
@@ -415,8 +415,8 @@ export function updateMins(character, mins, world) {
   });
 
   // --- Lumber Cleanup (performance fix) ---
-  if (world.o && world.o.length > MAX_LUMBER_ITEMS) {
-    world.o.splice(0, world.o.length - MAX_LUMBER_ITEMS);
+  if (world.o && world.o.length > 200) {
+    world.o.splice(0, world.o.length - 200);
   }
 
   mins.forEach((min) => {
@@ -507,16 +507,16 @@ export function updateMins(character, mins, world) {
       // === PERF: use precomputed count instead of mins.filter(...) ===
       const totalCutters = cutterCounts[tCol + "," + tRow] || 1;
       let cutTime;
-      if (totalCutters === 1) cutTime = TREE_CUT_TIME_1_MIN;
-      else if (totalCutters === 2) cutTime = TREE_CUT_TIME_2_MIN;
-      else cutTime = TREE_CUT_TIME_3_MIN;
+      if (totalCutters === 1) cutTime = 16000;
+      else if (totalCutters === 2) cutTime = 8000;
+      else cutTime = 2000;
 
       min.cuttingTimer += 16;
       if (min.cuttingTimer >= cutTime) {
         tile.hasTree = false;
         tile.lumber = true;
 
-        if (world.o.length < MAX_LUMBER_ITEMS) {
+        if (world.o.length < 200) {
           world.o.push({
             col: tCol + 0.5,
             row: tRow + 0.5,
