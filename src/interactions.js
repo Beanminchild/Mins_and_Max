@@ -116,31 +116,28 @@ function createMinSprite(state) {
 }
 
 
+
 export function updateFish(world, deltaMs) {
-  // spawn
   world.Z += deltaMs;
   if (world.Z >= FISH_RIPPLE_SPAWN_MS) {
     world.Z = 0;
-    const waterTiles = [];
-    for (let r=0; r<rows; r++) for (let c=0; c<cols; c++)
-      if (world.t[r][c].type === TILE_TYPES.WATER) waterTiles.push({c,r});
-    if (waterTiles.length) {
-      const t = waterTiles[(Math.random()*waterTiles.length)|0];
-      world.F.push({ col:t.c, row:t.r, phase:'ripple', timer:0, speed:1 });
+    const water = [];
+    world.t.forEach((row, r) => row.forEach((t, c) => t.type === TILE_TYPES.WATER && water.push({c,r})));
+    if (water.length) {
+      const {c,r} = water[(Math.random()*water.length)|0];
+      world.F.push({ col:c, row:r, phase:'ripple', timer:0, speed:1 });
     }
   }
-  // advance
-  for (let i=world.F.length-1; i>=0; i--) {
-    const f = world.F[i];
+  world.F = world.F.filter(f => {
     f.timer += deltaMs;
     if (f.phase === 'ripple') {
-      f.speed = 1 + (f.timer / FISH_RIPPLE_RAMP_MS) * 6; // accelerates
-      if (f.timer >= FISH_RIPPLE_RAMP_MS) { f.phase='fish'; f.timer=0; }
-    } else if (f.phase === 'fish' && f.timer >= FISH_VISIBLE_MS) {
-      world.F.splice(i,1); // fish gone
+      f.speed = 1 + (f.timer / FISH_RIPPLE_RAMP_MS) * 6;
+      if (f.timer >= FISH_RIPPLE_RAMP_MS) { f.phase = 'fish'; f.timer = 0; }
     }
-  }
+    return !(f.phase === 'fish' && f.timer >= FISH_VISIBLE_MS);
+  });
 }
+
 
 export function createWorld() {
 
@@ -280,35 +277,20 @@ export function createWorld() {
 // }
 
 export function tryInteractWithShop(character, world) {
-  if (!world.K) return false;
+  if (!world.K || Math.hypot(character.col - world.K.col, character.row - world.K.row) > 1.6) return false;
 
-  const distance = Math.hypot(character.col - world.K.col, character.row - world.K.row);
-  if (distance > 1.6) return false;
+  const emmie = (b, l) => showModal({ title: "Emmie", bodyHtml: `<p>${b}</p>`, buttons: [{ label: l, className: "modal-btn--close" }] });
 
-  
-
-  const giveIndex = TASKS.findIndex(t => t.id === 'give');
-if (world.x <= giveIndex && world.s[4] < 1) {
-  if (character.held === 'crop') {
-    character.held = null;
-    world.s[4]++;
-    world.u = true;
-    world.K.col = SHOPKEEPER_COL;
-    world.K.row = SHOPKEEPER_ROW;
-    showModal({
-      title: "Emmie",
-      bodyHtml: "<p>Not bad Max, but youll never get the farm back at this rate. Use the tasks i gave you to learn how to use Min to automate as much as possible! Also heres your Axe!</p>",
-      buttons: [{ label: "I H8 U.", className: "modal-btn--close" }]
-    });
-  } else {
-    showModal({
-      title: "Emmie",
-      bodyHtml: "<p>Before you use Min, Prove you can farm by growing a crop and giving it to me. Do good and ill give you ur grandfather's axe.</p>",
-      buttons: [{ label: "Wow. So generous.", className: "modal-btn--close" }]
-    });
+  if (world.x <= TASKS.findIndex(t => t.id === 'give') && world.s[4] < 1) {
+    if (character.held === 'crop') {
+      character.held = null; world.s[4]++; world.u = true;
+      world.K.col = SHOPKEEPER_COL; world.K.row = SHOPKEEPER_ROW;
+      emmie("You'll never get the farm back at this rate Max. Use the tasks I gave you to learn how to use Min to automate as much as possible! also here ur grandfathers axe!", "I H8 U.");
+    } else {
+      emmie("Before you use Min, prove you can farm by growing a crop and giving it to me. I'll give you something in return", "Wow. So generous.");
+    }
+    return true;
   }
-  return true;
-}
 
   world.s[8] = 1;
   world.S = true;
@@ -322,8 +304,8 @@ export function tryInteractWithGravestone(character, world) {
     const distance = Math.hypot(character.col - gravestone.col, character.row - gravestone.row);
     if (distance <= 1.5) {
       showModal({
-        title: "Gravestone:",
-        bodyHtml: `<p>Here lies Max's Grandpa Sr.</p><p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
+        title: "Here lies Max's Grandpa Sr.",
+        bodyHtml: `<p>"Hoe thee soul piece 3: A mirror of where I would lie in grass, beach, and trees.</p>`,
         buttons: [{ label: "Hm", className: "modal-btn--close" }],
       });
       world.s[12]++;
@@ -615,8 +597,7 @@ export function updateMins(character, mins, world) {
 
       if (min.isDelivering && reachedTarget) {
           if (min.carryingLumberForDelivery) {
-          if (min.carryingMilk) { world.w += MILK_SALE_PRICE; min.carryingMilk = false; }
-          else { world.l += 1; world.s[11] = (world.s[11] || 0) + 1; }
+           world.l += 1; world.s[11] = (world.s[11] || 0) + 1;
         } else if (min.state === "carrying_fish" || min.carryingFish) {
           world.w += FISH_SALE_PRICE;
           world.s[33] += FISH_SALE_PRICE;
@@ -805,6 +786,7 @@ export function tryDepositToBox(character, box, world) {
         world.s[9]++;
         if (character.cropTL) world.b++;
         else world.c++;
+        sfx('chop');
       }
     }
     character.held = null; character.cropTL = false;
@@ -902,68 +884,31 @@ export function tryCollectMin(character, mins, world) {
 
 
 export function throwMin(character, mins, box, cursor = null) {
-  // Respect line order: carriers front, then followers sorted by lineToken (front = lowest)
-  const lineMins = mins.filter((min) =>
-    (min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish" || min.state === "following") 
-    && min.atHome
-  );
-  lineMins.sort((a, b) => {
-    const aCarrying = a.state === "carrying" || a.state === "carrying_lumber" || a.state === "carrying_fish" ? 1 : 0;
-    const bCarrying = b.state === "carrying" || b.state === "carrying_lumber" || b.state === "carrying_fish" ? 1 : 0;
-    if (aCarrying !== bCarrying) return bCarrying - aCarrying; // carriers first
-    return (a.lineToken || 0) - (b.lineToken || 0); // front of line first
-  });
+  const isC = (s) => s.startsWith("carrying");
+  // Filter for available mins and sort in one go
+  const m = mins.filter(m => (isC(m.state) || m.state === "following") && m.atHome)
+                .sort((a, b) => (isC(a.state) - isC(b.state)) || (a.lineToken - b.lineToken));
 
-  // Pick frontmost carrier, else frontmost follower (i.e. first min in line)
-  const availableMin = lineMins.find((min) => min.state === "carrying" || min.state === "carrying_lumber" || min.state === "carrying_fish") ||
-                       lineMins.find((min) => min.state === "following");
+  const min = m.find(m => isC(m.state)) || m.find(m => m.state === "following");
+  if (!min) return null;
 
-  if (!availableMin) return null; 
+  min.atHome = false; min.throwOrigin = { ...character }; min.throwDistance = 0; min.landed = false;
 
- 
-  availableMin.throwOrigin = { col: character.col, row: character.row };
-  availableMin.throwDistance = 0;
-  availableMin.landed = false;
-
-  // Carrying items (crops or lumber) go to box
-  if (availableMin.state === "carrying" || availableMin.state === "carrying_lumber" || availableMin.state === "carrying_fish")     {    
-  
-  if (availableMin.state === "carrying_lumber") {
-    availableMin.carryingLumberForDelivery = true;
+  if (isC(min.state)) {
+    min.isDelivering = true;
+    min.carryingLumberForDelivery = (min.state === "carrying_lumber");
+    min.carryingFish = (min.state === "carrying_fish");
+    min.state = "thrown"; min.target = { ...box };
+  } else {
+    const dx = (cursor?.col || character.col) - character.col, dy = (cursor?.row || character.row) - character.row;
+    const d = Math.hypot(dx, dy);
+    min.target = { 
+      col: character.col + (dx / d || 0) * Math.min(d, THROW_MAX_DISTANCE),
+      row: character.row + (dy / d || 0) * Math.min(d, THROW_MAX_DISTANCE)
+    };
+    min.state = "thrown";
   }
-  if (availableMin.state === "carrying" || availableMin.state === "carrying_fish") {
-    availableMin.isDelivering = true;
-  }
-
-
-    availableMin.atHome = false;
-    availableMin.state = "thrown";
-    availableMin.isDelivering = true;
-    availableMin.target = { col: box.col, row: box.row };
-    return availableMin;  
-
-  }
-
-  // Following mins go to cursor or button
-  availableMin.isDelivering = false;
-  availableMin.carryingLumberForDelivery = false;
-  const target = cursor
-    ? { col: cursor.col, row: cursor.row }
-    : { col: character.col, row: character.row };
-
-  const dx = target.col - character.col;
-  const dy = target.row - character.row;
-  const distance = Math.hypot(dx, dy);
-  const clampedDistance = Math.min(distance, THROW_MAX_DISTANCE);
-
-  availableMin.target = {
-    col: character.col + (dx / Math.max(distance, 0.0001)) * clampedDistance,
-    row: character.row + (dy / Math.max(distance, 0.0001)) * clampedDistance
-  };
-  availableMin.atHome = false;
-  availableMin.state = "thrown";
-
-  return availableMin;
+  return min;
 }
 
 function clampTileValue(value, max) {
@@ -1105,26 +1050,18 @@ export function tryCollectSoul(character, world) {
   return false;
 }
 
-// New function: pickup lumber like crops
+
 export function tryPickupLumber(character, world) {
   if (character.held) return false;
-
-  const c = Math.floor(character.col);
-  const r = Math.floor(character.row);
-
+  const c = character.col | 0, r = character.row | 0;
+  
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
-      const checkCol = c + dx;
-      const checkRow = r + dy;
-      
-      // Check if there's lumber at this tile
-      for (let i = 0; i < world.o.length; i++) {
-        const lumberItem = world.o[i];
-         if (Math.floor(lumberItem.col) === checkCol && Math.floor(lumberItem.row) === checkRow) {
-          character.held = "lumber";
-          world.o.splice(i, 1);
-          return true;
-        }
+      const i = world.o.findIndex(l => (l.col | 0) === (c + dx) && (l.row | 0) === (r + dy));
+      if (i !== -1) {
+        character.held = "lumber";
+        world.o.splice(i, 1);
+        return true;
       }
     }
   }

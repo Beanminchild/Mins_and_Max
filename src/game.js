@@ -224,7 +224,7 @@ const ctx = canvas.getContext("2d");
 
 const keys = setupInput(new Set(),
   (code) => {
-    const map = { Digit1:"min", Digit2:"hoe", Digit3:"seeds", Digit4:"watering-can", Digit5:"axe", Digit6:"min" };
+    const map = { Digit1:"hoe", Digit2:"seeds", Digit3:"watering-can", Digit4:"axe", Digit5:"min", Digit6:"min" };
     const tool = map[code];
     if (!tool) return;
     if (tool === "axe" && !world.u) return;
@@ -280,7 +280,7 @@ export const prices = {
   seeds: 5,
   min: 200,
   barn: 3000,
-  farm: 35000,
+  farm: 50000,
   rainbow: 350,
   big_hoe: 3000
 };
@@ -299,7 +299,7 @@ function openShop() {
     if (world.r) {
     shopButtons.push(
       `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
-        Buy Farm Back — 35000g
+        Buy Farm Back — 50000g
       </button>`
     );
   
