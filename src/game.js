@@ -20,7 +20,7 @@ import {
   tryCollectSoul,
   
 } from "./interactions.js";
-import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW } from "./constants.js";
+import { TOOL_TYPES, SHOPKEEPER_LOOK, SHOPKEEPER_COL, SHOPKEEPER_ROW, TOOL_REACH_DISTANCE, TASKS, WATER_POND_COL, WATER_POND_ROW, PLACEHOLDER_LOOK } from "./constants.js";
 
 import { 
   showModal, 
@@ -41,7 +41,7 @@ const elWallet = $("wallet-amount"), elCrop = $("crop-count"), elFarm = $("farm-
       elTask = $("task-list"), elHand = $("clock-hand"), elDay = $("days-left");
 
 
-const SAVE_KEY = "minsMaxSave";
+const SAVE_KEY = "mMS";
 
 // ---- Save / Load ----
 function saveGame() {
@@ -75,14 +75,15 @@ function saveGame() {
     
     X: world.X || 0,
     A: world.A || false,
+    H: world.H || false,
     
     K: { col: world.K.col, row: world.K.row }
   };
-  localStorage.setItem("minsMaxSave", JSON.stringify(data));
+  localStorage.setItem("mMS", JSON.stringify(data));
 }
 
 function loadGame() {
-  const raw = localStorage.getItem("minsMaxSave");
+  const raw = localStorage.getItem("mMS");
   if (!raw) return false;
   const d = JSON.parse(raw);
   Object.assign(world, {
@@ -93,7 +94,9 @@ function loadGame() {
     l: d.l, h: d.h, f: d.f, k: d.k,
     q: d.q, g: d.g, o: d.o, X: d.X || 0,
     A: d.A || false,
+    H: d.H || false,
   });
+  if (world.H) spriteBank = createSpriteBank(PLACEHOLDER_LOOK, { isUnicorn: true });
   DAYS_LEFT = d.daysLeft;
   d.t.forEach((row, r) => row.forEach((t, c) => Object.assign(world.t[r][c], t)));
   world.m.length = 0;
@@ -166,7 +169,7 @@ function showStartMenu() {
     label: "New Game",
     className: hasSave ? "modal-btn--no" : "modal-btn--yes",
     onClick: () => {
-      localStorage.removeItem("minsMaxSave");
+      localStorage.removeItem("mMS");
       closeModal();
     }
   });
@@ -187,11 +190,11 @@ function showStartMenu() {
 function showStory(index) {
   const blurbs = [
     "Max: I have to buy my own farm back?",
-    "Emmie: That's unicorn startup life! You need to scale fast.",
+    "?: That's unicorn startup life! You need to scale fast.",
     "Max: I can't farm fast enough.",
-    "Emmie: Use our 'Mins', sub-agents that automate the grunt work.",
+    "?: Use our 'Mins', they automate the grunt work.",
     "Max: Is it still farming if I'm not doing it?",
-    "Emmie: Its Agentic Farming!"
+    "?: Its Agentic Farming!"
   ];
 
   const buttons = [];
@@ -235,7 +238,7 @@ const keys = setupInput(new Set(),
   () => { if (world.S) closeShop(); }
 );
 const character = createCharacter();
-const spriteBank = createSpriteBank();
+let spriteBank = createSpriteBank();
 const shopkeeper = createCharacter();
 const shopkeeperSpriteBank = createSpriteBank(SHOPKEEPER_LOOK, { showPigtails: false, isUnicorn: true });
 export const world = createWorld();
@@ -282,61 +285,44 @@ export const prices = {
   barn: 3000,
   farm: 50000,
   rainbow: 350,
-  big_hoe: 3000
+  big_hoe: 3000,
+  horn: 200000
 };
 
 function openShop() {
-  world.S = true;  
-  const shopButtons = [];
-  const lumberHave = world.s[11] || 0;
+  world.S = true;
+  const lh = world.s[11] || 0;
   
-  const barnLocked = world.r || lumberHave < 50 || world.w < prices.barn;
-  shopButtons.push(
-    `<button class="shop-button" data-buy="barn" ${barnLocked ? "disabled" : ""}>Unicorp Farm-maxxing Cert — 3000g (${Math.min(lumberHave, 50)}/50 lumber)</button>`
-  );
+  // [id, label, show_condition, extra_enable_condition]
+  const list = [
+    ['barn', `Unicorp Farm-maxxing Cert — 3000g (${Math.min(lh, 50)}/50 lumber)`, !world.r, lh >= 50],
+    ['horn', 'Unicorp Swag ©— 200000g', world.r, !world.H],
+    ['farm', 'Buy Farm Back — 50000g', world.r],
+    ['big_hoe', 'Big Hoe — 3000g', world.r, !world.h],
+    ['rainbow', 'Rainbow Min — 350g', world.r],
+    ['seeds', 'Seeds — 5g', 1],
+    ['min', 'Min — 200g', 1]
+  ];
 
-   // New buttons appear only if barn is bought
-    if (world.r) {
-    shopButtons.push(
-      `<button class="shop-button" data-buy="farm" ${world.w < prices.farm ? "disabled" : ""}>
-        Buy Farm Back — 50000g
-      </button>`
-    );
-  
-    shopButtons.push(
-      `<button class="shop-button" data-buy="big_hoe" ${(world.h || world.w < prices.big_hoe) ? "disabled" : ""}>
-        Big Hoe — 3000g
-      </button>`
-    );
-  
-    shopButtons.push(
-      `<button class="shop-button" data-buy="rainbow" ${world.w < prices.rainbow ? "disabled" : ""}>
-        Rainbow Min — 350g
-      </button>`
-    );
-  }
-  
-  
-  shopButtons.push(`<button class="shop-button" data-buy="seeds" ${world.w < prices.seeds ? "disabled" : ""}>Seeds — 5g</button>`);
-  shopButtons.push(`<button class="shop-button" data-buy="min" ${world.w < prices.min ? "disabled" : ""}>Min — 200g</button>`);
-  
+  const btns = list.filter(i => i[2]).map(([id, label, _, en = 1]) => 
+    `<button class="shop-button" data-buy="${id}" ${(!en || world.w < prices[id]) ? "disabled" : ""}>${label}</button>`
+  ).join("");
+
+ 
   showModal({
     title: "Emmie",
     bodyHtml: `
       <p style="margin:0 0 10px; font-size:12px; color:#aaa; font-style:italic;">
         Community Displacement Strategist & Director of Unrequested Improvement
       </p>
-      <div class="shop-options">
-        ${shopButtons.join("")}
-      </div>
-      <p class="shop-dialogue">"${DAYS_LEFT} days left to pay & ${22-world.x} tasks left to do"</p>`,
+      <div class="shop-options">${btns}</div>
+      <p class="shop-dialogue">"${(world.s[13] && world.x > 22) ? "Thx4playing :)" : `${DAYS_LEFT} days left to pay & ${22-world.x} tasks left to do`}"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
-  // Wire buy buttons after render
-  document.querySelectorAll(".shop-button[data-buy]").forEach((btn) => {
-    btn.onclick = () => buyShopItem(btn.dataset.buy);
-  });
+
+
+  document.querySelectorAll("[data-buy]").forEach(b => b.onclick = () => buyShopItem(b.dataset.buy));
 }
 
 function closeShop() {
@@ -381,6 +367,10 @@ function buyShopItem(item) {
     m.isRainbowMin = true;
     m.isWaterMin = true;
     world.s[6]++;
+    sfx("success");
+  } else if (item === "horn") {
+    world.H = true;
+    spriteBank = createSpriteBank(PLACEHOLDER_LOOK, { isUnicorn: true });
     sfx("success");
   }
   syncHUD();
@@ -430,7 +420,7 @@ function syncHUD() {
 
 
 function updateTaskHUD() {
-  if (DAYS_LEFT < 1 && !world.s[13]) return elTask.innerHTML = "<strong>You Lost the Farm</strong>";
+  if (DAYS_LEFT < 1 && !world.s[13]) return elTask.innerHTML = "Farm Lost";
   const t = TASKS[world.x];
   if (!t) return elTask.innerHTML = "<strong>You Saved the Farm!</strong>";
   const p = world.s[t.stat] || 0;
@@ -580,19 +570,9 @@ canvas.addEventListener("click", () => {
 });
 
 
-// let lastGarbageRun = 0;
-// const  CLEANUP_INTERVAL = 10000;
+
 function loop(timestamp) {
-
-
-  // // Frequency-based cleanup
-  // if (timestamp - lastGarbageRun > CLEANUP_INTERVAL) {
-  //   lastGarbageRun= timestamp;
-    
-  //   clearCaches();  
-
-  // }
-
+ 
   const deltaMs = Math.min(timestamp - lastFrameTime, 32);
   lastFrameTime = timestamp; 
 
@@ -606,11 +586,11 @@ function loop(timestamp) {
     }
 
     // example: only start ticking after 3 tasks finished
-  const TASKS_BEFORE_TIMER_STARTS = 10;   
+   
 
-  if (world.x >= TASKS_BEFORE_TIMER_STARTS) {
+  if (world.x >= 10) {
   world.d += deltaMs;
-  //elFarm.textContent = "Unicorp Farm";
+  
     }
   world.p = Math.min(world.d / world.D, 1);
 
@@ -624,12 +604,9 @@ function loop(timestamp) {
   if ( keys.has("Space")) {
     let interacted = tryInteractWithGravestone(character, world) ||
                     tryCatchFish(character, world) ||
-                    tryPickupLumber(character, world) ||
-                   // handleSignInteraction(character, world) ||
+                    tryPickupLumber(character, world) ||                   
                     tryDepositToBox(character, world.z, world) ||
-                    tryDepositToDominion(character, world.y, world) ||
-                    
-                    //tryInteractWithPond(character, world) ||
+                    tryDepositToDominion(character, world.y, world) ||                   
                     tryCollectSoul(character,world);
 
       if (!interacted && !world.S) {
