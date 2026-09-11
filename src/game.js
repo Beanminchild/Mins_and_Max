@@ -316,7 +316,7 @@ function openShop() {
         Community Displacement Strategist & Director of Unrequested Improvement
       </p>
       <div class="shop-options">${btns}</div>
-      <p class="shop-dialogue">"${(world.s[13] && world.x > 22) ? "Thx4playing :)" : `${DAYS_LEFT} days left to pay & ${22-world.x} tasks left to do`}"</p>`,
+      <p class="shop-dialogue">"${(world.s[13] && world.x > 22) ? "Thx4playing" : `${DAYS_LEFT} days left to pay & ${22-world.x} tasks left to do`}"</p>`,
     buttons: [{ label: "bye", className: "modal-btn--close", onClick: closeShop }],
   });
 
@@ -420,12 +420,14 @@ function syncHUD() {
 
 
 function updateTaskHUD() {
-  if (DAYS_LEFT < 1 && !world.s[13]) return elTask.innerHTML = "Farm Lost";
+  if (world.L || (DAYS_LEFT < 1 && !world.s[13])) 
+    return world.L = 1, elTask.innerHTML = "Farm Lost";
   const t = TASKS[world.x];
   if (!t) return elTask.innerHTML = "<strong>You Saved the Farm!</strong>";
   const p = world.s[t.stat] || 0;
   elTask.innerHTML = `<strong>${t.desc} (${Math.min(p, t.target)}/${t.target})</strong>`;
-  if (p >= t.target) { world.x++; sfx("success"); }
+  if (p >= t.target) { world.x++; sfx("success"); 
+  }
 }
 
 
