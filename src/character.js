@@ -1,93 +1,50 @@
-import { cols, 
-  rows, 
-  DIRECTION_VECTORS, 
-  moveStepSize, 
-  moveStepMs,
-  TILE_TYPES,
-  OTHER_BUILDING_ROW, 
-  OTHER_BUILDING_COL  
-} from "./constants.js";
+import { cols, rows, moveStepSize, moveStepMs, TILE_TYPES } from "./constants.js";
+
+export const createCharacter = () => ({
+  col: 43.75, row: 5.75, dir: 2, walkFrame: 0, stepCounter: 0, held: null
+});
+
+const clamp = (c) => {
+  c.col = Math.max(0, Math.min(cols - 1, c.col));
+  c.row = Math.max(0, Math.min(rows - 1, c.row));
+};
 
 
+export function updateCharacterFromControls(c, keys, deltaMs, world) {
+  const dx = (keys.has("KeyD")|0) - (keys.has("KeyA")|0),
+        dy = (keys.has("KeyS")|0) - (keys.has("KeyW")|0);
 
-export function createCharacter() {
-  return {
-    col: OTHER_BUILDING_COL + 1.75,
-    row: OTHER_BUILDING_ROW + 2.75  ,
-    dir: 0,
-    walkFrame: 0,
-    stepCounter: 0,
-    held: null
-  };
-}
-
-export function clampCharacter(character) {
-  character.col = Math.max(0, Math.min(cols - 1, character.col));
-  character.row = Math.max(0, Math.min(rows - 1, character.row));
-}
-
-export function getDirectionIndex(dx, dy, currentDir) {
-  if (dx > 0 && dy === 0) return 0;
-  if (dx > 0 && dy > 0) return 1;
-  if (dx === 0 && dy > 0) return 2;
-  if (dx < 0 && dy > 0) return 3;
-  if (dx < 0 && dy === 0) return 4;
-  if (dx < 0 && dy < 0) return 5;
-  if (dx === 0 && dy < 0) return 6;
-  if (dx > 0 && dy < 0) return 7;
-  return currentDir;
-}
-
-export function updateCharacterFromControls(character, keys, deltaMs, world) { // Add world here
-  const dx = (keys.has("ArrowRight") || keys.has("KeyD") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("KeyA") ? 1 : 0);
-  const dy = (keys.has("ArrowDown") || keys.has("KeyS") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("KeyW") ? 1 : 0);
-
-  
-  if (dx !== 0 || dy !== 0) {
-    character.stepCounter += deltaMs;
-
-    while (character.stepCounter >= moveStepMs) {
-      const dirIndex = getDirectionIndex(dx, dy, character.dir);
-      const vector = DIRECTION_VECTORS[dirIndex];
-
-      // Calculate potential new position
-      const nextCol = character.col + vector.dx * moveStepSize;
-      const nextRow = character.row + vector.dy * moveStepSize;
-
-      // --- Collision Check ---
-      const targetCol = Math.floor(nextCol);
-      const targetRow = Math.floor(nextRow);
+  if (dx | dy) {
+    c.stepCounter += deltaMs;
+    while (c.stepCounter >= moveStepMs) {
+      // Map keyboard input to direction index (0-7)
+      const dir = [5, 6, 7, 4, c.dir, 0, 3, 2, 1][(dy + 1) * 3 + (dx + 1)];
       
-      // Look up the tile at the target position
-      const tile = world.t[targetRow]?.[targetCol];
-      
-      // Check if tile is water or has a tree
-      const isColliding = tile && (tile.type === TILE_TYPES.WATER || tile.hasTree);
-      if (!isColliding) {
-        character.col = nextCol;
-        character.row = nextRow;
+      // Inline vector math: [Right, DownRight, Down, DownLeft, Left, UpLeft, Up, UpRight]
+      // Using .7 as a compact approximation for 1/sqrt(2)
+      const vx = [1, .7, 0, -.7, -1, -.7, 0, .7][dir];
+      const vy = [0, .7, 1, .7, 0, -.7, -1, -.7][dir];
+
+      const nc = c.col + vx * moveStepSize;
+      const nr = c.row + vy * moveStepSize;
+      const t = world.t[nr|0]?.[nc|0];
+
+      // Collision check (Water or Trees)
+      if (!(t && (t.type === TILE_TYPES.WATER || t.hasTree))) {
+        c.col = nc;
+        c.row = nr;
       }
-      // -----------------------
       
-      clampCharacter(character);
-
-      character.dir = dirIndex;
-      character.walkFrame = (character.walkFrame + 1) % 2;
-      character.stepCounter -= moveStepMs;
+      clamp(c);
+      c.dir = dir;
+      c.walkFrame = (c.walkFrame + 1) % 2;
+      c.stepCounter -= moveStepMs;
     }
-  } else {
-    character.walkFrame = 0;
-  }
+  } else c.walkFrame = 0;
 }
 
-export function updateCamera(canvas, character) {
-  const charScreenPos = {
-    x: (character.col - character.row) * 32,
-    y: (character.col + character.row) * 16
-  };
 
-  return {
-    x: canvas.width / 2 - charScreenPos.x,
-    y: canvas.height / 2 - charScreenPos.y
-  };
-}
+export const updateCamera = (canvas, c) => ({
+  x: canvas.width / 2 - (c.col - c.row) * 32,
+  y: canvas.height / 2 - (c.col + c.row) * 16
+});
